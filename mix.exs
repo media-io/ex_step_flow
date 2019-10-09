@@ -27,7 +27,7 @@ defmodule StepFlow.MixProject do
     [
       extra_applications: [
         :plug,
-        :logger,
+        :logger
       ]
     ]
   end
