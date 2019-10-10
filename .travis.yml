@@ -16,12 +16,18 @@ otp_release:
 env:
   - MIX_ENV=test
 
+matrix:
+  include:
+    # Elixir format
+    - elixir: 1.9.1
+      script:
+        - mix format --check-formatted
+
 install:
   - mix local.hex --force
   - mix local.rebar --force
   - mix deps.get
 
 script:
-  - if [[ $(elixir --version) = *"1.9"* ]]; then mix format --check-formatted; fi
   - mix compile
   - mix test
