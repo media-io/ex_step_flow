@@ -22,6 +22,10 @@ matrix:
     - elixir: 1.9.1
       script:
         - mix format --check-formatted
+    # Elixir credo
+    - elixir: 1.9.1
+      script:
+        - mix credo --strict
 
 install:
   - mix local.hex --force

@@ -26,8 +26,12 @@ defmodule StepFlow.MixProject do
   def application do
     [
       extra_applications: [
+        :blue_bird,
+        :jason,
+        :logger,
+        :phoenix,
         :plug,
-        :logger
+        :postgrex
       ]
     ]
   end
@@ -35,8 +39,16 @@ defmodule StepFlow.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:blue_bird, "~> 0.4.1"},
+      {:cowboy, "~> 2.6"},
+      {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false},
+      {:ecto, "~> 3.1"},
+      {:ecto_sql, "~> 3.1"},
+      {:ex_doc, "~> 0.19", only: :dev, runtime: false},
+      {:jason, "~> 1.1"},
+      {:phoenix, "~> 1.4"},
       {:plug, "~> 1.8"},
-      {:ex_doc, "~> 0.19", only: :dev, runtime: false}
+      {:postgrex, "~> 0.15.0"}
     ]
   end
 
