@@ -5,4 +5,46 @@ defmodule StepFlow do
   Contexts are also responsible for managing your data, regardless
   if it comes from the database, an external API or others.
   """
+  def controller do
+    quote do
+      use Phoenix.Controller, namespace: StepFlow
+      use BlueBird.Controller
+      import Plug.Conn
+      import StepFlow.Router.Helpers
+      import StepFlow.Gettext
+    end
+  end
+
+  def view do
+    quote do
+      use Phoenix.View,
+        root: "lib/step_flow/templates",
+        namespace: StepFlow
+
+      # Import convenience functions from controllers
+      import Phoenix.Controller, only: [get_flash: 2, view_module: 1]
+
+      # Use all HTML functionality (forms, tags, etc)
+      use Phoenix.HTML
+
+      # import StepFlow.Router.Helpers
+      import StepFlow.ErrorHelpers
+      import StepFlow.Gettext
+    end
+  end
+
+  def router do
+    quote do
+      use Phoenix.Router
+      import Plug.Conn
+      import Phoenix.Controller
+    end
+  end
+
+  @doc """
+  When used, dispatch to the appropriate controller/view/etc.
+  """
+  defmacro __using__(which) when is_atom(which) do
+    apply(__MODULE__, which, [])
+  end
 end

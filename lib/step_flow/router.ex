@@ -12,17 +12,25 @@ defmodule StepFlow.Router do
 
   get("/", do: send_resp(conn, 200, "Welcome to Step Flow"))
 
-  get "/workflow/:identifier" do
+  post "/workflows" do
+    StepFlow.WorkflowController.create(conn, conn.body_params)
+  end
+
+  get "/workflows" do
+    StepFlow.WorkflowController.get(conn, conn.body_params)
+  end
+
+  get "/workflows/statistics" do
+    StepFlow.WorkflowController.statistics(conn, conn.body_params)
+  end
+
+  get "/workflows/:identifier" do
     StepFlow.WorkflowController.get(conn, conn.body_params)
   end
 
   # post "/workflow/:identifier" do
   #   StepFlow.WorkflowController.create_specific(conn, conn.body_params)
   # end
-
-  get "/workflows/statistics" do
-    StepFlow.WorkflowController.statistics(conn, conn.body_params)
-  end
 
   # resources("/workflows", WorkflowController, except: [:new, :edit]) do
   #   post("/events", WorkflowEventsController, :handle)

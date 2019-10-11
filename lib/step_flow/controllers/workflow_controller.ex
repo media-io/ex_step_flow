@@ -24,7 +24,7 @@ defmodule StepFlow.WorkflowController do
     render(conn, "index.json", workflows: workflows)
   end
 
-  def create(conn, %{"workflow" => workflow_params}) do
+  def create(conn, workflow_params) do
     case Workflows.create_workflow(workflow_params) do
       {:ok, %Workflow{} = workflow} ->
         WorkflowStep.start_next_step(workflow)
@@ -35,12 +35,14 @@ defmodule StepFlow.WorkflowController do
 
         conn
         |> put_status(:created)
+        |> put_view(StepFlow.WorkflowView)
         |> render("show.json", workflow: workflow)
 
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> render(StepFlow.ChangesetView, "error.json", changeset: changeset)
+        |> put_view(StepFlow.ChangesetView)
+        |> render("error.json", changeset: changeset)
     end
   end
 

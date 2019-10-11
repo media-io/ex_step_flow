@@ -18,7 +18,7 @@ defmodule StepFlow.WorkflowStep do
       |> Enum.uniq()
       |> length
 
-    steps = StepFlow.Map.get_by_key_or_atom(workflow.flow, :steps)
+    steps = StepFlow.Map.get_by_key_or_atom(workflow, :steps)
 
     case Enum.at(steps, step_index) do
       nil ->

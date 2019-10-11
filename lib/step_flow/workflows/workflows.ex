@@ -193,12 +193,11 @@ defmodule StepFlow.Workflows do
 
     steps =
       workflow
-      |> Map.get(:flow)
-      |> Map.get("steps")
+      |> Map.get(:steps)
       |> get_step_status(jobs)
 
     workflow
-    |> Map.put(:flow, %{steps: steps})
+    |> Map.put(:steps, steps)
     |> Map.put(:jobs, jobs)
   end
 

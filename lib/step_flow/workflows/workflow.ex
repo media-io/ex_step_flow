@@ -15,7 +15,7 @@ defmodule StepFlow.Workflows.Workflow do
     field(:version_micro, :integer)
     field(:tags, {:array, :string}, default: [])
     field(:reference, :string)
-    field(:flow, :map)
+    field(:steps, {:array, :string}, default: [])
     field(:parameters, {:array, :map}, default: [])
     has_many(:jobs, Job, on_delete: :delete_all)
     has_many(:artifacts, Artifact, on_delete: :delete_all)
@@ -34,7 +34,7 @@ defmodule StepFlow.Workflows.Workflow do
       :tags,
       :parameters,
       :reference,
-      :flow
+      :steps
     ])
     |> validate_required([
       :identifier,
@@ -42,7 +42,7 @@ defmodule StepFlow.Workflows.Workflow do
       :version_minor,
       :version_micro,
       :reference,
-      :flow
+      :steps
     ])
   end
 end

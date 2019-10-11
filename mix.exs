@@ -9,6 +9,7 @@ defmodule StepFlow.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
+      compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       preferred_cli_env: [
         coveralls: :test,
         "coveralls.detail": :test,
@@ -60,8 +61,10 @@ defmodule StepFlow.MixProject do
       {:ecto_sql, "~> 3.1"},
       {:excoveralls, "~> 0.10", only: :test},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
+      {:gettext, "~> 0.14"},
       {:jason, "~> 1.1"},
       {:phoenix, "~> 1.4"},
+      {:phoenix_html, "~> 2.10"},
       {:plug, "~> 1.8"},
       {:postgrex, "~> 0.15.0"}
     ]
