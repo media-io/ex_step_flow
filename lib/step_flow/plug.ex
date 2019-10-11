@@ -5,7 +5,6 @@ defmodule StepFlow.Plug do
 
   def call(conn, opts) do
     conn
-    |> Plug.Conn.assign(:name, Keyword.get(opts, :name, "Step Flow"))
     |> StepFlow.Router.call(opts)
   end
 end

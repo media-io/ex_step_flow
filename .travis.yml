@@ -28,6 +28,11 @@ matrix:
       script:
         - mix credo --strict
       env: CHECK_SYNTAX=TRUE
+    # Elixir coveralls
+    - elixir: 1.9.1
+      script:
+        - MIX_ENV=test mix coveralls
+      env: COVERALLS=TRUE
 
 install:
   - mix local.hex --force

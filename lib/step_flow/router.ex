@@ -2,6 +2,7 @@ defmodule StepFlow.Router do
   use Plug.Router
 
   plug(:match)
+  plug(:dispatch)
 
   plug(Plug.Parsers,
     parsers: [:json],
@@ -9,9 +10,7 @@ defmodule StepFlow.Router do
     json_decoder: Jason
   )
 
-  plug(:dispatch)
-
-  get("/", do: send_resp(conn, 200, "Welcome to #{conn.assigns.name}"))
+  get("/", do: send_resp(conn, 200, "Welcome to Step Flow"))
 
   get "/workflow/:identifier" do
     StepFlow.WorkflowController.get(conn, conn.body_params)

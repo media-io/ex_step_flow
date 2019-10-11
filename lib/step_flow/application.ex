@@ -6,9 +6,12 @@ defmodule StepFlow.Application do
   use Application
 
   def start(_type, _args) do
+    import Supervisor.Spec
+
     children = [
       # Starts a worker by calling: StepFlow.Worker.start_link(arg)
       # {StepFlow.Worker, arg}
+      supervisor(StepFlow.Repo, [])
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
