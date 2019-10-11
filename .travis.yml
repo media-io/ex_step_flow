@@ -42,6 +42,9 @@ install:
   - mix local.rebar --force
   - mix deps.get
 
+before_script:
+  - mkdir -p priv/repo/migrations
+
 script:
   - mix compile
   - mix test
