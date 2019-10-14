@@ -136,7 +136,7 @@ defmodule StepFlow.WorkflowsTest do
 
     assert status == 200
 
-    data = 
+    data =
       body
       |> Jason.decode!()
       |> Map.get("data")
@@ -151,6 +151,43 @@ defmodule StepFlow.WorkflowsTest do
       |> Map.get("reference")
 
     assert reference == "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
+  end
+
+  test "UPDATE /workflows/:id" do
+    {status, _headers, body} =
+      conn(:post, "/workflows", %{
+        identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+        version_major: 1,
+        version_minor: 2,
+        version_micro: 3
+      })
+      |> Router.call(@opts)
+      |> sent_resp
+
+    assert status == 201
+
+    workflow_id =
+      body
+      |> Jason.decode!()
+      |> Map.get("data")
+      |> Map.get("id")
+      |> Integer.to_string()
+
+    {status, _headers, body} =
+      conn(:put, "/workflows/" <> workflow_id, %{workflow: %{reference: "updated reference"}})
+      |> Router.call(@opts)
+      |> sent_resp
+
+    assert status == 200
+
+    reference = 
+      body
+      |> Jason.decode!()
+      |> Map.get("data")
+      |> Map.get("reference")
+
+    assert reference == "updated reference"
   end
 
   test "DELETE /workflows/:id" do

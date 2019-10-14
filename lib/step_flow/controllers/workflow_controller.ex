@@ -137,7 +137,9 @@ defmodule StepFlow.WorkflowController do
     workflow = Workflows.get_workflow!(id)
 
     with {:ok, %Workflow{} = workflow} <- Workflows.update_workflow(workflow, workflow_params) do
-      render(conn, "show.json", workflow: workflow)
+      conn
+      |> put_view(StepFlow.WorkflowView)
+      |> render("show.json", workflow: workflow)
     end
   end
 

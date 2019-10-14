@@ -28,6 +28,10 @@ defmodule StepFlow.Router do
     StepFlow.WorkflowController.show(conn, conn.path_params)
   end
 
+  put "/workflows/:id" do
+    StepFlow.WorkflowController.update(conn, conn.params)
+  end
+
   delete "/workflows/:id" do
     StepFlow.WorkflowController.delete(conn, conn.path_params)
   end
