@@ -17,7 +17,7 @@ defmodule StepFlow.Router do
   end
 
   get "/workflows" do
-    StepFlow.WorkflowController.get(conn, conn.body_params)
+    StepFlow.WorkflowController.index(conn, conn.body_params)
   end
 
   get "/workflows/statistics" do

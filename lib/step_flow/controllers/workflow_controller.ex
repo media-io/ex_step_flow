@@ -21,7 +21,10 @@ defmodule StepFlow.WorkflowController do
 
   def index(conn, params) do
     workflows = Workflows.list_workflows(params)
-    render(conn, "index.json", workflows: workflows)
+
+    conn
+    |> put_view(StepFlow.WorkflowView)
+    |> render("index.json", workflows: workflows)
   end
 
   def create(conn, workflow_params) do

@@ -43,6 +43,37 @@ defmodule StepFlow.WorkflowsTest do
     assert body |> Jason.decode!() == %{}
   end
 
+  test "GET /workflows" do
+    {status, _headers, body} =
+      conn(:get, "/workflows")
+      |> Router.call(@opts)
+      |> sent_resp
+
+    assert status == 200
+    assert body |> Jason.decode!() == %{"data" => [], "total" => 0}
+
+    {status, _headers, _body} =
+      conn(:post, "/workflows", %{
+        identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+        version_major: 1,
+        version_minor: 2,
+        version_micro: 3
+      })
+      |> Router.call(@opts)
+      |> sent_resp
+
+    assert status == 201
+
+    {status, _headers, body} =
+      conn(:get, "/workflows")
+      |> Router.call(@opts)
+      |> sent_resp
+
+    assert status == 200
+    assert body |> Jason.decode!() |> Map.get("total") == 1
+  end
+
   test "POST /workflows invalid" do
     {status, _headers, body} =
       conn(:post, "/workflows", %{})
