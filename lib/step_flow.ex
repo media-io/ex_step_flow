@@ -10,7 +10,6 @@ defmodule StepFlow do
       use Phoenix.Controller, namespace: StepFlow
       use BlueBird.Controller
       import Plug.Conn
-      import StepFlow.Router.Helpers
       import StepFlow.Gettext
     end
   end
