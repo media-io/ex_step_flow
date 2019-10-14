@@ -24,17 +24,13 @@ defmodule StepFlow.Router do
     StepFlow.WorkflowController.statistics(conn, conn.body_params)
   end
 
-  get "/workflows/:identifier" do
-    StepFlow.WorkflowController.get(conn, conn.body_params)
+  get "/workflows/:id" do
+    StepFlow.WorkflowController.show(conn, conn.path_params)
   end
 
-  # post "/workflow/:identifier" do
-  #   StepFlow.WorkflowController.create_specific(conn, conn.body_params)
-  # end
-
-  # resources("/workflows", WorkflowController, except: [:new, :edit]) do
-  #   post("/events", WorkflowEventsController, :handle)
-  # end
+  delete "/workflows/:id" do
+    StepFlow.WorkflowController.delete(conn, conn.path_params)
+  end
 
   match(_, do: send_resp(conn, 404, "Not found"))
 end
