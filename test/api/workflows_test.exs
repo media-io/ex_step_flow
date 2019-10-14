@@ -146,6 +146,7 @@ defmodule StepFlow.WorkflowsTest do
       |> Map.get("identifier")
 
     assert identifier == "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
+
     reference =
       data
       |> Map.get("reference")
@@ -181,7 +182,7 @@ defmodule StepFlow.WorkflowsTest do
 
     assert status == 200
 
-    reference = 
+    reference =
       body
       |> Jason.decode!()
       |> Map.get("data")
