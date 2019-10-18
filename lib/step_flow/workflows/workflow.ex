@@ -8,7 +8,7 @@ defmodule StepFlow.Workflows.Workflow do
 
   @moduledoc false
 
-  schema "workflow" do
+  schema "step_flow_workflow" do
     field(:identifier, :string)
     field(:version_major, :integer)
     field(:version_minor, :integer)

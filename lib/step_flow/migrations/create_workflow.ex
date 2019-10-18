@@ -3,7 +3,7 @@ defmodule StepFlow.Migration.CreateWorkflow do
   @moduledoc false
 
   def change do
-    create table(:workflow) do
+    create table(:step_flow_workflow) do
       add(:identifier, :string)
       add(:version_major, :integer)
       add(:version_minor, :integer)

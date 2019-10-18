@@ -62,55 +62,6 @@ defmodule StepFlow.WorkflowController do
   def get(conn, %{"identifier" => workflow_identifier} = _params) do
     workflow =
       case workflow_identifier do
-        # "ebu_ingest" ->
-        #   ExBackend.Workflow.Definition.EbuIngest.get_definition(
-        #     "#agent_identifier",
-        #     "#input_filename"
-        #   )
-
-        # "francetv_subtil_rdf_ingest" ->
-        #   reference = Map.get(params, "reference")
-        #   ExVideoFactory.get_ftp_paths_for_video_id(reference)
-        #   |> get_workflow_definition_for_source("francetv_subtil_rdf_ingest", reference)
-
-        # "francetv_subtil_dash_ingest" ->
-        #   ExBackend.Workflow.Definition.FrancetvSubtilDashIngest.get_definition(
-        #     "#mp4_paths",
-        #     "#ttml_path"
-        #   )
-
-        # "francetv_subtil_acs" ->
-        #   workflow_reference = Map.get(params, "reference")
-
-        #   source_mp4_path =
-        #     ExVideoFactory.get_ftp_paths_for_video_id(workflow_reference)
-        #     |> Enum.filter(fn path -> String.contains?(path, "-standard5.mp4") end)
-        #     |> List.first
-        #   source_ttml_path =
-        #     ExVideoFactory.get_http_url_for_ttml(workflow_reference)
-        #     |> List.first()
-
-        #   ExBackend.Workflow.Definition.FrancetvSubtilAcs.get_definition(
-        #     source_mp4_path,
-        #     source_ttml_path,
-        #     nil
-        #   )
-
-        # "ftv_studio_rosetta" ->
-        #   reference = Map.get(params, "reference")
-        #   ExVideoFactory.get_ftp_paths_for_video_id(reference)
-        #   |> get_workflow_definition_for_source("ftv_studio_rosetta", reference)
-
-        # "ftv_acs_standalone" ->
-        #   audio_url = Map.get(params, "audio_url")
-        #   ttml_url = Map.get(params, "ttml_url")
-        #   destination_url = Map.get(params, "destination_url")
-
-        #   ExBackend.Workflow.Definition.FrancetvAcs.get_definition(
-        #     audio_url,
-        #     ttml_url,
-        #     destination_url
-        #   )
         _ -> %{}
       end
 

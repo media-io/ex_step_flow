@@ -7,7 +7,7 @@ defmodule StepFlow.Jobs.Job do
 
   @moduledoc false
 
-  schema "jobs" do
+  schema "step_flow_jobs" do
     field(:name, :string)
     field(:step_id, :integer)
     field(:parameters, {:array, :map}, default: [])

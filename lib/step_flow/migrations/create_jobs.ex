@@ -3,17 +3,17 @@ defmodule StepFlow.Migration.CreateJobs do
   @moduledoc false
 
   def change do
-    create table(:jobs) do
+    create table(:step_flow_jobs) do
       add(:name, :string)
       add(:step_id, :integer, default: 0)
       add(:parameters, {:array, :map}, default: [])
       add(:params, :map)
 
-      add(:workflow_id, references(:workflow, on_delete: :nothing))
+      add(:workflow_id, references(:step_flow_workflow, on_delete: :nothing))
 
       timestamps()
     end
 
-    create(index(:jobs, [:workflow_id]))
+    create(index(:step_flow_jobs, [:workflow_id]))
   end
 end

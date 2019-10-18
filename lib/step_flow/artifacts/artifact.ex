@@ -6,7 +6,7 @@ defmodule StepFlow.Artifacts.Artifact do
 
   @moduledoc false
 
-  schema "artifacts" do
+  schema "step_flow_artifacts" do
     field(:resources, :map)
     belongs_to(:workflow, Workflow, foreign_key: :workflow_id)
 

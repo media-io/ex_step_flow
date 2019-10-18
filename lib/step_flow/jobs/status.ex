@@ -8,7 +8,7 @@ defmodule StepFlow.Jobs.Status do
 
   @moduledoc false
 
-  schema "status" do
+  schema "step_flow_status" do
     field(:state, :string)
     field(:description, :map, default: %{})
     belongs_to(:job, Job, foreign_key: :job_id)

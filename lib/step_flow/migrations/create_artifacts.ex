@@ -4,9 +4,9 @@ defmodule StepFlow.Migration.CreateArtifacts do
   use Ecto.Migration
 
   def change do
-    create table(:artifacts) do
+    create table(:step_flow_artifacts) do
       add(:resources, :map)
-      add(:workflow_id, references(:workflow, on_delete: :nothing))
+      add(:workflow_id, references(:step_flow_workflow, on_delete: :nothing))
 
       timestamps()
     end

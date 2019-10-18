@@ -3,14 +3,14 @@ defmodule StepFlow.Migration.CreateStatus do
   @moduledoc false
 
   def change do
-    create table(:status) do
+    create table(:step_flow_status) do
       add(:state, :string)
       add(:description, :map, default: %{})
-      add(:job_id, references(:jobs, on_delete: :nothing))
+      add(:job_id, references(:step_flow_jobs, on_delete: :nothing))
 
       timestamps()
     end
 
-    create(index(:status, [:job_id]))
+    create(index(:step_flow_status, [:job_id]))
   end
 end
