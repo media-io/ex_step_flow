@@ -19,8 +19,10 @@ env:
 addons:
   postgresql: "9.6"
 
-services:
-  - rabbitmq
+addons:
+  apt:
+    packages:
+    - rabbitmq-server
 
 matrix:
   include:
