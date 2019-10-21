@@ -48,7 +48,8 @@ install:
   - mix deps.get
 
 before_script:
-  - mkdir -p priv/repo/migrations
+  - psql -c 'create database step_flow_test;' -U postgres
+  - mkdir priv/repo/migrations
 
 script:
   - mix compile
