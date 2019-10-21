@@ -4,7 +4,9 @@ defmodule StepFlow.Amqp.CommonConsumer do
     quote do
       use GenServer
       use AMQP
-      # alias StepFlow.Amqp.Connection
+
+      @moduledoc false
+      alias StepFlow.Amqp.Helpers
 
       def start_link do
         GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
@@ -64,58 +66,38 @@ defmodule StepFlow.Amqp.CommonConsumer do
       end
 
       defp rabbitmq_connect do
-        hostname = System.get_env("AMQP_HOSTNAME") || Application.get_env(:amqp, :hostname)
-        username = System.get_env("AMQP_USERNAME") || Application.get_env(:amqp, :username)
-        password = System.get_env("AMQP_PASSWORD") || Application.get_env(:amqp, :password)
-
-        virtual_host =
-          System.get_env("AMQP_VHOST") || Application.get_env(:amqp, :virtual_host) || ""
-
-        virtual_host =
-          case virtual_host do
-            "" -> virtual_host
-            _ -> "/" <> virtual_host
-          end
-
-        port =
-          System.get_env("AMQP_PORT") || Application.get_env(:amqp, :port) ||
-            5672
-            |> port_format
-
-        url =
-          "amqp://" <>
-            username <> ":" <> password <> "@" <> hostname <> ":" <> port <> virtual_host
-
-        Logger.warn("#{__MODULE__}: Connecting with url: #{url}")
+        url = Helpers.get_amqp_connection_url()
 
         case AMQP.Connection.open(url) do
           {:ok, connection} ->
-            Process.monitor(connection.pid)
-
-            {:ok, channel} = AMQP.Channel.open(connection)
-            queue = unquote(opts).queue
-
-            exchange = AMQP.Exchange.topic(channel, "job_response", [durable: true])
-
-            AMQP.Queue.declare(channel, queue, durable: false)
-
-            Logger.warn("#{__MODULE__}: bind #{queue}")
-            AMQP.Queue.bind(channel, queue, "job_response", [routing_key: queue])
-            |> IO.inspect
-            Logger.warn("#{__MODULE__}: connected to queue #{queue}")
-
-            {:ok, _consumer_tag} = AMQP.Basic.consume(channel, queue)
-            {:ok, channel}
-
+            init_amqp_connection(connection)
           {:error, message} ->
             Logger.error(
               "#{__MODULE__}: unable to connect to: #{url}, reason: #{inspect(message)}"
             )
 
             # Reconnection loop
-            :timer.sleep(10000)
+            :timer.sleep(10_000)
             rabbitmq_connect()
         end
+      end
+
+      defp init_amqp_connection(connection) do
+        Process.monitor(connection.pid)
+
+        {:ok, channel} = AMQP.Channel.open(connection)
+        queue = unquote(opts).queue
+
+        exchange = AMQP.Exchange.topic(channel, "job_response", durable: true)
+
+        AMQP.Queue.declare(channel, queue, durable: false)
+        Logger.warn("#{__MODULE__}: bind #{queue}")
+        AMQP.Queue.bind(channel, queue, "job_response", routing_key: queue)
+
+        Logger.warn("#{__MODULE__}: connected to queue #{queue}")
+
+        {:ok, _consumer_tag} = AMQP.Basic.consume(channel, queue)
+        {:ok, channel}
       end
     end
   end

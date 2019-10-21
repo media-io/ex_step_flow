@@ -1,4 +1,8 @@
 defmodule StepFlow.Workflows.StepManager do
+  @moduledoc """
+  The Step Manager context.
+  """
+
   require Logger
 
   use GenServer

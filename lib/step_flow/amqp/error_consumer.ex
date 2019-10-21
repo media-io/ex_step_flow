@@ -1,4 +1,8 @@
 defmodule StepFlow.Amqp.ErrorConsumer do
+  @moduledoc """
+  Consumer of all job with error status.
+  """
+
   require Logger
 
   alias StepFlow.Jobs.Status
@@ -6,7 +10,7 @@ defmodule StepFlow.Amqp.ErrorConsumer do
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "job_error",
-    consumer: &StepFlow.Amqp.ErrorConsumer.consume/4
+    consumer: &ErrorConsumer.consume/4
   }
 
   def consume(channel, tag, _redelivered, %{"job_id" => job_id, "error" => description} = payload) do

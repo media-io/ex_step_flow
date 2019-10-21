@@ -1,6 +1,9 @@
 defmodule StepFlow.Amqp.Supervisor do
   require Logger
   use Supervisor
+  @moduledoc """
+  Supervisor of AMQP connections.
+  """
 
   def start_link do
     Logger.warn("#{__MODULE__} start_link")
@@ -16,6 +19,7 @@ defmodule StepFlow.Amqp.Supervisor do
       worker(StepFlow.Amqp.ErrorConsumer, []),
       worker(StepFlow.Workflows.StepManager, [])
     ]
+
     Supervisor.init(children, strategy: :one_for_one)
   end
 end

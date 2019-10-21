@@ -1,4 +1,7 @@
 defmodule StepFlow.Amqp.CommonEmitter do
+  @moduledoc """
+  A common emitter to send job orders to workers.
+  """
   require Logger
   alias StepFlow.Amqp.Connection
 
