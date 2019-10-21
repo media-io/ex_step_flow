@@ -19,6 +19,9 @@ env:
 addons:
   postgresql: "9.6"
 
+services:
+  - rabbitmq
+
 matrix:
   include:
     # Elixir format
