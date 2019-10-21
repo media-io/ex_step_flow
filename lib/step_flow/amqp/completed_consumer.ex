@@ -3,6 +3,7 @@ defmodule StepFlow.Amqp.CompletedConsumer do
   Consumer of all job with completed status.
   """
   require Logger
+  alias StepFlow.Amqp.CompletedConsumer
   alias StepFlow.Jobs.Status
   alias StepFlow.Workflows.StepManager
 

@@ -5,6 +5,7 @@ defmodule StepFlow.Amqp.ErrorConsumer do
 
   require Logger
 
+  alias StepFlow.Amqp.ErrorConsumer
   alias StepFlow.Jobs.Status
   alias StepFlow.Workflows
 
