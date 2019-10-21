@@ -16,8 +16,8 @@ otp_release:
 env:
   - MIX_ENV=test
 
-addons:
-  postgresql: "9.6"
+services:
+  - postgresql
 
 addons:
   apt:
