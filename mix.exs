@@ -37,6 +37,7 @@ defmodule StepFlow.MixProject do
     [
       mod: {StepFlow.Application, []},
       extra_applications: [
+        :amqp,
         :blue_bird,
         :jason,
         :logger,
@@ -54,6 +55,7 @@ defmodule StepFlow.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:amqp, "~> 1.2"},
       {:blue_bird, "~> 0.4.1"},
       {:cowboy, "~> 2.6"},
       {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false},

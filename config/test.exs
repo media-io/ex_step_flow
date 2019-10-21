@@ -11,3 +11,9 @@ config :step_flow, StepFlow.Repo,
   password: "postgres",
   database: "step_flow_test",
   pool: Ecto.Adapters.SQL.Sandbox
+
+config :amqp,
+  hostname: "localhost",
+  username: "guest",
+  password: "guest",
+  virtual_host: ""

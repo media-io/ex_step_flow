@@ -12,7 +12,8 @@ defmodule StepFlow.Application do
     children = [
       # Starts a worker by calling: StepFlow.Worker.start_link(arg)
       # {StepFlow.Worker, arg}
-      supervisor(StepFlow.Repo, [])
+      supervisor(StepFlow.Repo, []),
+      supervisor(StepFlow.Amqp.Supervisor, [])
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
