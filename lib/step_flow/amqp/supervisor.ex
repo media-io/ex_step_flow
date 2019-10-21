@@ -1,6 +1,7 @@
 defmodule StepFlow.Amqp.Supervisor do
   require Logger
   use Supervisor
+
   @moduledoc """
   Supervisor of AMQP connections.
   """

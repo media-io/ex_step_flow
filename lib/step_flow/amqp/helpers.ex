@@ -1,5 +1,6 @@
 defmodule StepFlow.Amqp.Helpers do
   require Logger
+
   @moduledoc """
   Helpers for AMQP.
   """
@@ -22,8 +23,9 @@ defmodule StepFlow.Amqp.Helpers do
   end
 
   defp get_amqp_port do
-    System.get_env("AMQP_PORT") || Application.get_env(:amqp, :port) || 5672
-    |> port_format
+    System.get_env("AMQP_PORT") || Application.get_env(:amqp, :port) ||
+      5672
+      |> port_format
   end
 
   defp get_amqp_virtual_host do

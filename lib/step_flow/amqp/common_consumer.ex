@@ -71,6 +71,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
         case AMQP.Connection.open(url) do
           {:ok, connection} ->
             init_amqp_connection(connection)
+
           {:error, message} ->
             Logger.error(
               "#{__MODULE__}: unable to connect to: #{url}, reason: #{inspect(message)}"
