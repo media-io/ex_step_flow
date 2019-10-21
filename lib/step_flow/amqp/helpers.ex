@@ -27,10 +27,11 @@ defmodule StepFlow.Amqp.Helpers do
   end
 
   defp get_amqp_virtual_host do
-    System.get_env("AMQP_VHOST") || Application.get_env(:amqp, :virtual_host) || ""
-    |> case do
+    virtual_host = System.get_env("AMQP_VHOST") || Application.get_env(:amqp, :virtual_host) || ""
+
+    case virtual_host do
       "" -> ""
-      virtual_host -> "/" <> virtual_host
+      _ -> "/" <> virtual_host
     end
   end
 
