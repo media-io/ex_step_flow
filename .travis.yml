@@ -49,7 +49,7 @@ install:
 
 before_script:
   - psql -c 'create database step_flow_test;' -U postgres
-  - mkdir priv/repo/migrations
+  - mkdir -p priv/repo/migrations
 
 script:
   - mix compile
