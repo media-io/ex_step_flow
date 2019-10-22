@@ -3,14 +3,19 @@ defmodule StepFlow.Amqp.Supervisor do
   use Supervisor
 
   @moduledoc """
-  Supervisor of AMQP connections.
+  Supervisor of Step Flow.  
+
+  It manage AMQP connection to emir messages, consume too.
+  It's also manage the StepManager to drive workflows
   """
 
+  @doc false
   def start_link do
     Logger.warn("#{__MODULE__} start_link")
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
+  @doc false
   def init(_) do
     Logger.warn("#{__MODULE__} init")
 

@@ -1,9 +1,14 @@
 defmodule StepFlow do
   @moduledoc """
-  StepFlow keeps the contexts that define your domain
-  and business logic.
-  Contexts are also responsible for managing your data, regardless
-  if it comes from the database, an external API or others.
+  StepFlow provide an entire system to manage workflows.  
+  It provides differents parts:
+  - Connection with a database using Ecto to store Workflow status
+  - a connection with a message broker to interact with workers
+  - a RESTful API to create, list and interact with workflows
+  """
+
+  @doc """
+  Helper to include tools in Controllers
   """
   def controller do
     quote do
@@ -14,6 +19,9 @@ defmodule StepFlow do
     end
   end
 
+  @doc """
+  Helper to include tools in Views
+  """
   def view do
     quote do
       use Phoenix.View,
@@ -32,6 +40,9 @@ defmodule StepFlow do
     end
   end
 
+  @doc """
+  Helper to include tools in Router
+  """
   def router do
     quote do
       use Phoenix.Router

@@ -1,17 +1,36 @@
 defmodule StepFlow.Amqp.CommonConsumer do
+  @moduledoc """
+  Definition of a Common Consumer of RabbitMQ queue.  
+  To implement a consumer, 
+  ```elixir
+  defmodule MyModule do
+    use StepFlow.Amqp.CommonConsumer, %{
+      queue: "name_of_the_rabbit_mq_queue",
+      consumer: &MyModule.consume/4
+    }
+
+    def consume(channel, tag, redelivered, payload) do
+      ...
+      Basic.ack(channel, tag)
+    end
+  end
+  ```
+  """
+
   @doc false
   defmacro __using__(opts) do
     quote do
       use GenServer
       use AMQP
 
-      @moduledoc false
       alias StepFlow.Amqp.Helpers
 
+      @doc false
       def start_link do
         GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
       end
 
+      @doc false
       def init(:ok) do
         rabbitmq_connect()
         # Connection.consume(unquote(opts).queue, unquote(opts).consumer)
@@ -55,14 +74,6 @@ defmodule StepFlow.Amqp.CommonConsumer do
 
       def terminate(_reason, state) do
         AMQP.Connection.close(state.connection)
-      end
-
-      def port_format(port) when is_integer(port) do
-        Integer.to_string(port)
-      end
-
-      def port_format(port) do
-        port
       end
 
       defp rabbitmq_connect do

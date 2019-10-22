@@ -5,6 +5,14 @@ defmodule StepFlow.Amqp.Helpers do
   Helpers for AMQP.
   """
 
+  @doc """
+  Get AMQP URL from the configuration or environment variables.
+  - `AMQP_HOSTNAME` Setup the hostname of the RabbitMQ service
+  - `AMQP_USERNAME` Setup the username of the RabbitMQ service
+  - `AMQP_PASSWORD` Setup the password of the RabbitMQ service
+  - `AMQP_PORT` Setup the port of the RabbitMQ service
+  - `AMQP_VHOST` Setup the virtual host of the RabbitMQ service
+  """
   def get_amqp_connection_url do
     hostname = System.get_env("AMQP_HOSTNAME") || Application.get_env(:amqp, :hostname)
     username = System.get_env("AMQP_USERNAME") || Application.get_env(:amqp, :username)

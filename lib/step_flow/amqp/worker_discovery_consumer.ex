@@ -11,6 +11,9 @@ defmodule StepFlow.Amqp.WorkerDiscoveryConsumer do
     consumer: &WorkerDiscoveryConsumer.consume/4
   }
 
+  @doc """
+  Consume messages, create Worker Definition if it's not already declared.
+  """
   def consume(channel, tag, _redelivered, payload) do
     if WorkerDefinitions.exists(payload) do
       label = Map.get(payload, "label")

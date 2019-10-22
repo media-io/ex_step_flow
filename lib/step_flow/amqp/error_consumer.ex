@@ -14,6 +14,9 @@ defmodule StepFlow.Amqp.ErrorConsumer do
     consumer: &ErrorConsumer.consume/4
   }
 
+  @doc """
+  Consume message with error topic, update Job and send a notification
+  """
   def consume(channel, tag, _redelivered, %{"job_id" => job_id, "error" => description} = payload) do
     Logger.error("Job error #{inspect(payload)}")
     Status.set_job_status(job_id, "error", %{message: description})
