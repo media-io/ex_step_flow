@@ -19,7 +19,7 @@ defmodule StepFlow.WorkflowController do
   # the following plugs are defined in the controllers/authorize.ex file
   # plug(:user_check when action in [:index, :create, :create_specific, :show, :update, :delete])
   # plug(Application.fetch_env!(:step_flow, :user_check) when action in
-    # [:index, :create, :create_specific, :show, :update, :delete])
+  # [:index, :create, :create_specific, :show, :update, :delete])
 
   # plug(
   #   :right_technician_or_ftvstudio_check
