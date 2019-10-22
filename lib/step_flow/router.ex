@@ -36,6 +36,10 @@ defmodule StepFlow.Router do
     StepFlow.WorkflowController.delete(conn, conn.path_params)
   end
 
+  post "/worker_definitions" do
+    StepFlow.WorkerDefinitionController.create(conn, conn.body_params)
+  end
+
   get "/worker_definitions" do
     StepFlow.WorkerDefinitionController.index(conn, conn.path_params)
   end

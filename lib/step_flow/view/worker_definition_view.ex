@@ -1,6 +1,6 @@
 defmodule StepFlow.WorkerDefinitionView do
   use StepFlow, :view
-  alias StepFlow.{ArtifactView, JobView, WorkerDefinitionView}
+  alias StepFlow.WorkerDefinitionView
 
   def render("index.json", %{worker_definitions: %{data: worker_definitions, total: total}}) do
     %{
