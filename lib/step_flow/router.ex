@@ -36,5 +36,13 @@ defmodule StepFlow.Router do
     StepFlow.WorkflowController.delete(conn, conn.path_params)
   end
 
+  get "/worker_definitions" do
+    StepFlow.WorkerDefinitionController.index(conn, conn.path_params)
+  end
+
+  get "/worker_definitions/:id" do
+    StepFlow.WorkerDefinitionController.show(conn, conn.path_params)
+  end
+
   match(_, do: send_resp(conn, 404, "Not found"))
 end

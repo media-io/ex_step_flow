@@ -18,6 +18,7 @@ defmodule StepFlow.Amqp.Supervisor do
       worker(StepFlow.Amqp.Connection, []),
       worker(StepFlow.Amqp.CompletedConsumer, []),
       worker(StepFlow.Amqp.ErrorConsumer, []),
+      worker(StepFlow.Amqp.WorkerDiscoveryConsumer, []),
       worker(StepFlow.Workflows.StepManager, [])
     ]
 

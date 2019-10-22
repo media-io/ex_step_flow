@@ -3,6 +3,8 @@ defmodule StepFlow.WorkflowController do
   use BlueBird.Controller
 
   # import StepFlow.Authorize
+  # import Application.fetch_env!(:step_flow, :authorize)
+  require Logger
 
   alias StepFlow.Repo
   alias StepFlow.Workflows
@@ -11,8 +13,12 @@ defmodule StepFlow.WorkflowController do
 
   action_fallback(StepFlow.FallbackController)
 
+  # use StepFlow.AuthenticationBehaviour
+
+  # @callback extension(arg :: any) :: any
   # the following plugs are defined in the controllers/authorize.ex file
   # plug(:user_check when action in [:index, :create, :create_specific, :show, :update, :delete])
+  # plug(Application.fetch_env!(:step_flow, :user_check) when action in [:index, :create, :create_specific, :show, :update, :delete])
 
   # plug(
   #   :right_technician_or_ftvstudio_check
