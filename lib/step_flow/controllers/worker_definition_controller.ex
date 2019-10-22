@@ -32,8 +32,7 @@ defmodule StepFlow.WorkerDefinitionController do
   end
 
   def show(conn, %{"id" => id}) do
-    worker_definition =
-      WorkerDefinitions.get_worker_definition!(id)
+    worker_definition = WorkerDefinitions.get_worker_definition!(id)
 
     conn
     |> put_view(StepFlow.WorkerDefinitionView)

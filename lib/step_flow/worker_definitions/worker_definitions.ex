@@ -98,10 +98,11 @@ defmodule StepFlow.WorkerDefinitions do
   end
 
   def exists(%{"queue_name" => queue_name, "version" => version}) do
-    case Repo.get_by(WorkerDefinition, [queue_name: queue_name, version: version]) do
+    case Repo.get_by(WorkerDefinition, queue_name: queue_name, version: version) do
       nil -> false
       _ -> true
     end
   end
+
   def exists(_), do: false
 end
