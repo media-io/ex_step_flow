@@ -1,4 +1,4 @@
-defmodule StepFlow.RunWorkflows.SimpleWorkflowTest do
+defmodule StepFlow.RunWorkflows.MultipleInputsTest do
   use ExUnit.Case, async: false
   use Plug.Test
 
@@ -14,7 +14,7 @@ defmodule StepFlow.RunWorkflows.SimpleWorkflowTest do
     channel = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 1)
+      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 2)
     end)
 
     :ok
@@ -35,7 +35,10 @@ defmodule StepFlow.RunWorkflows.SimpleWorkflowTest do
             %{
               id: "source_paths",
               type: "array_of_strings",
-              value: ["my_file.mov"]
+              value: [
+                "my_file_1.mov",
+                "my_file_2.mov"
+              ]
             }
           ]
         }
@@ -57,12 +60,12 @@ defmodule StepFlow.RunWorkflows.SimpleWorkflowTest do
 
       {:ok, "started"} = Step.start_next(workflow)
 
-      StepFlow.HelpersTest.check(workflow.id, 1)
-      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
+      StepFlow.HelpersTest.check(workflow.id, 2)
+      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 2)
       StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
 
       {:ok, "completed"} = Step.start_next(workflow)
-      StepFlow.HelpersTest.check(workflow.id, 1)
+      StepFlow.HelpersTest.check(workflow.id, 2)
     end
   end
 end
