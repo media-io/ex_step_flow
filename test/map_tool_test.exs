@@ -1,5 +1,5 @@
 defmodule StepFlow.MapToolTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   test "get_by_key_or_atom" do
     source_1 = %{

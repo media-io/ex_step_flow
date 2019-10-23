@@ -1,5 +1,5 @@
 defmodule StepFlow.WorkflowsTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox

@@ -1,9 +1,10 @@
 defmodule StepFlow.Api.WorkerDefinitionsTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Router
+  alias StepFlow.WorkerDefinitions.WorkerDefinition
   doctest StepFlow
 
   @opts Router.init([])
@@ -11,6 +12,8 @@ defmodule StepFlow.Api.WorkerDefinitionsTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
+    for model <- [WorkerDefinition], do: StepFlow.Repo.delete_all(model)
+    :ok
   end
 
   test "GET /worker_definitions" do

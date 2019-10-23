@@ -1,5 +1,5 @@
 defmodule StepFlow.RunWorkflows.TwoStepsWorkflowTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox
