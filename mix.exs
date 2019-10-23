@@ -58,7 +58,7 @@ defmodule StepFlow.MixProject do
       {:amqp, "~> 1.2"},
       {:blue_bird, "~> 0.4.1"},
       {:cowboy, "~> 2.6"},
-      {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.1", only: [:dev, :test], runtime: false},
       {:ecto, "~> 3.1"},
       {:ecto_sql, "~> 3.1"},
       {:excoveralls, "~> 0.10", only: :test},

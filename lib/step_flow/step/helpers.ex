@@ -48,8 +48,6 @@ defmodule StepFlow.Step.Helpers do
     filter_path_list(new_source_paths, filters)
   end
 
-
-
   def get_step_requirements(jobs, step) do
     %{paths: get_required_paths(jobs, step)}
   end

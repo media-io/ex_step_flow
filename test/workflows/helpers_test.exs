@@ -3,6 +3,8 @@ defmodule StepFlow.HelpersTest do
   use Plug.Test
 
   require Logger
+  alias StepFlow.Amqp.Helpers
+  alias StepFlow.Jobs.Status
 
   def port_format(port) when is_integer(port) do
     Integer.to_string(port)
@@ -23,50 +25,10 @@ defmodule StepFlow.HelpersTest do
     end
   end
 
-  def get_amqp_connection() do
-    hostname = System.get_env("AMQP_HOSTNAME") || Application.get_env(:amqp, :hostname)
-    username = System.get_env("AMQP_USERNAME") || Application.get_env(:amqp, :username)
-    password = System.get_env("AMQP_PASSWORD") || Application.get_env(:amqp, :password)
-
-    virtual_host = System.get_env("AMQP_VHOST") || Application.get_env(:amqp, :virtual_host) || ""
-
-    virtual_host =
-      case virtual_host do
-        "" -> virtual_host
-        _ -> "/" <> virtual_host
-      end
-
-    port =
-      System.get_env("AMQP_PORT") || Application.get_env(:amqp, :port) ||
-        5672
-        |> port_format
-
-    url =
-      "amqp://" <> username <> ":" <> password <> "@" <> hostname <> ":" <> port <> virtual_host
-
+  def get_amqp_connection do
+    url = Helpers.get_amqp_connection_url()
     {:ok, connection} = AMQP.Connection.open(url)
     {:ok, channel} = AMQP.Channel.open(connection)
-
-    AMQP.Queue.declare(channel, "job_acs", durable: false)
-    AMQP.Queue.declare(channel, "job_dash_manifest", durable: false)
-    AMQP.Queue.declare(channel, "job_ftp", durable: false)
-    AMQP.Queue.declare(channel, "job_http", durable: false)
-    AMQP.Queue.declare(channel, "job_gpac", durable: false)
-    AMQP.Queue.declare(channel, "job_ffmpeg", durable: false)
-    AMQP.Queue.declare(channel, "job_rdf", durable: false)
-    AMQP.Queue.declare(channel, "job_file_system", durable: false)
-    AMQP.Queue.declare(channel, "job_speech_to_text", durable: false)
-
-    clean_queue(channel, "job_acs")
-    clean_queue(channel, "job_dash_manifest")
-    clean_queue(channel, "job_ftp")
-    clean_queue(channel, "job_http")
-    clean_queue(channel, "job_gpac")
-    clean_queue(channel, "job_ffmpeg")
-    clean_queue(channel, "job_rdf")
-    clean_queue(channel, "job_file_system")
-    clean_queue(channel, "job_speech_to_text")
-
     channel
   end
 
@@ -124,7 +86,6 @@ defmodule StepFlow.HelpersTest do
   end
 
   defp validate_parameter(param) do
-    IO.inspect(param)
     false
   end
 
@@ -161,7 +122,7 @@ defmodule StepFlow.HelpersTest do
       |> Map.get(:data)
 
     for job <- all_jobs do
-      StepFlow.Jobs.Status.set_job_status(job.id, "completed")
+      Status.set_job_status(job.id, "completed")
     end
 
     all_jobs
@@ -178,13 +139,14 @@ defmodule StepFlow.HelpersTest do
 
     for job <- all_jobs do
       params =
-        job.parameters ++ [
-          %{
-            "id" => "destination_paths",
-            "type" => "array_of_strings",
-            "value" => paths
-          }
-        ]
+        job.parameters ++
+          [
+            %{
+              "id" => "destination_paths",
+              "type" => "array_of_strings",
+              "value" => paths
+            }
+          ]
 
       StepFlow.Jobs.update_job(job, %{parameters: params})
     end

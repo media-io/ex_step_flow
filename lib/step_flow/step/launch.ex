@@ -50,7 +50,7 @@ defmodule StepFlow.Step.Launch do
 
     required_paths =
       if source_path != first_file do
-        (Path.dirname(dst_path) <> "/" <> Path.basename(first_file))
+        Path.dirname(dst_path) <> "/" <> Path.basename(first_file)
       else
         []
       end
