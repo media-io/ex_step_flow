@@ -8,6 +8,7 @@ defmodule StepFlow.Step do
   alias StepFlow.Artifacts
   alias StepFlow.Jobs
   alias StepFlow.Repo
+  alias StepFlow.Step.Launch
   alias StepFlow.Workflows.Workflow
 
   def start_next(%Workflow{id: workflow_id} = workflow) do
@@ -34,7 +35,7 @@ defmodule StepFlow.Step do
         )
 
         step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
-        status = launch_step(workflow, step_name, step)
+        status = Launch.launch_step(workflow, step_name, step)
 
         Logger.info("#{step_name}: #{inspect(status)}")
         _topic = "update_workflow_" <> Integer.to_string(workflow_id)
@@ -63,23 +64,6 @@ defmodule StepFlow.Step do
 
     Repo.preload(workflow, :jobs, force: true)
     |> Jobs.skip_jobs(StepFlow.Map.get_by_key_or_atom(step, :id), step_name)
-  end
-
-  # defp launch_step(workflow, "ism_extraction", step) do
-  #   Workflow.Step.IsmExtraction.launch(workflow, step)
-  # end
-
-  defp launch_step(workflow, step_name, step) do
-    Logger.error("unable to match with the step #{inspect(step)} for workflow #{workflow.id}")
-
-    Repo.preload(workflow, :jobs, force: true)
-    |> Jobs.create_error_job(
-      step_name,
-      StepFlow.Map.get_by_key_or_atom(step, :id),
-      "unable to start this step"
-    )
-
-    {:error, "unable to match with the step #{step_name}"}
   end
 
   defp set_artifacts(workflow) do

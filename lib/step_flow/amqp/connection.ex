@@ -3,6 +3,8 @@ defmodule StepFlow.Amqp.Connection do
 
   @moduledoc false
 
+  @submit_exchange "job_submit"
+
   use GenServer
   alias StepFlow.Amqp.Helpers
 
@@ -29,8 +31,7 @@ defmodule StepFlow.Amqp.Connection do
 
   def handle_cast({:publish, queue, message}, conn) do
     Logger.warn("#{__MODULE__}: publish message on queue: #{queue}")
-    # AMQP.Queue.declare(conn.channel, queue, durable: false)
-    AMQP.Basic.publish(conn.channel, "", queue, message)
+    AMQP.Basic.publish(conn.channel, @submit_exchange, queue, message)
     {:noreply, conn}
   end
 
@@ -73,7 +74,7 @@ defmodule StepFlow.Amqp.Connection do
     # AMQP.Queue.declare(channel, queue)
     # Logger.warn("#{__MODULE__}: connected to queue #{queue}")
 
-    AMQP.Exchange.topic(channel, "job_submit",
+    AMQP.Exchange.topic(channel, @submit_exchange,
       durable: true,
       arguments: [{"alternate-exchange", :longstr, "job_queue_not_found"}]
     )

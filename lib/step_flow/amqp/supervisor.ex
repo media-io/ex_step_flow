@@ -5,8 +5,8 @@ defmodule StepFlow.Amqp.Supervisor do
   @moduledoc """
   Supervisor of Step Flow.  
 
-  It manage AMQP connection to emir messages, consume too.
-  It's also manage the StepManager to drive workflows
+  It manage AMQP connection to emir messages, consume too.  
+  It's also manage the StepManager to drive workflows.
   """
 
   @doc false
@@ -23,8 +23,7 @@ defmodule StepFlow.Amqp.Supervisor do
       worker(StepFlow.Amqp.Connection, []),
       worker(StepFlow.Amqp.CompletedConsumer, []),
       worker(StepFlow.Amqp.ErrorConsumer, []),
-      worker(StepFlow.Amqp.WorkerDiscoveryConsumer, []),
-      worker(StepFlow.Workflows.StepManager, [])
+      worker(StepFlow.Amqp.WorkerDiscoveryConsumer, [])
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
