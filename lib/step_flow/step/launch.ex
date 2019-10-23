@@ -15,6 +15,7 @@ defmodule StepFlow.Step.Launch do
       case StepFlow.Map.get_by_key_or_atom(step, :parent_ids, []) do
         [] ->
           Helpers.get_value_in_parameters(step, "source_paths")
+          |> List.flatten()
           |> Helpers.filter_path_list(input_filter)
 
         parent_ids ->
@@ -28,7 +29,7 @@ defmodule StepFlow.Step.Launch do
       [] ->
         Jobs.create_skipped_job(workflow, step_id, step_name)
 
-      _ ->
+      sp when is_list(sp) ->
         first_file =
           source_paths
           |> Enum.sort()

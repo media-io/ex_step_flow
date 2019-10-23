@@ -29,6 +29,9 @@ defmodule StepFlow.HelpersTest do
     url = Helpers.get_amqp_connection_url()
     {:ok, connection} = AMQP.Connection.open(url)
     {:ok, channel} = AMQP.Channel.open(connection)
+
+    clean_queue(channel, "job_queue_not_found")
+
     channel
   end
 
@@ -85,7 +88,7 @@ defmodule StepFlow.HelpersTest do
     true
   end
 
-  defp validate_parameter(param) do
+  defp validate_parameter(_) do
     false
   end
 
