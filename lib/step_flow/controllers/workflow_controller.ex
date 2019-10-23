@@ -7,9 +7,9 @@ defmodule StepFlow.WorkflowController do
   require Logger
 
   alias StepFlow.Repo
+  alias StepFlow.Step
   alias StepFlow.Workflows
   alias StepFlow.Workflows.Workflow
-  alias StepFlow.WorkflowStep
 
   action_fallback(StepFlow.FallbackController)
 
@@ -37,7 +37,7 @@ defmodule StepFlow.WorkflowController do
   def create(conn, workflow_params) do
     case Workflows.create_workflow(workflow_params) do
       {:ok, %Workflow{} = workflow} ->
-        WorkflowStep.start_next_step(workflow)
+        Step.start_next(workflow)
 
         # StepFlow.Endpoint.broadcast!("notifications:all", "new_workflow", %{
         #   body: %{workflow_id: workflow.id}

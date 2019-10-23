@@ -1,6 +1,6 @@
-defmodule StepFlow.WorkflowStep do
+defmodule StepFlow.Step do
   @moduledoc """
-  The Workflow Step context.
+  The Step context.
   """
 
   require Logger
@@ -10,7 +10,7 @@ defmodule StepFlow.WorkflowStep do
   alias StepFlow.Repo
   alias StepFlow.Workflows.Workflow
 
-  def start_next_step(%Workflow{id: workflow_id} = workflow) do
+  def start_next(%Workflow{id: workflow_id} = workflow) do
     workflow = Repo.preload(workflow, :jobs, force: true)
 
     step_index =
@@ -44,8 +44,8 @@ defmodule StepFlow.WorkflowStep do
         # })
 
         case status do
-          {:ok, "skipped"} -> start_next_step(workflow)
-          {:ok, "completed"} -> start_next_step(workflow)
+          {:ok, "skipped"} -> start_next(workflow)
+          {:ok, "completed"} -> start_next(workflow)
           _ -> status
         end
     end
@@ -82,7 +82,7 @@ defmodule StepFlow.WorkflowStep do
     {:error, "unable to match with the step #{step_name}"}
   end
 
-  def set_artifacts(workflow) do
+  defp set_artifacts(workflow) do
     paths =
       get_uploaded_file_path(workflow.jobs)
       |> Enum.filter(fn path -> String.ends_with?(path, ".mpd") end)
@@ -101,10 +101,10 @@ defmodule StepFlow.WorkflowStep do
     Artifacts.create_artifact(params)
   end
 
-  def get_uploaded_file_path(jobs, result \\ [])
-  def get_uploaded_file_path([], result), do: result
+  defp get_uploaded_file_path(jobs, result \\ [])
+  defp get_uploaded_file_path([], result), do: result
 
-  def get_uploaded_file_path([job | jobs], result) do
+  defp get_uploaded_file_path([job | jobs], result) do
     result =
       if job.name == "upload_ftp" do
         path =

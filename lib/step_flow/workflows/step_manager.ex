@@ -7,7 +7,7 @@ defmodule StepFlow.Workflows.StepManager do
 
   use GenServer
   alias StepFlow.Repo
-  alias StepFlow.WorkflowStep
+  alias StepFlow.Step
 
   def init(args) do
     {:ok, args}
@@ -34,7 +34,7 @@ defmodule StepFlow.Workflows.StepManager do
 
     if StepFlow.Workflows.jobs_without_status?(job.workflow_id) == true do
       job = Repo.preload(job, :workflow)
-      WorkflowStep.start_next_step(job.workflow)
+      Step.start_next(job.workflow)
     end
 
     {:noreply, state}

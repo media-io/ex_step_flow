@@ -10,7 +10,7 @@ defmodule StepFlow.Migration.CreateWorkflow do
       add(:version_micro, :integer)
       add(:tags, {:array, :string}, default: [])
       add(:reference, :string)
-      add(:steps, {:array, :string}, default: [])
+      add(:steps, {:array, :map}, default: [])
       add(:parameters, {:array, :map}, default: [])
 
       timestamps()

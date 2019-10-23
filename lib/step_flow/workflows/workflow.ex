@@ -15,7 +15,7 @@ defmodule StepFlow.Workflows.Workflow do
     field(:version_micro, :integer)
     field(:tags, {:array, :string}, default: [])
     field(:reference, :string)
-    field(:steps, {:array, :string}, default: [])
+    field(:steps, {:array, :map}, default: [])
     field(:parameters, {:array, :map}, default: [])
     has_many(:jobs, Job, on_delete: :delete_all)
     has_many(:artifacts, Artifact, on_delete: :delete_all)

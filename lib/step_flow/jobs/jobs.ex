@@ -183,9 +183,9 @@ defmodule StepFlow.Jobs do
   """
   def skip_jobs(workflow, step_id, action) do
     list_jobs(%{
-      workflow_id: workflow.id,
+      name: action,
       step_id: step_id,
-      job_type: action
+      workflow_id: workflow.id
     })
     |> Enum.filter(fn job ->
       job.status.state != "queued"

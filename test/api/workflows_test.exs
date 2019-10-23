@@ -1,4 +1,4 @@
-defmodule StepFlow.WorkflowsTest do
+defmodule StepFlow.Api.WorkflowsTest do
   use ExUnit.Case, async: true
   use Plug.Test
 
