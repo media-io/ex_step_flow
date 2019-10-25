@@ -42,8 +42,7 @@ defmodule StepFlow.RunWorkflows.MultipleInputsTest do
             }
           ]
         }
-      ],
-      parameters: []
+      ]
     }
 
     def workflow_fixture(workflow, attrs \\ %{}) do

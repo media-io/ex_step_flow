@@ -97,16 +97,25 @@ defmodule StepFlow.Workflows do
         query
       end
 
-    workflow_ids = Map.get(params, "workflow_ids")
+    query =
+      case StepFlow.Map.get_by_key_or_atom(params, :ids) do
+        nil ->
+          query
+
+        identifiers ->
+          from(workflow in query, where: workflow.id in ^identifiers)
+      end
 
     query =
-      if workflow_ids != nil do
-        from(
-          workflow in query,
-          where: workflow.identifier in ^workflow_ids
-        )
-      else
-        query
+      case StepFlow.Map.get_by_key_or_atom(params, :workflow_ids) do
+        nil ->
+          query
+
+        workflow_ids ->
+          from(
+            workflow in query,
+            where: workflow.identifier in ^workflow_ids
+          )
       end
 
     total_query = from(item in subquery(query), select: count(item.id))

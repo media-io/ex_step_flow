@@ -19,6 +19,7 @@ defmodule StepFlow.Amqp.WorkerDiscoveryConsumer do
       label = Map.get(payload, "label")
       version = Map.get(payload, "version")
       Logger.debug("don't re-register worker: #{label} #{version}")
+      Basic.ack(channel, tag)
     else
       case WorkerDefinitions.create_worker_definition(payload) do
         {:ok, _} ->

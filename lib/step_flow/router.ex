@@ -13,19 +13,19 @@ defmodule StepFlow.Router do
   get("/", do: send_resp(conn, 200, "Welcome to Step Flow"))
 
   post "/workflows" do
-    StepFlow.WorkflowController.create(conn, conn.body_params)
+    StepFlow.WorkflowController.create(conn, conn.params)
   end
 
   get "/workflows" do
-    StepFlow.WorkflowController.index(conn, conn.body_params)
+    StepFlow.WorkflowController.index(conn, conn.params)
   end
 
-  get "/workflows/statistics" do
-    StepFlow.WorkflowController.statistics(conn, conn.body_params)
-  end
+  # get "/workflows/statistics" do
+  #   StepFlow.WorkflowController.statistics(conn, conn.path_params)
+  # end
 
   get "/workflows/:id" do
-    StepFlow.WorkflowController.show(conn, conn.path_params)
+    StepFlow.WorkflowController.show(conn, conn.params)
   end
 
   put "/workflows/:id" do
@@ -33,19 +33,23 @@ defmodule StepFlow.Router do
   end
 
   delete "/workflows/:id" do
-    StepFlow.WorkflowController.delete(conn, conn.path_params)
+    StepFlow.WorkflowController.delete(conn, conn.params)
   end
 
   post "/worker_definitions" do
-    StepFlow.WorkerDefinitionController.create(conn, conn.body_params)
+    StepFlow.WorkerDefinitionController.create(conn, conn.params)
   end
 
   get "/worker_definitions" do
-    StepFlow.WorkerDefinitionController.index(conn, conn.path_params)
+    StepFlow.WorkerDefinitionController.index(conn, conn.params)
   end
 
   get "/worker_definitions/:id" do
-    StepFlow.WorkerDefinitionController.show(conn, conn.path_params)
+    StepFlow.WorkerDefinitionController.show(conn, conn.params)
+  end
+
+  get "/jobs" do
+    StepFlow.JobController.index(conn, conn.params)
   end
 
   match(_, do: send_resp(conn, 404, "Not found"))

@@ -30,7 +30,7 @@ defmodule StepFlow.Amqp.Connection do
   end
 
   def handle_cast({:publish, queue, message}, conn) do
-    Logger.warn("#{__MODULE__}: publish message on queue: #{queue}")
+    Logger.warn("#{__MODULE__}: publish message on queue: #{queue} #{message}")
     AMQP.Basic.publish(conn.channel, @submit_exchange, queue, message)
     {:noreply, conn}
   end

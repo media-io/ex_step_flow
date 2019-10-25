@@ -42,9 +42,21 @@ defmodule StepFlow.HelpersTest do
     |> length == 0
   end
 
+  def validate_message_format(%{job_id: job_id, parameters: parameters})
+      when is_integer(job_id) and is_list(parameters) do
+    Enum.map(parameters, fn parameter -> validate_parameter(parameter) end)
+    |> Enum.filter(fn x -> x == false end)
+    |> length == 0
+  end
+
   def validate_message_format(_), do: false
 
   defp validate_parameter(%{"id" => id, "type" => "string", "value" => value})
+       when is_bitstring(id) and is_bitstring(value) do
+    true
+  end
+
+  defp validate_parameter(%{id: id, type: "string", value: value})
        when is_bitstring(id) and is_bitstring(value) do
     true
   end
@@ -54,7 +66,17 @@ defmodule StepFlow.HelpersTest do
     true
   end
 
+  defp validate_parameter(%{id: id, type: "credential", value: value})
+       when is_bitstring(id) and is_bitstring(value) do
+    true
+  end
+
   defp validate_parameter(%{"id" => id, "type" => "boolean", "value" => value})
+       when is_bitstring(id) and is_boolean(value) do
+    true
+  end
+
+  defp validate_parameter(%{id: id, type: "boolean", value: value})
        when is_bitstring(id) and is_boolean(value) do
     true
   end
@@ -64,7 +86,17 @@ defmodule StepFlow.HelpersTest do
     true
   end
 
+  defp validate_parameter(%{id: id, type: "integer", value: value})
+       when is_bitstring(id) and is_integer(value) do
+    true
+  end
+
   defp validate_parameter(%{"id" => id, "type" => "requirements", "value" => %{"paths" => paths}})
+       when is_bitstring(id) and is_list(paths) do
+    true
+  end
+
+  defp validate_parameter(%{id: id, type: "requirements", value: %{"paths" => paths}})
        when is_bitstring(id) and is_list(paths) do
     true
   end
@@ -74,7 +106,17 @@ defmodule StepFlow.HelpersTest do
     true
   end
 
+  defp validate_parameter(%{id: id, type: "requirements", value: %{}})
+       when is_bitstring(id) do
+    true
+  end
+
   defp validate_parameter(%{"id" => id, "type" => "array_of_strings", "value" => paths})
+       when is_bitstring(id) and is_list(paths) do
+    true
+  end
+
+  defp validate_parameter(%{id: id, type: "array_of_strings", value: paths})
        when is_bitstring(id) and is_list(paths) do
     true
   end
