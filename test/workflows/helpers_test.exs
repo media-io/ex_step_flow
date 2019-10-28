@@ -6,6 +6,8 @@ defmodule StepFlow.HelpersTest do
   alias StepFlow.Amqp.Helpers
   alias StepFlow.Jobs.Status
 
+  doctest StepFlow.Step.Helpers
+
   def port_format(port) when is_integer(port) do
     Integer.to_string(port)
   end

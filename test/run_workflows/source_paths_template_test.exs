@@ -77,17 +77,17 @@ defmodule StepFlow.RunWorkflows.SourcePathsTemplateTest do
       directories = ["/" <> Integer.to_string(workflow.id), "/folder"]
 
       assert parameters == [
-        %{
-          "id" => "source_paths",
-          "type" => "array_of_strings",
-          "value" => directories
-        },
-        %{
-          "id" => "requirements",
-          "type" => "requirements",
-          "value" => %{"paths" => directories}
-        }
-      ]
+               %{
+                 "id" => "source_paths",
+                 "type" => "array_of_strings",
+                 "value" => directories
+               },
+               %{
+                 "id" => "requirements",
+                 "type" => "requirements",
+                 "value" => %{"paths" => directories}
+               }
+             ]
 
       StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
 

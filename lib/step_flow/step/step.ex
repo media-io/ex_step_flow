@@ -67,15 +67,7 @@ defmodule StepFlow.Step do
   end
 
   defp set_artifacts(workflow) do
-    paths =
-      get_uploaded_file_path(workflow.jobs)
-      |> Enum.filter(fn path -> String.ends_with?(path, ".mpd") end)
-
-    resources =
-      case paths do
-        [] -> %{}
-        paths -> %{manifest: List.first(paths)}
-      end
+    resources = %{}
 
     params = %{
       resources: resources,
@@ -83,33 +75,5 @@ defmodule StepFlow.Step do
     }
 
     Artifacts.create_artifact(params)
-  end
-
-  defp get_uploaded_file_path(jobs, result \\ [])
-  defp get_uploaded_file_path([], result), do: result
-
-  defp get_uploaded_file_path([job | jobs], result) do
-    result =
-      if job.name == "upload_ftp" do
-        path =
-          job
-          |> StepFlow.Map.get_by_key_or_atom(:parameters, [])
-          |> Enum.find(fn param ->
-            StepFlow.Map.get_by_key_or_atom(param, :id) == "destination_path"
-          end)
-          |> case do
-            nil -> nil
-            param -> StepFlow.Map.get_by_key_or_atom(param, :value)
-          end
-
-        case path do
-          nil -> result
-          path -> List.insert_at(result, -1, path)
-        end
-      else
-        result
-      end
-
-    get_uploaded_file_path(jobs, result)
   end
 end

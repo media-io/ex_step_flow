@@ -55,6 +55,20 @@ defmodule StepFlow.Step.Helpers do
     destination_path ++ destination_paths
   end
 
+  @doc """
+  Filter a list of paths.
+
+  Returns ``.
+
+  ## Examples
+
+      iex> StepFlow.Step.Helpers.filter_path_list(["path_1.ext1", "path2.ext2"], [%{"ends_with" => ".ext2"}])
+      ["path2.ext2"]
+
+      iex> StepFlow.Step.Helpers.filter_path_list(["path_1.ext1", "path2.ext2"], [%{ends_with: ".ext2"}])
+      ["path2.ext2"]
+
+  """
   def filter_path_list(source_paths, []), do: source_paths
 
   def filter_path_list(source_paths, [filter | filters]) do
@@ -80,10 +94,6 @@ defmodule StepFlow.Step.Helpers do
     jobs
     |> Enum.filter(fn job -> job.step_id in required_ids end)
     |> get_jobs_destination_paths
-  end
-
-  def new_required_paths(path) do
-    add_required_paths(%{}, path)
   end
 
   def add_required_paths(requirements, paths) when is_list(paths) do
