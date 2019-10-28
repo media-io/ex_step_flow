@@ -13,6 +13,8 @@ defmodule StepFlow.Step.Launch do
     step_mode = StepFlow.Map.get_by_key_or_atom(step, :mode, "one_for_one")
     source_paths = get_source_paths(workflow, step)
 
+    dates = Helpers.get_dates()
+
     case {source_paths, step_mode} do
       {[], _} ->
         Logger.debug("job one for one path")
@@ -24,27 +26,19 @@ defmodule StepFlow.Step.Launch do
           |> Enum.sort()
           |> List.first()
 
-        current_date_time =
-          Timex.now()
-          |> Timex.format!("%Y_%m_%d__%H_%M_%S", :strftime)
-
-        current_date =
-          Timex.now()
-          |> Timex.format!("%Y_%m_%d", :strftime)
-
         start_job_one_for_one(
           source_paths,
           step,
           step_name,
           step_id,
-          %{date_time: current_date_time, date: current_date},
+          dates,
           first_file,
           workflow
         )
 
       {source_paths, "one_for_many"} when is_list(source_paths) ->
         Logger.debug("job one for many paths")
-        start_job_one_for_many(source_paths, step, step_name, step_id, workflow)
+        start_job_one_for_many(source_paths, step, step_name, step_id, dates, workflow)
 
       {_, _} ->
         Jobs.create_skipped_job(workflow, step_id, step_name)
@@ -100,8 +94,9 @@ defmodule StepFlow.Step.Launch do
     end
   end
 
-  def start_job_one_for_many(source_paths, step, step_name, step_id, workflow) do
-    message = generate_message_one_for_many(source_paths, step, step_name, step_id, workflow)
+  def start_job_one_for_many(source_paths, step, step_name, step_id, dates, workflow) do
+    message =
+      generate_message_one_for_many(source_paths, step, step_name, step_id, dates, workflow)
 
     case CommonEmitter.publish_json(step_name, message) do
       :ok -> {:ok, "started"}
@@ -175,7 +170,7 @@ defmodule StepFlow.Step.Launch do
     Jobs.get_message(job)
   end
 
-  def generate_message_one_for_many(source_paths, step, step_name, step_id, workflow) do
+  def generate_message_one_for_many(source_paths, step, step_name, step_id, dates, workflow) do
     requirements =
       Helpers.get_step_requirements(workflow.jobs, step)
       |> Helpers.add_required_paths(source_paths)
@@ -202,37 +197,17 @@ defmodule StepFlow.Step.Launch do
       end)
 
     destination_filename_templates =
-      StepFlow.Map.get_by_key_or_atom(step, :parameters, [])
-      |> Enum.filter(fn param ->
-        StepFlow.Map.get_by_key_or_atom(param, :id) == "destination_filename" &&
-          StepFlow.Map.get_by_key_or_atom(param, :type) == "template"
-      end)
-      |> Enum.map(fn param ->
-        StepFlow.Map.get_by_key_or_atom(
-          param,
-          :value,
-          StepFlow.Map.get_by_key_or_atom(param, :default)
-        )
-      end)
+      Helpers.get_value_in_parameters_with_type(step, "destination_filename", "template")
 
     select_input =
       case destination_filename_templates do
         [destination_filename_template] ->
-          work_directory =
-            System.get_env("WORK_DIR") || Application.get_env(:step_flow, :work_dir) || ""
-
           filename =
             destination_filename_template
-            |> String.replace("{workflow_id}", "<%= workflow_id %>")
-            |> String.replace("{work_directory}", "<%= work_directory %>")
-            |> EEx.eval_string(
-              workflow_id: workflow.id,
-              work_directory: work_directory
-            )
+            |> Helpers.template_process(workflow, dates, nil)
             |> Path.basename()
 
-          destination_path =
-            work_directory <> "/" <> Integer.to_string(workflow.id) <> "/" <> filename
+          destination_path = Helpers.get_base_directory(workflow) <> filename
 
           Enum.concat(select_input, [
             %{
@@ -246,12 +221,15 @@ defmodule StepFlow.Step.Launch do
           select_input
       end
 
+    source_paths = get_source_paths(workflow, dates, step, source_paths)
+
     parameters =
       StepFlow.Map.get_by_key_or_atom(step, :parameters, [])
       |> Enum.filter(fn param ->
         StepFlow.Map.get_by_key_or_atom(param, :type) != "filter" &&
           StepFlow.Map.get_by_key_or_atom(param, :type) != "template" &&
-          StepFlow.Map.get_by_key_or_atom(param, :type) != "select_input"
+          StepFlow.Map.get_by_key_or_atom(param, :type) != "select_input" &&
+          StepFlow.Map.get_by_key_or_atom(param, :type) != "array_of_templates"
       end)
       |> Enum.concat(select_input)
       |> Enum.concat([
@@ -317,7 +295,7 @@ defmodule StepFlow.Step.Launch do
     {required_paths, base_directory <> filename}
   end
 
-  def build_requirements_and_destination_path(_, _, workflow, dates, source_path, first_file) do
+  def build_requirements_and_destination_path(_, _, workflow, _dates, source_path, first_file) do
     base_directory = Helpers.get_base_directory(workflow)
 
     required_paths =
@@ -328,5 +306,27 @@ defmodule StepFlow.Step.Launch do
       end
 
     {required_paths, base_directory <> Path.basename(source_path)}
+  end
+
+  defp get_source_paths(workflow, dates, step, source_paths) do
+    source_paths_templates =
+      Helpers.get_value_in_parameters_with_type(step, "source_paths", "array_of_templates")
+      |> List.flatten()
+
+    case source_paths_templates do
+      nil ->
+        source_paths
+
+      [] ->
+        source_paths
+
+      templates ->
+        Enum.map(
+          templates,
+          fn template ->
+            Helpers.template_process(template, workflow, dates, nil)
+          end
+        )
+    end
   end
 end

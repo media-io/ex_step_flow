@@ -4,6 +4,7 @@ defmodule StepFlow.LaunchTest do
 
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Repo
+  alias StepFlow.Step.Helpers
   alias StepFlow.Step.Launch
   alias StepFlow.Workflows
 
@@ -199,13 +200,7 @@ defmodule StepFlow.LaunchTest do
 
       assert source_paths == ["my_file_2.ttml", "my_file_3.wav"]
 
-      current_date_time =
-        Timex.now()
-        |> Timex.format!("%Y_%m_%d__%H_%M_%S", :strftime)
-
-      current_date =
-        Timex.now()
-        |> Timex.format!("%Y_%m_%d", :strftime)
+      dates = Helpers.get_dates()
 
       message =
         Launch.generate_message_one_for_one(
@@ -213,7 +208,7 @@ defmodule StepFlow.LaunchTest do
           step,
           step_name,
           step_id,
-          %{date_time: current_date_time, date: current_date},
+          dates,
           first_file,
           workflow
         )
@@ -258,8 +253,17 @@ defmodule StepFlow.LaunchTest do
 
       assert source_paths == ["my_file_2.ttml", "my_file_3.wav"]
 
+      dates = Helpers.get_dates()
+
       message =
-        Launch.generate_message_one_for_many(source_paths, step, step_name, step_id, workflow)
+        Launch.generate_message_one_for_many(
+          source_paths,
+          step,
+          step_name,
+          step_id,
+          dates,
+          workflow
+        )
 
       assert message.parameters == [
                %{

@@ -101,7 +101,16 @@ defmodule StepFlow.Step.Helpers do
     add_required_paths(requirements, paths)
   end
 
-  defp get_work_directory do
+  def get_dates do
+    now = Timex.now()
+
+    %{
+      date_time: Timex.format!(now, "%Y_%m_%d__%H_%M_%S", :strftime),
+      date: Timex.format!(now, "%Y_%m_%d", :strftime)
+    }
+  end
+
+  def get_work_directory do
     System.get_env("WORK_DIR") ||
       Application.get_env(:step_flow, :work_dir) ||
       ""
@@ -109,6 +118,22 @@ defmodule StepFlow.Step.Helpers do
 
   def get_base_directory(workflow) do
     get_work_directory() <> "/" <> Integer.to_string(workflow.id) <> "/"
+  end
+
+  def template_process(template, workflow, dates, nil) do
+    template
+    |> String.replace("{workflow_id}", "<%= workflow_id %>")
+    |> String.replace("{workflow_reference}", "<%= workflow_reference %>")
+    |> String.replace("{work_directory}", "<%= work_directory %>")
+    |> String.replace("{date_time}", "<%= date_time %>")
+    |> String.replace("{date}", "<%= date %>")
+    |> EEx.eval_string(
+      workflow_id: workflow.id,
+      workflow_reference: workflow.reference,
+      work_directory: get_work_directory(),
+      date_time: dates.date_time,
+      date: dates.date
+    )
   end
 
   def template_process(template, workflow, dates, source_path) do
