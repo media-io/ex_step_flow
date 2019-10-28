@@ -20,10 +20,6 @@ defmodule StepFlow.Router do
     StepFlow.WorkflowController.index(conn, conn.params)
   end
 
-  get "/workflows_statistics" do
-    StepFlow.WorkflowController.statistics(conn, conn.path_params)
-  end
-
   get "/workflows/:id" do
     StepFlow.WorkflowController.show(conn, conn.params)
   end
@@ -34,6 +30,10 @@ defmodule StepFlow.Router do
 
   delete "/workflows/:id" do
     StepFlow.WorkflowController.delete(conn, conn.params)
+  end
+
+  get "/workflows_statistics" do
+    StepFlow.WorkflowController.statistics(conn, conn.path_params)
   end
 
   post "/worker_definitions" do
