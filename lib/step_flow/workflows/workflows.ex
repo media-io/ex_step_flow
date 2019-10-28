@@ -343,11 +343,15 @@ defmodule StepFlow.Workflows do
 
   def notification_from_job(job_id) do
     job = Jobs.get_job!(job_id)
-    _topic = "update_workflow_" <> Integer.to_string(job.workflow_id)
+    topic = "update_workflow_" <> Integer.to_string(job.workflow_id)
 
-    # ExBackendWeb.Endpoint.broadcast!("notifications:all", topic, %{
-    #   body: %{workflow_id: job.workflow_id}
-    # })
+    endpoint = Application.get_env(:step_flow, :endpoint)
+
+    if endpoint do
+      endpoint.broadcast!("notifications:all", topic, %{
+        body: %{workflow_id: job.workflow_id}
+      })
+    end
   end
 
   @doc """

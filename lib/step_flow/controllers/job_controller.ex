@@ -4,7 +4,7 @@ defmodule StepFlow.JobController do
   # import ExBackendWeb.Authorize
 
   alias StepFlow.Jobs
-  alias StepFlow.Jobs.Job
+  # alias StepFlow.Jobs.Job
   # alias ExBackend.Amqp.CommonEmitter
 
   action_fallback(ExBackendWeb.FallbackController)

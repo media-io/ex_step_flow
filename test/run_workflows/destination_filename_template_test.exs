@@ -1,0 +1,90 @@
+defmodule StepFlow.RunWorkflows.DestinationFilenameTemplateTest do
+  use ExUnit.Case
+  use Plug.Test
+
+  alias Ecto.Adapters.SQL.Sandbox
+  alias StepFlow.Step
+  alias StepFlow.Workflows
+
+  doctest StepFlow
+
+  setup do
+    # Explicitly get a connection before each test
+    :ok = Sandbox.checkout(StepFlow.Repo)
+    channel = StepFlow.HelpersTest.get_amqp_connection()
+
+    on_exit(fn ->
+      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 1)
+    end)
+
+    :ok
+  end
+
+  describe "workflows" do
+    @workflow_definition %{
+      identifier: "id",
+      version_major: 6,
+      version_minor: 5,
+      version_micro: 4,
+      reference: "some-identifier",
+      steps: [
+        %{
+          id: 0,
+          name: "my_first_step",
+          parameters: [
+            %{
+              id: "source_paths",
+              type: "array_of_strings",
+              value: ["my_file.mov"]
+            },
+            %{
+              id: "destination_filename",
+              type: "template",
+              default: "{source_path}.wav",
+              value: "{source_path}.wav"
+            }
+          ]
+        }
+      ],
+      parameters: []
+    }
+
+    def workflow_fixture(workflow, attrs \\ %{}) do
+      {:ok, workflow} =
+        attrs
+        |> Enum.into(workflow)
+        |> Workflows.create_workflow()
+
+      workflow
+    end
+
+    test "run destination path with template" do
+      workflow = workflow_fixture(@workflow_definition)
+
+      {:ok, "started"} = Step.start_next(workflow)
+
+      StepFlow.HelpersTest.check(workflow.id, 1)
+      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
+
+      destination_path =
+        StepFlow.Jobs.list_jobs(%{
+          "job_type" => "my_first_step",
+          "workflow_id" => workflow.id |> Integer.to_string(),
+          "size" => 50
+        })
+        |> Map.get(:data)
+        |> List.first()
+        |> Map.get(:parameters)
+        |> Enum.filter(fn parameter -> Map.get(parameter, "id") == "destination_path" end)
+        |> List.first()
+        |> Map.get("value")
+
+      assert destination_path == "/" <> Integer.to_string(workflow.id) <> "/my_file.mov.wav"
+
+      StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
+
+      {:ok, "completed"} = Step.start_next(workflow)
+      StepFlow.HelpersTest.check(workflow.id, 1)
+    end
+  end
+end

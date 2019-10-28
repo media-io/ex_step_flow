@@ -139,12 +139,21 @@ defmodule StepFlow.LaunchTest do
       source_paths = Launch.get_source_paths(workflow, step)
       assert source_paths == ["my_file_1.mov", "my_file_2.mov"]
 
+      current_date_time =
+        Timex.now()
+        |> Timex.format!("%Y_%m_%d__%H_%M_%S", :strftime)
+
+      current_date =
+        Timex.now()
+        |> Timex.format!("%Y_%m_%d", :strftime)
+
       message =
         Launch.generate_message_one_for_one(
           source_path,
           step,
           step_name,
           step_id,
+          %{date_time: current_date_time, date: current_date},
           first_file,
           workflow
         )
@@ -190,12 +199,21 @@ defmodule StepFlow.LaunchTest do
 
       assert source_paths == ["my_file_2.ttml", "my_file_3.wav"]
 
+      current_date_time =
+        Timex.now()
+        |> Timex.format!("%Y_%m_%d__%H_%M_%S", :strftime)
+
+      current_date =
+        Timex.now()
+        |> Timex.format!("%Y_%m_%d", :strftime)
+
       message =
         Launch.generate_message_one_for_one(
           source_path,
           step,
           step_name,
           step_id,
+          %{date_time: current_date_time, date: current_date},
           first_file,
           workflow
         )

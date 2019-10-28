@@ -221,9 +221,9 @@ defmodule StepFlow.Api.WorkflowsTest do
     assert body == ""
   end
 
-  test "GET /workflows/statistics" do
+  test "GET /workflows_statistics" do
     {status, _headers, body} =
-      conn(:get, "/workflows/statistics")
+      conn(:get, "/workflows_statistics")
       |> Router.call(@opts)
       |> sent_resp
 

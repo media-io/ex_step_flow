@@ -43,7 +43,8 @@ defmodule StepFlow.MixProject do
         :logger,
         :phoenix,
         :plug,
-        :postgrex
+        :postgrex,
+        :timex
       ]
     ]
   end
@@ -68,7 +69,8 @@ defmodule StepFlow.MixProject do
       {:phoenix, "~> 1.4"},
       {:phoenix_html, "~> 2.10"},
       {:plug, "~> 1.8"},
-      {:postgrex, "~> 0.15.0"}
+      {:postgrex, "~> 0.15.0"},
+      {:timex, "~> 3.2"}
     ]
   end
 

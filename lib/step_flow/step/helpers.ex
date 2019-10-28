@@ -12,7 +12,29 @@ defmodule StepFlow.Step.Helpers do
       StepFlow.Map.get_by_key_or_atom(param, :id) == key
     end)
     |> Enum.map(fn param ->
-      StepFlow.Map.get_by_key_or_atom(param, :value)
+      StepFlow.Map.get_by_key_or_atom(
+        param,
+        :value,
+        StepFlow.Map.get_by_key_or_atom(param, :default)
+      )
+    end)
+  end
+
+  @doc """
+  Retrieve a value on an Object, filtered by the key and the type
+  """
+  def get_value_in_parameters_with_type(object, key, type) do
+    StepFlow.Map.get_by_key_or_atom(object, :parameters, [])
+    |> Enum.filter(fn param ->
+      StepFlow.Map.get_by_key_or_atom(param, :id) == key &&
+        StepFlow.Map.get_by_key_or_atom(param, :type) == type
+    end)
+    |> Enum.map(fn param ->
+      StepFlow.Map.get_by_key_or_atom(
+        param,
+        :value,
+        StepFlow.Map.get_by_key_or_atom(param, :default)
+      )
     end)
   end
 
@@ -77,5 +99,37 @@ defmodule StepFlow.Step.Helpers do
       |> List.insert_at(-1, path)
 
     add_required_paths(requirements, paths)
+  end
+
+  defp get_work_directory do
+    System.get_env("WORK_DIR") ||
+      Application.get_env(:step_flow, :work_dir) ||
+      ""
+  end
+
+  def get_base_directory(workflow) do
+    get_work_directory() <> "/" <> Integer.to_string(workflow.id) <> "/"
+  end
+
+  def template_process(template, workflow, dates, source_path) do
+    filename = Path.basename(source_path)
+
+    template
+    |> String.replace("{source_path}", "<%= source_path %>")
+    |> String.replace("{workflow_id}", "<%= workflow_id %>")
+    |> String.replace("{workflow_reference}", "<%= workflow_reference %>")
+    |> String.replace("{work_directory}", "<%= work_directory %>")
+    |> String.replace("{date_time}", "<%= date_time %>")
+    |> String.replace("{date}", "<%= date %>")
+    |> String.replace("{filename}", "<%= filename %>")
+    |> EEx.eval_string(
+      workflow_id: workflow.id,
+      workflow_reference: workflow.reference,
+      work_directory: get_work_directory(),
+      date_time: dates.date_time,
+      date: dates.date,
+      source_path: source_path,
+      filename: filename
+    )
   end
 end

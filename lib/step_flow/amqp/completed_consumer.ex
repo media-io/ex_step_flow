@@ -6,6 +6,7 @@ defmodule StepFlow.Amqp.CompletedConsumer do
   require Logger
   alias StepFlow.Amqp.CompletedConsumer
   alias StepFlow.Jobs.Status
+  alias StepFlow.Workflows
   alias StepFlow.Workflows.StepManager
 
   use StepFlow.Amqp.CommonConsumer, %{
@@ -18,7 +19,7 @@ defmodule StepFlow.Amqp.CompletedConsumer do
   """
   def consume(channel, tag, _redelivered, %{"job_id" => job_id, "status" => status} = _payload) do
     Status.set_job_status(job_id, status)
-
+    Workflows.notification_from_job(job_id)
     StepManager.check_step_status(%{job_id: job_id})
     Basic.ack(channel, tag)
   end
