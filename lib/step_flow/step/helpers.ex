@@ -58,8 +58,6 @@ defmodule StepFlow.Step.Helpers do
   @doc """
   Filter a list of paths.
 
-  Returns ``.
-
   ## Examples
 
       iex> StepFlow.Step.Helpers.filter_path_list(["path_1.ext1", "path2.ext2"], [%{"ends_with" => ".ext2"}])
