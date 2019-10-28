@@ -64,7 +64,7 @@ defmodule StepFlow.RunWorkflows.SourcePathsTemplateTest do
       StepFlow.HelpersTest.check(workflow.id, 1)
       StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
 
-      source_paths =
+      parameters =
         StepFlow.Jobs.list_jobs(%{
           "job_type" => "my_first_step",
           "workflow_id" => workflow.id |> Integer.to_string(),
@@ -73,11 +73,21 @@ defmodule StepFlow.RunWorkflows.SourcePathsTemplateTest do
         |> Map.get(:data)
         |> List.first()
         |> Map.get(:parameters)
-        |> Enum.filter(fn parameter -> Map.get(parameter, "id") == "source_paths" end)
-        |> List.first()
-        |> Map.get("value")
 
-      assert source_paths == ["/" <> Integer.to_string(workflow.id), "/folder"]
+      directories = ["/" <> Integer.to_string(workflow.id), "/folder"]
+
+      assert parameters == [
+        %{
+          "id" => "source_paths",
+          "type" => "array_of_strings",
+          "value" => directories
+        },
+        %{
+          "id" => "requirements",
+          "type" => "requirements",
+          "value" => %{"paths" => directories}
+        }
+      ]
 
       StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
 

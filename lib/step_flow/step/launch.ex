@@ -171,10 +171,6 @@ defmodule StepFlow.Step.Launch do
   end
 
   def generate_message_one_for_many(source_paths, step, step_name, step_id, dates, workflow) do
-    requirements =
-      Helpers.get_step_requirements(workflow.jobs, step)
-      |> Helpers.add_required_paths(source_paths)
-
     select_input =
       StepFlow.Map.get_by_key_or_atom(step, :parameters, [])
       |> Enum.filter(fn param ->
@@ -222,6 +218,10 @@ defmodule StepFlow.Step.Launch do
       end
 
     source_paths = get_source_paths(workflow, dates, step, source_paths)
+
+    requirements =
+      Helpers.get_step_requirements(workflow.jobs, step)
+      |> Helpers.add_required_paths(source_paths)
 
     parameters =
       StepFlow.Map.get_by_key_or_atom(step, :parameters, [])
