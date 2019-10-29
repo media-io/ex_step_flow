@@ -14,49 +14,12 @@ defmodule StepFlow.Repo do
     case System.get_env("DATABASE_URL") do
       nil ->
         opts =
-          case System.get_env("DATABASE_HOSTNAME") do
-            nil ->
-              opts
-
-            hostname ->
-              Keyword.put(opts, :hostname, hostname)
-          end
-
-        opts =
-          case System.get_env("DATABASE_PORT") do
-            nil ->
-              opts
-
-            port ->
-              Keyword.put(opts, :port, port)
-          end
-
-        opts =
-          case System.get_env("DATABASE_USERNAME") do
-            nil ->
-              opts
-
-            username ->
-              Keyword.put(opts, :username, username)
-          end
-
-        opts =
-          case System.get_env("DATABASE_PASSWORD") do
-            nil ->
-              opts
-
-            password ->
-              Keyword.put(opts, :password, password)
-          end
-
-        opts =
-          case System.get_env("DATABASE_NAME") do
-            nil ->
-              opts
-
-            database ->
-              Keyword.put(opts, :database, database)
-          end
+          opts
+          |> get_from_env("DATABASE_HOSTNAME", :hostname)
+          |> get_from_env("DATABASE_PORT", :port)
+          |> get_from_env("DATABASE_USERNAME", :username)
+          |> get_from_env("DATABASE_PASSWORD", :password)
+          |> get_from_env("DATABASE_NAME", :database)
 
         Logger.info("connect to #{inspect(opts)}")
         {:ok, opts}
@@ -64,6 +27,16 @@ defmodule StepFlow.Repo do
       url ->
         Logger.info("connect to #{url}")
         {:ok, Keyword.put(opts, :url, url)}
+    end
+  end
+
+  defp get_from_env(opts, env_var_name, key_in_opts) do
+    case System.get_env(env_var_name) do
+      nil ->
+        opts
+
+      value ->
+        Keyword.put(opts, key_in_opts, value)
     end
   end
 end
