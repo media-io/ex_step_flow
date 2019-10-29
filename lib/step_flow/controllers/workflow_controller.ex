@@ -1,9 +1,7 @@
 defmodule StepFlow.WorkflowController do
-  use Phoenix.Controller
+  use StepFlow, :controller
   use BlueBird.Controller
 
-  # import StepFlow.Authorize
-  # import Application.fetch_env!(:step_flow, :authorize)
   require Logger
 
   alias StepFlow.Repo
@@ -12,19 +10,6 @@ defmodule StepFlow.WorkflowController do
   alias StepFlow.Workflows.Workflow
 
   action_fallback(StepFlow.FallbackController)
-
-  # use StepFlow.AuthenticationBehaviour
-
-  # @callback extension(arg :: any) :: any
-  # the following plugs are defined in the controllers/authorize.ex file
-  # plug(:user_check when action in [:index, :create, :create_specific, :show, :update, :delete])
-  # plug(Application.fetch_env!(:step_flow, :user_check) when action in
-  # [:index, :create, :create_specific, :show, :update, :delete])
-
-  # plug(
-  #   :right_technician_or_ftvstudio_check
-  #   when action in [:index, :show, :update, :delete]
-  # )
 
   def index(conn, params) do
     workflows = Workflows.list_workflows(params)
@@ -39,9 +24,13 @@ defmodule StepFlow.WorkflowController do
       {:ok, %Workflow{} = workflow} ->
         Step.start_next(workflow)
 
-        # StepFlow.Endpoint.broadcast!("notifications:all", "new_workflow", %{
-        #   body: %{workflow_id: workflow.id}
-        # })
+        endpoint = Application.get_env(:step_flow, :endpoint)
+
+        if endpoint do
+          endpoint.broadcast!("notifications:all", "new_workflow", %{
+            body: %{workflow_id: workflow.id}
+          })
+        end
 
         conn
         |> put_status(:created)

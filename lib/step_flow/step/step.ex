@@ -38,11 +38,15 @@ defmodule StepFlow.Step do
         status = Launch.launch_step(workflow, step_name, step)
 
         Logger.info("#{step_name}: #{inspect(status)}")
-        _topic = "update_workflow_" <> Integer.to_string(workflow_id)
+        topic = "update_workflow_" <> Integer.to_string(workflow_id)
 
-        # ExBackendWeb.Endpoint.broadcast!("notifications:all", topic, %{
-        #   body: %{workflow_id: workflow_id}
-        # })
+        endpoint = Application.get_env(:step_flow, :endpoint)
+
+        if endpoint do
+          endpoint.broadcast!("notifications:all", topic, %{
+            body: %{workflow_id: workflow.id}
+          })
+        end
 
         case status do
           {:ok, "skipped"} -> start_next(workflow)

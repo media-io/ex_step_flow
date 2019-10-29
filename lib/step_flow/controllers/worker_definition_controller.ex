@@ -1,5 +1,5 @@
 defmodule StepFlow.WorkerDefinitionController do
-  use Phoenix.Controller
+  use StepFlow, :controller
   use BlueBird.Controller
 
   alias StepFlow.WorkerDefinitions

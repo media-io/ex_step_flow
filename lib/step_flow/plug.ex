@@ -1,10 +1,15 @@
 defmodule StepFlow.Plug do
   @moduledoc false
 
-  def init(opts), do: opts
+  defmacro __using__(_opts) do
+    quote do
+      def init(opts), do: opts
 
-  def call(conn, opts) do
-    conn
-    |> StepFlow.Router.call(opts)
+      def call(conn, opts) do
+        conn
+        |> StepFlow.Authorization.check()
+        |> StepFlow.Router.call(opts)
+      end
+    end
   end
 end
