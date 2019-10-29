@@ -24,13 +24,7 @@ defmodule StepFlow.WorkflowController do
       {:ok, %Workflow{} = workflow} ->
         Step.start_next(workflow)
 
-        endpoint = Application.get_env(:step_flow, :endpoint)
-
-        if endpoint do
-          endpoint.broadcast!("notifications:all", "new_workflow", %{
-            body: %{workflow_id: workflow.id}
-          })
-        end
+        StepFlow.Notification.send("new_workflow", %{workflow_id: workflow.id})
 
         conn
         |> put_status(:created)

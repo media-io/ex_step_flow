@@ -27,14 +27,7 @@ defmodule StepFlow.Workflows.StepManager do
     job = StepFlow.Jobs.get_job!(job_id)
 
     topic = "update_workflow_" <> Integer.to_string(job.workflow_id)
-
-    endpoint = Application.get_env(:step_flow, :endpoint)
-
-    if endpoint do
-      endpoint.broadcast!("notifications:all", topic, %{
-        body: %{workflow_id: job.workflow_id}
-      })
-    end
+    StepFlow.Notification.send(topic, %{workflow_id: job.workflow_id})
 
     if StepFlow.Workflows.jobs_without_status?(job.workflow_id) == true do
       job = Repo.preload(job, :workflow)

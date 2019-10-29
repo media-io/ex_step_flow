@@ -17,13 +17,7 @@ defmodule StepFlow.WorkflowEventsController do
         |> skip_remaining_steps(workflow)
 
         topic = "update_workflow_" <> Integer.to_string(workflow.id)
-        endpoint = Application.get_env(:step_flow, :endpoint)
-
-        if endpoint do
-          endpoint.broadcast!("notifications:all", topic, %{
-            body: %{workflow_id: workflow.id}
-          })
-        end
+        StepFlow.Notification.send(topic, %{workflow_id: workflow.id})
 
         conn
         |> put_status(:ok)
@@ -56,14 +50,7 @@ defmodule StepFlow.WorkflowEventsController do
         end
 
         Workflows.delete_workflow(workflow)
-
-        endpoint = Application.get_env(:step_flow, :endpoint)
-
-        if endpoint do
-          endpoint.broadcast!("notifications:all", "delete_workflow", %{
-            body: %{workflow_id: workflow.id}
-          })
-        end
+        StepFlow.Notification.send("delete_workflow", %{workflow_id: workflow.id})
 
         conn
         |> put_status(:ok)

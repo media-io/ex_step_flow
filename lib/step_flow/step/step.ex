@@ -40,13 +40,7 @@ defmodule StepFlow.Step do
         Logger.info("#{step_name}: #{inspect(status)}")
         topic = "update_workflow_" <> Integer.to_string(workflow_id)
 
-        endpoint = Application.get_env(:step_flow, :endpoint)
-
-        if endpoint do
-          endpoint.broadcast!("notifications:all", topic, %{
-            body: %{workflow_id: workflow.id}
-          })
-        end
+        StepFlow.Notification.send(topic, %{workflow_id: workflow.id})
 
         case status do
           {:ok, "skipped"} -> start_next(workflow)
