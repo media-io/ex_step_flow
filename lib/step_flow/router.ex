@@ -32,6 +32,10 @@ defmodule StepFlow.Router do
     StepFlow.WorkflowController.delete(conn, conn.params)
   end
 
+  post "/workflows/:id/events" do
+    StepFlow.WorkflowEventsController.handle(conn, conn.params)
+  end
+
   get "/workflows_statistics" do
     StepFlow.WorkflowController.statistics(conn, conn.path_params)
   end

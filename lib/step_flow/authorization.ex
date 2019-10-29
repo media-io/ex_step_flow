@@ -22,9 +22,8 @@ defmodule StepFlow.Authorization do
       ]
   ```
   """
-
   def check(conn) do
-    key = String.to_atom(String.downcase(conn.method) <> "_" <> List.first(conn.path_info))
+    key = String.to_atom(String.downcase(conn.method) <> "_" <> get_path(conn.path_info))
 
     authorize = Application.get_env(:step_flow, :authorize)
 
@@ -48,5 +47,13 @@ defmodule StepFlow.Authorization do
     else
       check_for_route(conn, module, checks)
     end
+  end
+
+  defp get_path(["workflows", _, "events"]) do
+    "workflows_events"
+  end
+
+  defp get_path(items) do
+    List.first(items)
   end
 end

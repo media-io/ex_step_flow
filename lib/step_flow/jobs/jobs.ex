@@ -187,8 +187,12 @@ defmodule StepFlow.Jobs do
       step_id: step_id,
       workflow_id: workflow.id
     })
+    |> Map.get(:data)
     |> Enum.filter(fn job ->
-      job.status.state != "queued"
+      case job.status do
+        [%{state: state}] -> state != "queued"
+        _ -> false
+      end
     end)
     |> Enum.each(fn job ->
       Status.set_job_status(job.id, "skipped")

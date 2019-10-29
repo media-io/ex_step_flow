@@ -57,17 +57,19 @@ defmodule StepFlow.Step do
   end
 
   def skip_step(workflow, step) do
+    step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
     step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
 
     Repo.preload(workflow, :jobs, force: true)
-    |> Jobs.create_skipped_job(StepFlow.Map.get_by_key_or_atom(step, :id), step_name)
+    |> Jobs.create_skipped_job(step_id, step_name)
   end
 
   def skip_step_jobs(workflow, step) do
+    step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
     step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
 
     Repo.preload(workflow, :jobs, force: true)
-    |> Jobs.skip_jobs(StepFlow.Map.get_by_key_or_atom(step, :id), step_name)
+    |> Jobs.skip_jobs(step_id, step_name)
   end
 
   defp set_artifacts(workflow) do
