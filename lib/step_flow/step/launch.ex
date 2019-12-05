@@ -82,6 +82,7 @@ defmodule StepFlow.Step.Launch do
 
     case StepFlow.Map.get_by_key_or_atom(step, :parent_ids, []) do
       [] ->
+        # Helpers.get_value_in_parameters_with_type(step, "source_paths", "string")
         Helpers.get_value_in_parameters(step, "source_paths")
         |> List.flatten()
         |> Helpers.filter_path_list(input_filter)
@@ -138,7 +139,8 @@ defmodule StepFlow.Step.Launch do
       |> Enum.filter(fn param ->
         StepFlow.Map.get_by_key_or_atom(param, :type) != "filter" &&
           StepFlow.Map.get_by_key_or_atom(param, :type) != "template" &&
-          StepFlow.Map.get_by_key_or_atom(param, :type) != "select_input"
+          StepFlow.Map.get_by_key_or_atom(param, :type) != "select_input" &&
+          StepFlow.Map.get_by_key_or_atom(param, :type) != "array_of_templates"
       end)
       |> Enum.concat([
         %{

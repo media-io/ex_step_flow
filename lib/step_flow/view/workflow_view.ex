@@ -23,6 +23,7 @@ defmodule StepFlow.WorkflowView do
       tags: workflow.tags,
       reference: workflow.reference,
       steps: workflow.steps,
+      parameters: workflow.parameters,
       created_at: workflow.inserted_at
     }
 
