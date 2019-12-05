@@ -74,7 +74,7 @@ defmodule StepFlow.RunWorkflows.SourcePathsTemplateTest do
         |> List.first()
         |> Map.get(:parameters)
 
-      directories = ["/" <> Integer.to_string(workflow.id), "/folder"]
+      directories = ["/test_work_dir/" <> Integer.to_string(workflow.id), "/test_work_dir/folder"]
 
       assert parameters == [
                %{

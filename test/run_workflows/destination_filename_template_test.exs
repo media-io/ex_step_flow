@@ -79,7 +79,8 @@ defmodule StepFlow.RunWorkflows.DestinationFilenameTemplateTest do
         |> List.first()
         |> Map.get("value")
 
-      assert destination_path == "/" <> Integer.to_string(workflow.id) <> "/my_file.mov.wav"
+      assert destination_path ==
+               "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file.mov.wav"
 
       StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
 
