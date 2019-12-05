@@ -129,43 +129,52 @@ defmodule StepFlow.Step.Helpers do
   end
 
   def template_process(template, workflow, dates, nil) do
-    template
-    |> String.replace("{workflow_id}", "<%= workflow_id %>")
-    |> String.replace("{workflow_reference}", "<%= workflow_reference %>")
-    |> String.replace("{work_directory}", "<%= work_directory %>")
-    |> String.replace("{date_time}", "<%= date_time %>")
-    |> String.replace("{date}", "<%= date %>")
-    |> EEx.eval_string(
-      workflow_id: workflow.id,
-      workflow_reference: workflow.reference,
-      work_directory: get_work_directory(),
-      date_time: dates.date_time,
-      date: dates.date
-    )
+    intern_template_process(template, workflow, dates, [])
   end
 
   def template_process(template, workflow, dates, source_path) do
     filename = Path.basename(source_path)
     extension = Path.extname(source_path)
+    name = Path.basename(source_path, extension)
+
+    source_keywords =
+      Keyword.new()
+      |> Keyword.put(:source_path, source_path)
+      |> Keyword.put(:filename, filename)
+      |> Keyword.put(:extension, extension)
+      |> Keyword.put(:name, name)
+
+    intern_template_process(template, workflow, dates, source_keywords)
+  end
+
+  defp intern_template_process(template, workflow, dates, source_keywords) do
+    defined_parameters =
+      workflow.parameters
+      |> Enum.filter(fn item -> StepFlow.Map.get_by_key_or_atom(item, :type) == "string" end)
+      |> Enum.map(fn item ->
+        identifier =
+          StepFlow.Map.get_by_key_or_atom(item, :id)
+          |> String.to_atom()
+
+        value =
+          StepFlow.Map.get_by_key_or_atom(
+            item,
+            :value,
+            StepFlow.Map.get_by_key_or_atom(item, :value)
+          )
+
+        {identifier, value}
+      end)
+      |> Keyword.put(:workflow_id, workflow.id)
+      |> Keyword.put(:workflow_reference, workflow.reference)
+      |> Keyword.put(:work_directory, get_work_directory())
+      |> Keyword.put(:date_time, dates.date_time)
+      |> Keyword.put(:date, dates.date)
+      |> Keyword.merge(source_keywords)
 
     template
-    |> String.replace("{source_path}", "<%= source_path %>")
-    |> String.replace("{workflow_id}", "<%= workflow_id %>")
-    |> String.replace("{workflow_reference}", "<%= workflow_reference %>")
-    |> String.replace("{work_directory}", "<%= work_directory %>")
-    |> String.replace("{date_time}", "<%= date_time %>")
-    |> String.replace("{date}", "<%= date %>")
-    |> String.replace("{filename}", "<%= filename %>")
-    |> String.replace("{extension}", "<%= extension %>")
-    |> EEx.eval_string(
-      workflow_id: workflow.id,
-      workflow_reference: workflow.reference,
-      work_directory: get_work_directory(),
-      date_time: dates.date_time,
-      date: dates.date,
-      source_path: source_path,
-      filename: filename,
-      extension: extension,
-    )
+    |> String.replace("{", "<%= ")
+    |> String.replace("}", " %>")
+    |> EEx.eval_string(defined_parameters)
   end
 end

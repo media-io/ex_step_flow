@@ -169,7 +169,8 @@ defmodule StepFlow.LaunchTest do
                %{
                  "id" => "destination_path",
                  "type" => "string",
-                 "value" => "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_2.mov"
+                 "value" =>
+                   "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_2.mov"
                },
                %{
                  "id" => "requirements",
@@ -228,12 +229,17 @@ defmodule StepFlow.LaunchTest do
                %{
                  "id" => "destination_path",
                  "type" => "string",
-                 "value" => "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_3.wav"
+                 "value" =>
+                   "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_3.wav"
                },
                %{
                  "id" => "requirements",
                  "type" => "requirements",
-                 "value" => %{paths: ["/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_2.ttml"]}
+                 "value" => %{
+                   paths: [
+                     "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_2.ttml"
+                   ]
+                 }
                }
              ]
 

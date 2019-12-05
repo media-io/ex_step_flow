@@ -7,14 +7,17 @@ defmodule StepFlow.StepHelpersTest do
   doctest StepFlow
 
   describe "helpers_test" do
-
     test "template generation" do
       template = "{work_directory}/{date_time}/{filename}"
+
       workflow = %{
         id: 666,
-        reference: "110e8400-e29b-11d4-a716-446655440000"
+        reference: "110e8400-e29b-11d4-a716-446655440000",
+        parameters: []
       }
+
       source_path = "source_folder/filename.ttml"
+
       dates = %{
         date: "2019_12_05",
         date_time: "2019_12_05__11_41_40"
@@ -25,19 +28,54 @@ defmodule StepFlow.StepHelpersTest do
     end
 
     test "template generation with extension" do
-      template = "{work_directory}/{date_time}/{filename}{extension}"
+      template = "{work_directory}/{date_time}/{name}{extension}"
+
       workflow = %{
         id: 666,
-        reference: "110e8400-e29b-11d4-a716-446655440000"
+        reference: "110e8400-e29b-11d4-a716-446655440000",
+        parameters: []
       }
+
       source_path = "source_folder/filename.ttml"
+
       dates = %{
         date: "2019_12_05",
         date_time: "2019_12_05__11_41_40"
       }
 
       generated = Helpers.template_process(template, workflow, dates, source_path)
-      assert generated == "/test_work_dir/2019_12_05__11_41_40/filename.ttml.ttml"
+      assert generated == "/test_work_dir/2019_12_05__11_41_40/filename.ttml"
+    end
+
+    test "template generation with workflow parameters" do
+      template = "{work_directory}/{title}/{name}{extension}"
+
+      workflow = %{
+        id: 666,
+        reference: "110e8400-e29b-11d4-a716-446655440000",
+        parameters: [
+          %{
+            "id" => "source_prefix",
+            "type" => "string",
+            "value" => "/343079/http"
+          },
+          %{
+            "id" => "title",
+            "type" => "string",
+            "value" => "content_title"
+          }
+        ]
+      }
+
+      source_path = "source_folder/filename.ttml"
+
+      dates = %{
+        date: "2019_12_05",
+        date_time: "2019_12_05__11_41_40"
+      }
+
+      generated = Helpers.template_process(template, workflow, dates, source_path)
+      assert generated == "/test_work_dir/content_title/filename.ttml"
     end
   end
 end
