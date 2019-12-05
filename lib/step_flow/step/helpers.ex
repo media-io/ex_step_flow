@@ -146,6 +146,7 @@ defmodule StepFlow.Step.Helpers do
 
   def template_process(template, workflow, dates, source_path) do
     filename = Path.basename(source_path)
+    extension = Path.extname(source_path)
 
     template
     |> String.replace("{source_path}", "<%= source_path %>")
@@ -155,6 +156,7 @@ defmodule StepFlow.Step.Helpers do
     |> String.replace("{date_time}", "<%= date_time %>")
     |> String.replace("{date}", "<%= date %>")
     |> String.replace("{filename}", "<%= filename %>")
+    |> String.replace("{extension}", "<%= extension %>")
     |> EEx.eval_string(
       workflow_id: workflow.id,
       workflow_reference: workflow.reference,
@@ -162,7 +164,8 @@ defmodule StepFlow.Step.Helpers do
       date_time: dates.date_time,
       date: dates.date,
       source_path: source_path,
-      filename: filename
+      filename: filename,
+      extension: extension,
     )
   end
 end
