@@ -128,6 +128,14 @@ defmodule StepFlow.Step.Helpers do
     get_work_directory() <> "/" <> Integer.to_string(workflow.id) <> "/"
   end
 
+  def templates_process([], _workflow, _dates, result), do: result
+
+  def templates_process([template | templates], workflow, dates, result) do
+    processed = intern_template_process(template, workflow, dates, [])
+    result = List.insert_at(result, -1, processed)
+    templates_process(templates, workflow, dates, result)
+  end
+
   def template_process(template, workflow, dates, nil) do
     intern_template_process(template, workflow, dates, [])
   end

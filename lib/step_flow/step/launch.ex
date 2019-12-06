@@ -9,11 +9,11 @@ defmodule StepFlow.Step.Launch do
   alias StepFlow.Step.Helpers
 
   def launch_step(workflow, step_name, step) do
+    dates = Helpers.get_dates()
+
     step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
     step_mode = StepFlow.Map.get_by_key_or_atom(step, :mode, "one_for_one")
-    source_paths = get_source_paths(workflow, step)
-
-    dates = Helpers.get_dates()
+    source_paths = get_source_paths(workflow, step, dates)
 
     case {source_paths, step_mode} do
       {[], _} ->
@@ -77,14 +77,14 @@ defmodule StepFlow.Step.Launch do
     end
   end
 
-  def get_source_paths(workflow, step) do
+  def get_source_paths(workflow, step, dates) do
     input_filter = Helpers.get_value_in_parameters(step, "input_filter")
 
     case StepFlow.Map.get_by_key_or_atom(step, :parent_ids, []) do
       [] ->
-        # Helpers.get_value_in_parameters_with_type(step, "source_paths", "string")
         Helpers.get_value_in_parameters(step, "source_paths")
         |> List.flatten()
+        |> Helpers.templates_process(workflow, dates, [])
         |> Helpers.filter_path_list(input_filter)
 
       parent_ids ->

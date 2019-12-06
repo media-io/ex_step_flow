@@ -136,8 +136,9 @@ defmodule StepFlow.LaunchTest do
       step = @workflow_definition.steps |> List.first()
       step_name = step.name
       step_id = step.id
+      dates = Helpers.get_dates()
 
-      source_paths = Launch.get_source_paths(workflow, step)
+      source_paths = Launch.get_source_paths(workflow, step, dates)
       assert source_paths == ["my_file_1.mov", "my_file_2.mov"]
 
       current_date_time =
@@ -196,8 +197,9 @@ defmodule StepFlow.LaunchTest do
       step = @workflow_definition_with_input_filter.steps |> List.first()
       step_name = step.name
       step_id = step.id
+      dates = Helpers.get_dates()
 
-      source_paths = Launch.get_source_paths(workflow, step)
+      source_paths = Launch.get_source_paths(workflow, step, dates)
 
       assert source_paths == ["my_file_2.ttml", "my_file_3.wav"]
 
@@ -254,8 +256,9 @@ defmodule StepFlow.LaunchTest do
       step = @workflow_definition_with_select_input.steps |> List.first()
       step_name = step.name
       step_id = step.id
+      dates = Helpers.get_dates()
 
-      source_paths = Launch.get_source_paths(workflow, step)
+      source_paths = Launch.get_source_paths(workflow, step, dates)
 
       assert source_paths == ["my_file_2.ttml", "my_file_3.wav"]
 

@@ -17,17 +17,20 @@ defmodule StepFlow.Amqp.CompletedConsumer do
   @doc """
   Consume messages with completed topic, update Job status and continue the workflow.
   """
-  def consume(channel, tag, _redelivered, %{
-      "job_id" => job_id,
-      "status" => status,
-      "parameters" => parameters
-    } = payload) do
-
+  def consume(
+        channel,
+        tag,
+        _redelivered,
+        %{
+          "job_id" => job_id,
+          "status" => status,
+          "parameters" => parameters
+        } = payload
+      ) do
     workflow =
       Jobs.get_job!(job_id)
       |> Map.get(:workflow_id)
       |> Workflows.get_workflow!()
-      |> IO.inspect
 
     parameters = workflow.parameters ++ parameters
     Workflows.update_workflow(workflow, %{parameters: parameters})
