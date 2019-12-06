@@ -37,6 +37,7 @@ defmodule StepFlow.WorkflowViewTest do
                version_minor: 5,
                version_micro: 4,
                reference: "some id",
+               parameters: [],
                steps: []
              }
            }
@@ -60,6 +61,7 @@ defmodule StepFlow.WorkflowViewTest do
                    version_minor: 5,
                    version_micro: 4,
                    reference: "some id",
+                   parameters: [],
                    steps: []
                  }
                ],
