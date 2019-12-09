@@ -6,8 +6,8 @@ defmodule StepFlow.Step.Launch do
 
   alias StepFlow.Amqp.CommonEmitter
   alias StepFlow.Jobs
-  alias StepFlow.Workflows
   alias StepFlow.Step.Helpers
+  alias StepFlow.Workflows
 
   def launch_step(workflow, step_name, step) do
     dates = Helpers.get_dates()
