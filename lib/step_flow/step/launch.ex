@@ -6,10 +6,14 @@ defmodule StepFlow.Step.Launch do
 
   alias StepFlow.Amqp.CommonEmitter
   alias StepFlow.Jobs
+  alias StepFlow.Workflows
   alias StepFlow.Step.Helpers
 
   def launch_step(workflow, step_name, step) do
     dates = Helpers.get_dates()
+
+    # refresh workflow to get recent stored parameters on it
+    workflow = Workflows.get_workflow!(workflow.id)
 
     step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
     step_mode = StepFlow.Map.get_by_key_or_atom(step, :mode, "one_for_one")
@@ -135,13 +139,7 @@ defmodule StepFlow.Step.Launch do
       |> Helpers.add_required_paths(required_paths)
 
     parameters =
-      StepFlow.Map.get_by_key_or_atom(step, :parameters, [])
-      |> Enum.filter(fn param ->
-        StepFlow.Map.get_by_key_or_atom(param, :type) != "filter" &&
-          StepFlow.Map.get_by_key_or_atom(param, :type) != "template" &&
-          StepFlow.Map.get_by_key_or_atom(param, :type) != "select_input" &&
-          StepFlow.Map.get_by_key_or_atom(param, :type) != "array_of_templates"
-      end)
+      filter_and_pre_compile_parameters(step, workflow, dates, source_path)
       |> Enum.concat([
         %{
           "id" => "source_path",
@@ -202,7 +200,7 @@ defmodule StepFlow.Step.Launch do
         [destination_filename_template] ->
           filename =
             destination_filename_template
-            |> Helpers.template_process(workflow, dates, nil)
+            |> Helpers.template_process(workflow, dates, source_paths)
             |> Path.basename()
 
           destination_path = Helpers.get_base_directory(workflow) <> filename
@@ -226,13 +224,7 @@ defmodule StepFlow.Step.Launch do
       |> Helpers.add_required_paths(source_paths)
 
     parameters =
-      StepFlow.Map.get_by_key_or_atom(step, :parameters, [])
-      |> Enum.filter(fn param ->
-        StepFlow.Map.get_by_key_or_atom(param, :type) != "filter" &&
-          StepFlow.Map.get_by_key_or_atom(param, :type) != "template" &&
-          StepFlow.Map.get_by_key_or_atom(param, :type) != "select_input" &&
-          StepFlow.Map.get_by_key_or_atom(param, :type) != "array_of_templates"
-      end)
+      filter_and_pre_compile_parameters(step, workflow, dates, source_paths)
       |> Enum.concat(select_input)
       |> Enum.concat([
         %{
@@ -330,5 +322,36 @@ defmodule StepFlow.Step.Launch do
           end
         )
     end
+  end
+
+  defp filter_and_pre_compile_parameters(step, workflow, dates, source_paths) do
+    StepFlow.Map.get_by_key_or_atom(step, :parameters, [])
+    |> Enum.map(fn param ->
+      case StepFlow.Map.get_by_key_or_atom(param, :type) do
+        "template" ->
+          value =
+            StepFlow.Map.get_by_key_or_atom(
+              param,
+              :value,
+              StepFlow.Map.get_by_key_or_atom(param, :default)
+            )
+            |> Helpers.template_process(workflow, dates, source_paths)
+
+          %{
+            id: StepFlow.Map.get_by_key_or_atom(param, :id),
+            type: "string",
+            value: value
+          }
+
+        _ ->
+          param
+      end
+    end)
+    |> Enum.filter(fn param ->
+      StepFlow.Map.get_by_key_or_atom(param, :type) != "filter" &&
+        StepFlow.Map.get_by_key_or_atom(param, :type) != "template" &&
+        StepFlow.Map.get_by_key_or_atom(param, :type) != "select_input" &&
+        StepFlow.Map.get_by_key_or_atom(param, :type) != "array_of_templates"
+    end)
   end
 end

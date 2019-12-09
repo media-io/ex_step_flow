@@ -140,7 +140,7 @@ defmodule StepFlow.Step.Helpers do
     intern_template_process(template, workflow, dates, [])
   end
 
-  def template_process(template, workflow, dates, source_path) do
+  def template_process(template, workflow, dates, source_path) when is_binary(source_path) do
     filename = Path.basename(source_path)
     extension = Path.extname(source_path)
     name = Path.basename(source_path, extension)
@@ -155,10 +155,20 @@ defmodule StepFlow.Step.Helpers do
     intern_template_process(template, workflow, dates, source_keywords)
   end
 
+  def template_process(template, workflow, dates, source_paths) when is_list(source_paths) do
+    source_keywords =
+      Keyword.new()
+      |> Keyword.put(:source_paths, source_paths)
+
+    intern_template_process(template, workflow, dates, source_keywords)
+  end
+
   defp intern_template_process(template, workflow, dates, source_keywords) do
     defined_parameters =
       workflow.parameters
-      |> Enum.filter(fn item -> StepFlow.Map.get_by_key_or_atom(item, :type) == "string" end)
+      |> Enum.filter(fn item ->
+        StepFlow.Map.get_by_key_or_atom(item, :type) in ["string", "array_of_strings"]
+      end)
       |> Enum.map(fn item ->
         identifier =
           StepFlow.Map.get_by_key_or_atom(item, :id)
