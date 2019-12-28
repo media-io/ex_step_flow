@@ -25,6 +25,42 @@ defmodule StepFlow.Amqp.CompletedConsumer do
         %{
           "job_id" => job_id,
           "status" => status,
+          "parameters" => parameters,
+          "destination_paths" => destination_paths
+        } = payload
+      ) do
+
+    job = Jobs.get_job!(job_id)
+    workflow =
+      job
+      |> Map.get(:workflow_id)
+      |> Workflows.get_workflow!()
+
+    job_parameters = job.parameters ++ [
+        %{
+          id: "destination_paths",
+          type: "array_of_strings",
+          value: destination_paths
+        }
+    ]
+    Jobs.update_job(job, %{parameters: job_parameters})
+
+    parameters = workflow.parameters ++ parameters
+    Workflows.update_workflow(workflow, %{parameters: parameters})
+
+    Status.set_job_status(job_id, status)
+    Workflows.notification_from_job(job_id)
+    StepManager.check_step_status(%{job_id: job_id})
+    Basic.ack(channel, tag)
+  end
+
+  def consume(
+        channel,
+        tag,
+        _redelivered,
+        %{
+          "job_id" => job_id,
+          "status" => status,
           "parameters" => parameters
         } = payload
       ) do
