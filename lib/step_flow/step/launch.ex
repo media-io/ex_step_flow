@@ -343,6 +343,25 @@ defmodule StepFlow.Step.Launch do
             value: value
           }
 
+        "array_of_templates" ->
+          case StepFlow.Map.get_by_key_or_atom(param, :id) do
+            "source_paths" ->
+              param
+            _ ->
+              value =
+                StepFlow.Map.get_by_key_or_atom(
+                  param,
+                  :value,
+                  StepFlow.Map.get_by_key_or_atom(param, :default)
+                )
+                |> Helpers.templates_process(workflow, dates, [])
+
+              %{
+                id: StepFlow.Map.get_by_key_or_atom(param, :id),
+                type: "array_of_strings",
+                value: value
+              }
+          end
         _ ->
           param
       end
