@@ -6,7 +6,8 @@ config :logger, level: :error
 config :plug, :validate_header_keys_during_test, true
 
 config :step_flow,
-  work_dir: "/test_work_dir"
+  work_dir: "/test_work_dir",
+  workflow_definition: "./test/definitions"
 
 config :step_flow, StepFlow.Repo,
   hostname: "localhost",

@@ -1,0 +1,6 @@
+{
+  "skip_files": [
+    "lib/step_flow/migrations/",
+    "lib/step_flow.ex"
+  ]
+}

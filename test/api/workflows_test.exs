@@ -13,36 +13,6 @@ defmodule StepFlow.Api.WorkflowsTest do
     :ok = Sandbox.checkout(StepFlow.Repo)
   end
 
-  test "GET /" do
-    {status, _headers, body} =
-      conn(:get, "/")
-      |> Router.call(@opts)
-      |> sent_resp
-
-    assert status == 200
-    assert body == "Welcome to Step Flow"
-  end
-
-  test "GET /unknown" do
-    {status, _headers, body} =
-      conn(:get, "/unknown")
-      |> Router.call(@opts)
-      |> sent_resp
-
-    assert status == 404
-    assert body == "Not found"
-  end
-
-  # test "GET /workflows/00000000-0000-0000-0000-000000000000" do
-  #   {status, _headers, body} =
-  #     conn(:get, "/workflows/00000000-0000-0000-0000-000000000000")
-  #     |> Router.call(@opts)
-  #     |> sent_resp
-
-  #   assert status == 200
-  #   assert body |> Jason.decode!() == %{}
-  # end
-
   test "GET /workflows" do
     {status, _headers, body} =
       conn(:get, "/workflows")
