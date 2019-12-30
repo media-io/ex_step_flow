@@ -24,61 +24,38 @@ defmodule StepFlow.Amqp.CompletedConsumer do
         _redelivered,
         %{
           "job_id" => job_id,
-          "status" => status,
-          "parameters" => parameters,
-          "destination_paths" => destination_paths
+          "status" => status
         } = payload
       ) do
-
     job = Jobs.get_job!(job_id)
+
     workflow =
       job
       |> Map.get(:workflow_id)
       |> Workflows.get_workflow!()
 
-    job_parameters = job.parameters ++ [
-        %{
-          id: "destination_paths",
-          type: "array_of_strings",
-          value: destination_paths
-        }
-    ]
-    Jobs.update_job(job, %{parameters: job_parameters})
+    if Map.has_key?(payload, "destination_paths") do
+      destination_paths = Map.get(payload, "destination_paths")
 
-    parameters = workflow.parameters ++ parameters
-    Workflows.update_workflow(workflow, %{parameters: parameters})
+      job_parameters =
+        job.parameters ++
+          [
+            %{
+              id: "destination_paths",
+              type: "array_of_strings",
+              value: destination_paths
+            }
+          ]
 
-    Status.set_job_status(job_id, status)
-    Workflows.notification_from_job(job_id)
-    StepManager.check_step_status(%{job_id: job_id})
-    Basic.ack(channel, tag)
-  end
+      Jobs.update_job(job, %{parameters: job_parameters})
+    end
 
-  def consume(
-        channel,
-        tag,
-        _redelivered,
-        %{
-          "job_id" => job_id,
-          "status" => status,
-          "parameters" => parameters
-        } = payload
-      ) do
-    workflow =
-      Jobs.get_job!(job_id)
-      |> Map.get(:workflow_id)
-      |> Workflows.get_workflow!()
+    if Map.has_key?(payload, "parameters") do
+      parameters = Map.get(payload, "parameters")
+      parameters = workflow.parameters ++ parameters
+      Workflows.update_workflow(workflow, %{parameters: parameters})
+    end
 
-    parameters = workflow.parameters ++ parameters
-    Workflows.update_workflow(workflow, %{parameters: parameters})
-
-    Status.set_job_status(job_id, status)
-    Workflows.notification_from_job(job_id)
-    StepManager.check_step_status(%{job_id: job_id})
-    Basic.ack(channel, tag)
-  end
-
-  def consume(channel, tag, _redelivered, %{"job_id" => job_id, "status" => status} = _payload) do
     Status.set_job_status(job_id, status)
     Workflows.notification_from_job(job_id)
     StepManager.check_step_status(%{job_id: job_id})
