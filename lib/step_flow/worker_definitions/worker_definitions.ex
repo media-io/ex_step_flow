@@ -20,11 +20,11 @@ defmodule StepFlow.WorkerDefinitions do
   def list_worker_definitions(params \\ %{}) do
     page =
       Map.get(params, "page", 0)
-      |> StepFlow.Integer.force
+      |> StepFlow.Integer.force()
 
     size =
       Map.get(params, "size", 10)
-      |> StepFlow.Integer.force
+      |> StepFlow.Integer.force()
 
     offset = page * size
 

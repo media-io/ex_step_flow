@@ -22,11 +22,11 @@ defmodule StepFlow.Workflows do
   def list_workflows(params \\ %{}) do
     page =
       Map.get(params, "page", 0)
-      |> StepFlow.Integer.force
+      |> StepFlow.Integer.force()
 
     size =
       Map.get(params, "size", 10)
-      |> StepFlow.Integer.force
+      |> StepFlow.Integer.force()
 
     offset = page * size
 

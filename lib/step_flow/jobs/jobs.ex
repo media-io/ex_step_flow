@@ -21,11 +21,11 @@ defmodule StepFlow.Jobs do
   def list_jobs(params \\ %{}) do
     page =
       Map.get(params, "page", 0)
-      |> StepFlow.Integer.force
+      |> StepFlow.Integer.force()
 
     size =
       Map.get(params, "size", 10)
-      |> StepFlow.Integer.force
+      |> StepFlow.Integer.force()
 
     offset = page * size
 

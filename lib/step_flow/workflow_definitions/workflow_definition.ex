@@ -13,11 +13,11 @@ defmodule StepFlow.WorkflowDefinition do
     |> ExJsonSchema.Validator.validate(definition)
   end
 
-  defp get_schema() do
+  defp get_schema do
     "https://media-cloud.ai/workflow-definition.json"
-    |> HTTPoison.get!
+    |> HTTPoison.get!()
     |> Map.get(:body)
-    |> Jason.decode!
+    |> Jason.decode!()
   end
 
   # defp get_schema() do

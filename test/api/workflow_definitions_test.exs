@@ -50,12 +50,13 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     response = body |> Jason.decode!()
 
     assert response == %{
-      "errors" => [
-        %{
-          "details" => "#",
-          "message" => "Required properties identifier, version_major, version_minor, version_micro, tags, parameters, steps were not present."
-        }
-      ]
-    }
+             "errors" => [
+               %{
+                 "details" => "#",
+                 "message" =>
+                   "Required properties identifier, version_major, version_minor, version_micro, tags, parameters, steps were not present."
+               }
+             ]
+           }
   end
 end
