@@ -39,6 +39,7 @@ defmodule StepFlow.MixProject do
       extra_applications: [
         :amqp,
         :blue_bird,
+        :httpoison,
         :jason,
         :logger,
         :phoenix,
@@ -65,7 +66,9 @@ defmodule StepFlow.MixProject do
       {:excoveralls, "~> 0.10", only: :test},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:gettext, "~> 0.14"},
+      {:httpoison, "~> 1.6"},
       {:jason, "~> 1.1"},
+      {:ex_json_schema, "~> 0.7.3"},
       {:phoenix, "~> 1.4"},
       {:phoenix_html, "~> 2.10"},
       {:plug, "~> 1.8"},

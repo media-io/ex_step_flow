@@ -12,6 +12,14 @@ defmodule StepFlow.Router do
 
   get("/", do: send_resp(conn, 200, "Welcome to Step Flow"))
 
+  get "/definitions" do
+    StepFlow.WorkflowDefinitionController.index(conn, conn.params)
+  end
+
+  get "/definitions/:filename" do
+    StepFlow.WorkflowDefinitionController.show(conn, conn.params)
+  end
+
   post "/workflows" do
     StepFlow.WorkflowController.create(conn, conn.params)
   end
