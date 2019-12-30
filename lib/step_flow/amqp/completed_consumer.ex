@@ -24,25 +24,43 @@ defmodule StepFlow.Amqp.CompletedConsumer do
         _redelivered,
         %{
           "job_id" => job_id,
-          "status" => status,
-          "parameters" => parameters
+          "status" => status
         } = payload
       ) do
+    job = Jobs.get_job!(job_id)
+
     workflow =
-      Jobs.get_job!(job_id)
+      job
       |> Map.get(:workflow_id)
       |> Workflows.get_workflow!()
 
-    parameters = workflow.parameters ++ parameters
-    Workflows.update_workflow(workflow, %{parameters: parameters})
+    case StepFlow.Map.get_by_key_or_atom(payload, "destination_paths") do
+      nil ->
+        nil
 
-    Status.set_job_status(job_id, status)
-    Workflows.notification_from_job(job_id)
-    StepManager.check_step_status(%{job_id: job_id})
-    Basic.ack(channel, tag)
-  end
+      destination_paths ->
+        job_parameters =
+          job.parameters ++
+            [
+              %{
+                id: "destination_paths",
+                type: "array_of_strings",
+                value: destination_paths
+              }
+            ]
 
-  def consume(channel, tag, _redelivered, %{"job_id" => job_id, "status" => status} = _payload) do
+        Jobs.update_job(job, %{parameters: job_parameters})
+    end
+
+    case StepFlow.Map.get_by_key_or_atom(payload, "parameters") do
+      nil ->
+        nil
+
+      parameters ->
+        parameters = workflow.parameters ++ parameters
+        Workflows.update_workflow(workflow, %{parameters: parameters})
+    end
+
     Status.set_job_status(job_id, status)
     Workflows.notification_from_job(job_id)
     StepManager.check_step_status(%{job_id: job_id})

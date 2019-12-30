@@ -138,18 +138,27 @@ defmodule StepFlow.Step.Launch do
       Helpers.get_step_requirements(workflow.jobs, step)
       |> Helpers.add_required_paths(required_paths)
 
+    destination_path_parameter =
+      if StepFlow.Map.get_by_key_or_atom(step, :skip_destination_path, false) do
+        []
+      else
+        [
+          %{
+            "id" => "destination_path",
+            "type" => "string",
+            "value" => destination_path
+          }
+        ]
+      end
+
     parameters =
       filter_and_pre_compile_parameters(step, workflow, dates, source_path)
+      |> Enum.concat(destination_path_parameter)
       |> Enum.concat([
         %{
           "id" => "source_path",
           "type" => "string",
           "value" => source_path
-        },
-        %{
-          "id" => "destination_path",
-          "type" => "string",
-          "value" => destination_path
         },
         %{
           "id" => "requirements",
@@ -198,20 +207,24 @@ defmodule StepFlow.Step.Launch do
     select_input =
       case destination_filename_templates do
         [destination_filename_template] ->
-          filename =
-            destination_filename_template
-            |> Helpers.template_process(workflow, dates, source_paths)
-            |> Path.basename()
+          if StepFlow.Map.get_by_key_or_atom(step, :skip_destination_path, false) do
+            select_input
+          else
+            filename =
+              destination_filename_template
+              |> Helpers.template_process(workflow, dates, source_paths)
+              |> Path.basename()
 
-          destination_path = Helpers.get_base_directory(workflow) <> filename
+            destination_path = Helpers.get_base_directory(workflow) <> filename
 
-          Enum.concat(select_input, [
-            %{
-              id: "destination_path",
-              type: "string",
-              value: destination_path
-            }
-          ])
+            Enum.concat(select_input, [
+              %{
+                id: "destination_path",
+                type: "string",
+                value: destination_path
+              }
+            ])
+          end
 
         _ ->
           select_input
@@ -343,6 +356,9 @@ defmodule StepFlow.Step.Launch do
             value: value
           }
 
+        "array_of_templates" ->
+          filter_and_pre_compile_array_of_templates_parameter(param, workflow, dates)
+
         _ ->
           param
       end
@@ -353,5 +369,27 @@ defmodule StepFlow.Step.Launch do
         StepFlow.Map.get_by_key_or_atom(param, :type) != "select_input" &&
         StepFlow.Map.get_by_key_or_atom(param, :type) != "array_of_templates"
     end)
+  end
+
+  defp filter_and_pre_compile_array_of_templates_parameter(param, workflow, dates) do
+    case StepFlow.Map.get_by_key_or_atom(param, :id) do
+      "source_paths" ->
+        param
+
+      _ ->
+        value =
+          StepFlow.Map.get_by_key_or_atom(
+            param,
+            :value,
+            StepFlow.Map.get_by_key_or_atom(param, :default)
+          )
+          |> Helpers.templates_process(workflow, dates)
+
+        %{
+          id: StepFlow.Map.get_by_key_or_atom(param, :id),
+          type: "array_of_strings",
+          value: value
+        }
+    end
   end
 end

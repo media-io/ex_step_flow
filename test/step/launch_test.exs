@@ -117,6 +117,85 @@ defmodule StepFlow.LaunchTest do
       ]
     }
 
+    @workflow_definition_with_select_input_and_array_of_templates_parameter %{
+      identifier: "id",
+      version_major: 6,
+      version_minor: 5,
+      version_micro: 4,
+      reference: "some id",
+      parameters: [
+        %{
+          id: "mov_input_path",
+          type: "string",
+          value: "my_file_1.mov"
+        },
+        %{
+          id: "ttml_input_path",
+          type: "string",
+          value: "my_file_2.ttml"
+        },
+        %{
+          id: "wav_input_path",
+          type: "string",
+          value: "my_file_3.wav"
+        },
+        %{
+          id: "param_value_1",
+          type: "string",
+          value: "hello"
+        },
+        %{
+          id: "param_value_2",
+          type: "string",
+          value: "world"
+        }
+      ],
+      steps: [
+        %{
+          id: 0,
+          name: "my_first_step",
+          mode: "one_for_many",
+          parameters: [
+            %{
+              id: "source_paths",
+              type: "array_of_templates",
+              value: [
+                "{mov_input_path}",
+                "{ttml_input_path}",
+                "{wav_input_path}"
+              ]
+            },
+            %{
+              id: "input_filter",
+              type: "filter",
+              default: %{ends_with: [".ttml", ".wav"]},
+              value: %{ends_with: [".ttml", ".wav"]}
+            },
+            %{
+              id: "audio_path",
+              type: "select_input",
+              default: %{ends_with: [".wav"]},
+              value: %{ends_with: [".wav"]}
+            },
+            %{
+              id: "subtitle_path",
+              type: "select_input",
+              default: %{ends_with: [".ttml"]},
+              value: %{ends_with: [".ttml"]}
+            },
+            %{
+              id: "parameter_with_values",
+              type: "array_of_templates",
+              value: [
+                "{param_value_1}",
+                "{param_value_2}"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+
     def workflow_fixture(workflow, attrs \\ %{}) do
       {:ok, workflow} =
         attrs
@@ -166,13 +245,13 @@ defmodule StepFlow.LaunchTest do
                  type: "array_of_strings",
                  value: ["my_file_1.mov", "my_file_2.mov"]
                },
-               %{"id" => "source_path", "type" => "string", "value" => "my_file_2.mov"},
                %{
                  "id" => "destination_path",
                  "type" => "string",
                  "value" =>
                    "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_2.mov"
                },
+               %{"id" => "source_path", "type" => "string", "value" => "my_file_2.mov"},
                %{
                  "id" => "requirements",
                  "type" => "requirements",
@@ -227,13 +306,13 @@ defmodule StepFlow.LaunchTest do
                    "my_file_4.mov"
                  ]
                },
-               %{"type" => "string", "id" => "source_path", "value" => "my_file_3.wav"},
                %{
                  "id" => "destination_path",
                  "type" => "string",
                  "value" =>
                    "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_3.wav"
                },
+               %{"type" => "string", "id" => "source_path", "value" => "my_file_3.wav"},
                %{
                  "id" => "requirements",
                  "type" => "requirements",
@@ -296,6 +375,58 @@ defmodule StepFlow.LaunchTest do
                  "id" => "requirements",
                  "type" => "requirements",
                  "value" => %{paths: ["my_file_2.ttml", "my_file_3.wav"]}
+               }
+             ]
+
+      assert StepFlow.HelpersTest.validate_message_format(message)
+    end
+
+    test "generate message with select input and array of templates parameters" do
+      workflow =
+        workflow_fixture(@workflow_definition_with_select_input_and_array_of_templates_parameter)
+        |> Repo.preload([:artifacts, :jobs])
+
+      step =
+        @workflow_definition_with_select_input_and_array_of_templates_parameter.steps
+        |> List.first()
+
+      step_name = step.name
+      step_id = step.id
+      dates = Helpers.get_dates()
+
+      source_paths = Launch.get_source_paths(workflow, step, dates)
+
+      assert source_paths == ["my_file_2.ttml", "my_file_3.wav"]
+
+      dates = Helpers.get_dates()
+
+      message =
+        Launch.generate_message_one_for_many(
+          source_paths,
+          step,
+          step_name,
+          step_id,
+          dates,
+          workflow
+        )
+
+      assert message.parameters == [
+               %{
+                 id: "parameter_with_values",
+                 type: "array_of_strings",
+                 value: ["hello", "world"]
+               },
+               %{id: "audio_path", type: "string", value: "my_file_3.wav"},
+               %{id: "subtitle_path", type: "string", value: "my_file_2.ttml"},
+               %{
+                 "id" => "source_paths",
+                 "type" => "array_of_strings",
+                 "value" => ["my_file_1.mov", "my_file_2.ttml", "my_file_3.wav"]
+               },
+               %{
+                 "id" => "requirements",
+                 "type" => "requirements",
+                 "value" => %{paths: ["my_file_1.mov", "my_file_2.ttml", "my_file_3.wav"]}
                }
              ]
 
