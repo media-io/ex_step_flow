@@ -8,15 +8,6 @@ defmodule StepFlow.WorkerDefinitions do
 
   alias StepFlow.WorkerDefinitions.WorkerDefinition
 
-  defp force_integer(param) when is_bitstring(param) do
-    param
-    |> String.to_integer()
-  end
-
-  defp force_integer(param) do
-    param
-  end
-
   @doc """
   Returns the list of WorkerDefinitions.
 
@@ -29,11 +20,11 @@ defmodule StepFlow.WorkerDefinitions do
   def list_worker_definitions(params \\ %{}) do
     page =
       Map.get(params, "page", 0)
-      |> force_integer
+      |> StepFlow.Integer.force
 
     size =
       Map.get(params, "size", 10)
-      |> force_integer
+      |> StepFlow.Integer.force
 
     offset = page * size
 

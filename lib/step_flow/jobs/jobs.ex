@@ -9,15 +9,6 @@ defmodule StepFlow.Jobs do
   alias StepFlow.Jobs.Job
   alias StepFlow.Jobs.Status
 
-  defp force_integer(param) when is_bitstring(param) do
-    param
-    |> String.to_integer()
-  end
-
-  defp force_integer(param) do
-    param
-  end
-
   @doc """
   Returns the list of jobs.
 
@@ -30,11 +21,11 @@ defmodule StepFlow.Jobs do
   def list_jobs(params \\ %{}) do
     page =
       Map.get(params, "page", 0)
-      |> force_integer
+      |> StepFlow.Integer.force
 
     size =
       Map.get(params, "size", 10)
-      |> force_integer
+      |> StepFlow.Integer.force
 
     offset = page * size
 
