@@ -245,13 +245,13 @@ defmodule StepFlow.LaunchTest do
                  type: "array_of_strings",
                  value: ["my_file_1.mov", "my_file_2.mov"]
                },
-               %{"id" => "source_path", "type" => "string", "value" => "my_file_2.mov"},
                %{
                  "id" => "destination_path",
                  "type" => "string",
                  "value" =>
                    "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_2.mov"
                },
+               %{"id" => "source_path", "type" => "string", "value" => "my_file_2.mov"},
                %{
                  "id" => "requirements",
                  "type" => "requirements",
@@ -306,13 +306,13 @@ defmodule StepFlow.LaunchTest do
                    "my_file_4.mov"
                  ]
                },
-               %{"type" => "string", "id" => "source_path", "value" => "my_file_3.wav"},
                %{
                  "id" => "destination_path",
                  "type" => "string",
                  "value" =>
                    "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_3.wav"
                },
+               %{"type" => "string", "id" => "source_path", "value" => "my_file_3.wav"},
                %{
                  "id" => "requirements",
                  "type" => "requirements",
