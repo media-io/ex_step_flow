@@ -34,26 +34,31 @@ defmodule StepFlow.Amqp.CompletedConsumer do
       |> Map.get(:workflow_id)
       |> Workflows.get_workflow!()
 
-    if Map.has_key?(payload, "destination_paths") do
-      destination_paths = Map.get(payload, "destination_paths")
+    case StepFlow.Map.get_by_key_or_atom(payload, "destination_paths") do
+      nil ->
+        nil
 
-      job_parameters =
-        job.parameters ++
-          [
-            %{
-              id: "destination_paths",
-              type: "array_of_strings",
-              value: destination_paths
-            }
-          ]
+      destination_paths ->
+        job_parameters =
+          job.parameters ++
+            [
+              %{
+                id: "destination_paths",
+                type: "array_of_strings",
+                value: destination_paths
+              }
+            ]
 
-      Jobs.update_job(job, %{parameters: job_parameters})
+        Jobs.update_job(job, %{parameters: job_parameters})
     end
 
-    if Map.has_key?(payload, "parameters") do
-      parameters = Map.get(payload, "parameters")
-      parameters = workflow.parameters ++ parameters
-      Workflows.update_workflow(workflow, %{parameters: parameters})
+    case StepFlow.Map.get_by_key_or_atom(payload, "parameters") do
+      nil ->
+        nil
+
+      parameters ->
+        parameters = workflow.parameters ++ parameters
+        Workflows.update_workflow(workflow, %{parameters: parameters})
     end
 
     Status.set_job_status(job_id, status)
