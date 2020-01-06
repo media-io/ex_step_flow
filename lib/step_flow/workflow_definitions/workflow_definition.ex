@@ -14,16 +14,9 @@ defmodule StepFlow.WorkflowDefinition do
   end
 
   defp get_schema do
-    "https://media-cloud.ai/workflow-definition.json"
+    "https://media-cloud.ai/standard/1.0/workflow-definition.json"
     |> HTTPoison.get!()
     |> Map.get(:body)
     |> Jason.decode!()
   end
-
-  # defp get_schema() do
-  #   schema =
-  #     "workflow-definition.json"
-  #     |> File.read!
-  #     |> Jason.decode!
-  # end
 end

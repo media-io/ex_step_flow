@@ -30,7 +30,6 @@ defmodule StepFlow.Api.WorkerDefinitionsTest do
         queue_name: "my_queue",
         label: "My Queue",
         version: "1.2.3",
-        git_version: "1.2.3",
         short_description: "short description",
         description: "long description",
         parameters: []
@@ -62,7 +61,6 @@ defmodule StepFlow.Api.WorkerDefinitionsTest do
                "queue_name" => ["can't be blank"],
                "label" => ["can't be blank"],
                "version" => ["can't be blank"],
-               "git_version" => ["can't be blank"],
                "short_description" => ["can't be blank"],
                "description" => ["can't be blank"]
              }
@@ -75,7 +73,6 @@ defmodule StepFlow.Api.WorkerDefinitionsTest do
         queue_name: "my_queue",
         label: "My Queue",
         version: "1.2.3",
-        git_version: "1.2.3",
         short_description: "short description",
         description: "long description"
       })
@@ -91,7 +88,6 @@ defmodule StepFlow.Api.WorkerDefinitionsTest do
         queue_name: "my_queue",
         label: "My Queue",
         version: "1.2.3",
-        git_version: "1.2.3",
         short_description: "short description",
         description: "long description"
       })

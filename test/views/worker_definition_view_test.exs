@@ -16,7 +16,6 @@ defmodule StepFlow.WorkerDefinitionViewTest do
     queue_name: "my_queue",
     label: "My Worker",
     version: "1.2.3",
-    git_version: "3.2.1",
     short_description: "short description",
     description: "long description"
   }
@@ -32,7 +31,6 @@ defmodule StepFlow.WorkerDefinitionViewTest do
                id: worker_definition.id,
                created_at: worker_definition.inserted_at,
                description: "long description",
-               git_version: "3.2.1",
                label: "My Worker",
                parameters: [],
                queue_name: "my_queue",
@@ -54,7 +52,6 @@ defmodule StepFlow.WorkerDefinitionViewTest do
                  id: worker_definition.id,
                  created_at: worker_definition.inserted_at,
                  description: "long description",
-                 git_version: "3.2.1",
                  label: "My Worker",
                  parameters: [],
                  queue_name: "my_queue",

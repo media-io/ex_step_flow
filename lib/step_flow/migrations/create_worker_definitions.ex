@@ -7,7 +7,6 @@ defmodule StepFlow.Migration.CreateWorkerDefinitions do
       add(:queue_name, :string)
       add(:label, :string)
       add(:version, :string)
-      add(:git_version, :string)
       add(:short_description, :string)
       add(:description, :text)
       add(:parameters, {:array, :map}, default: [])
