@@ -13,8 +13,8 @@ defmodule StepFlow.WorkerDefinitions do
 
   ## Examples
 
-      iex> list_worker_definitions()
-      [%WorkerDefinition{}, ...]
+      iex> StepFlow.WorkerDefinitions.list_worker_definitions()
+      %{data: [], page: 0, size: 10, total: 0}
 
   """
   def list_worker_definitions(params \\ %{}) do
@@ -58,15 +58,6 @@ defmodule StepFlow.WorkerDefinitions do
   Gets a single WorkerDefinition.
 
   Raises `Ecto.NoResultsError` if the WorkerDefinition does not exist.
-
-  ## Examples
-
-      iex> get_worker_definition!(123)
-      %WorkerDefinition{}
-
-      iex> get_worker_definition!(456)
-      ** (Ecto.NoResultsError)
-
   """
   def get_worker_definition!(id), do: Repo.get!(WorkerDefinition, id)
 
@@ -75,11 +66,20 @@ defmodule StepFlow.WorkerDefinitions do
 
   ## Examples
 
-      iex> create_worker_definition(%{field: value})
-      {:ok, %WorkerDefinition{}}
+      iex> result = StepFlow.WorkerDefinitions.create_worker_definition(%{
+      ...>   queue_name: "my_queue",
+      ...>   label: "My Queue",
+      ...>   version: "1.2.3",
+      ...>   short_description: "short description",
+      ...>   description: "long description",
+      ...>   parameters: []
+      ...> })
+      ...> match?({:ok, %StepFlow.WorkerDefinitions.WorkerDefinition{}}, result)
+      true
 
-      iex> create_worker_definition(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+      iex> result = StepFlow.WorkerDefinitions.create_worker_definition(%{field: :bad_value})
+      ...> match?({:error, %Ecto.Changeset{}}, result)
+      true
 
   """
   def create_worker_definition(attrs \\ %{}) do

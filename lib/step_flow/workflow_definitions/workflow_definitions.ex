@@ -4,32 +4,28 @@ defmodule StepFlow.WorkflowDefinitions do
   """
 
   import Ecto.Query, warn: false
-  # alias StepFlow.Repo
-  alias StepFlow.WorkflowDefinition
+  alias StepFlow.WorkflowDefinitions.WorkflowDefinition
 
   @doc """
-  Returns the list of Definitions.
-
-  ## Examples
-
-      iex> list_workflow_definitions()
-      [%WorkflowDefinition{}, ...]
-
+  Returns the list of Workflow Definitions.
   """
   def list_workflow_definitions(_params \\ %{}) do
-    workflow_definition_directory = Application.get_env(:step_flow, :workflow_definition)
-
     workflow_definitions =
-      workflow_definition_directory
-      |> File.ls!()
-      |> Enum.map(fn filename ->
-        Path.join(workflow_definition_directory, filename)
-        |> File.read!()
-        |> Jason.decode!()
+      WorkflowDefinition.get_workflow_definition_directories()
+      |> Enum.map(fn directory ->
+        directory
+        |> File.ls!()
+        |> Enum.map(fn filename ->
+          Path.join(directory, filename)
+          |> File.read!()
+          |> Jason.decode!()
+        end)
+        |> Enum.filter(fn workflow_definition ->
+          WorkflowDefinition.valid?(workflow_definition)
+        end)
       end)
-      |> Enum.filter(fn workflow_definition ->
-        WorkflowDefinition.valid?(workflow_definition)
-      end)
+      |> List.flatten
+
 
     total = length(workflow_definitions)
 
@@ -41,11 +37,15 @@ defmodule StepFlow.WorkflowDefinitions do
     }
   end
 
+  @doc """
+  Returns the Workflow Definition.
+  """
   def get_workflow_definition(filename) do
-    workflow_definition_directory = Application.get_env(:step_flow, :workflow_definition)
-
     workflow_definition =
-      Path.join(workflow_definition_directory, filename)
+      WorkflowDefinition.get_workflow_definition_directories()
+      |> Enum.map(fn directory -> Path.join(directory, filename) end)
+      |> Enum.filter(fn full_path -> File.exists?(full_path) end)
+      |> List.first()
       |> File.read!()
       |> Jason.decode!()
 

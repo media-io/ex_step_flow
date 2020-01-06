@@ -1,7 +1,14 @@
-defmodule StepFlow.WorkflowDefinition do
+defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
   @moduledoc """
   The WorkflowDefinition context.
   """
+
+  require Logger
+
+  defstruct(
+    identifier: "",
+    parameters: []
+  )
 
   def valid?(definition) do
     get_schema()
@@ -18,5 +25,16 @@ defmodule StepFlow.WorkflowDefinition do
     |> HTTPoison.get!()
     |> Map.get(:body)
     |> Jason.decode!()
+  end
+
+  def get_workflow_definition_directories do
+    case Application.get_env(:step_flow, :workflow_definition) do
+      {:system, key} -> System.get_env(key)
+      key when is_list(key) -> key
+      key when is_bitstring(key) -> [key]
+      key ->
+        Logger.info("unable to use #{inspect key} to list directory")
+        []
+    end
   end
 end
