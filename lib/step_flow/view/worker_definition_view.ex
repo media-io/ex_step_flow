@@ -21,7 +21,6 @@ defmodule StepFlow.WorkerDefinitionView do
       short_description: worker_definition.short_description,
       description: worker_definition.description,
       version: worker_definition.version,
-      git_version: worker_definition.git_version,
       parameters: worker_definition.parameters,
       created_at: worker_definition.inserted_at
     }

@@ -31,5 +31,11 @@ defmodule StepFlow.Migration.All do
       20_191_022_164_200,
       StepFlow.Migration.CreateWorkerDefinitions
     )
+
+    Ecto.Migrator.up(
+      StepFlow.Repo,
+      20_191_022_164_200,
+      StepFlow.Migration.CreateWorkerDefinitions
+    )
   end
 end

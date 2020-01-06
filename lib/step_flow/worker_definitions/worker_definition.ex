@@ -9,7 +9,6 @@ defmodule StepFlow.WorkerDefinitions.WorkerDefinition do
     field(:queue_name, :string)
     field(:label, :string)
     field(:version, :string)
-    field(:git_version, :string)
     field(:short_description, :string)
     field(:description, :string)
     field(:parameters, {:array, :map}, default: [])
@@ -24,7 +23,6 @@ defmodule StepFlow.WorkerDefinitions.WorkerDefinition do
       :queue_name,
       :label,
       :version,
-      :git_version,
       :short_description,
       :description,
       :parameters
@@ -33,7 +31,6 @@ defmodule StepFlow.WorkerDefinitions.WorkerDefinition do
       :queue_name,
       :label,
       :version,
-      :git_version,
       :short_description,
       :description
     ])
