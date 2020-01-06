@@ -16,7 +16,7 @@ defmodule StepFlow.WorkflowDefinitions do
       [%WorkflowDefinition{}, ...]
 
   """
-  def list_workflow_definitions(params \\ %{}) do
+  def list_workflow_definitions(_params \\ %{}) do
     workflow_definition_directory = Application.get_env(:step_flow, :workflow_definition)
 
     workflow_definitions =

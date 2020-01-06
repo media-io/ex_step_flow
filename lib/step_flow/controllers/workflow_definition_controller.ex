@@ -15,18 +15,17 @@ defmodule StepFlow.WorkflowDefinitionController do
   end
 
   def show(conn, %{"filename" => filename}) do
-    workflow_definition =
-      case WorkflowDefinitions.get_workflow_definition(filename) do
-        {:ok, workflow_definition} ->
-          conn
-          |> put_view(StepFlow.WorkflowDefinitionView)
-          |> render("show.json", workflow_definition: workflow_definition)
+    case WorkflowDefinitions.get_workflow_definition(filename) do
+      {:ok, workflow_definition} ->
+        conn
+        |> put_view(StepFlow.WorkflowDefinitionView)
+        |> render("show.json", workflow_definition: workflow_definition)
 
-        {:error, errors} ->
-          conn
-          |> put_status(:unprocessable_entity)
-          |> put_view(StepFlow.WorkflowDefinitionView)
-          |> render("error.json", errors: errors)
-      end
+      {:error, errors} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(StepFlow.WorkflowDefinitionView)
+        |> render("error.json", errors: errors)
+    end
   end
 end
