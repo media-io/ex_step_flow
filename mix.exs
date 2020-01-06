@@ -4,7 +4,7 @@ defmodule StepFlow.MixProject do
   def project do
     [
       app: :step_flow,
-      version: get_version(),
+      version: "0.0.11",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -92,30 +92,6 @@ defmodule StepFlow.MixProject do
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/media-io/ex_step_flow"}
     ]
-  end
-
-  defp get_version do
-    version_from_file()
-    |> handle_file_version()
-    |> String.replace_leading("v", "")
-  end
-
-  defp version_from_file(file \\ "VERSION") do
-    File.read(file)
-  end
-
-  defp handle_file_version({:ok, content}) do
-    content
-  end
-
-  defp handle_file_version({:error, _}) do
-    retrieve_version_from_git()
-  end
-
-  defp retrieve_version_from_git do
-    System.cmd("git", ~w{describe --always --tags --first-parent})
-    |> elem(0)
-    |> String.trim()
   end
 
   defp aliases do
