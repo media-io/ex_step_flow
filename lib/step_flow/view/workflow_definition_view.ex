@@ -16,10 +16,13 @@ defmodule StepFlow.WorkflowDefinitionView do
   def render("workflow_definition.json", %{workflow_definition: workflow_definition}) do
     %{
       identifier: workflow_definition["identifier"],
+      label: workflow_definition["label"],
+      icon: workflow_definition["icon"],
       version_major: workflow_definition["version_major"],
       version_minor: workflow_definition["version_minor"],
       version_micro: workflow_definition["version_micro"],
       tags: workflow_definition["tags"],
+      start_parameters: workflow_definition["start_parameters"],
       parameters: workflow_definition["parameters"],
       steps: workflow_definition["steps"]
     }
