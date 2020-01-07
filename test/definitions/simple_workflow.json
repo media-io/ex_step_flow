@@ -1,9 +1,59 @@
 {
-  "identifier": "Speech To Text",
+  "identifier": "speech_to_text",
+  "label": "Transcription",
+  "icon": "subtitles",
   "version_major": 0,
   "version_minor": 0,
   "version_micro": 1,
   "tags": ["speech_to_text"],
+  "start_parameters": [
+    {
+      "id": "audio_source_filename",
+      "label": "Audio Source file",
+      "type": "file",
+      "accept": ".wav,.mp4"
+    },
+    {
+      "id": "language",
+      "label": "Langue audio",
+      "type": "choice",
+      "default": "fr",
+      "items": [
+        {
+          "id": "fr",
+          "label": "Français"
+        },
+        {
+          "id": "en",
+          "label": "Anglais"
+        }
+      ]
+    },
+    {
+      "id": "content_type",
+      "label": "Type du contenu",
+      "type": "choice",
+      "default": "news",
+      "items": [
+        {
+          "id": "documentary",
+          "label": "Documentaire"
+        },
+        {
+          "id": "fiction",
+          "label": "Fiction"
+        },
+        {
+          "id": "news",
+          "label": "News"
+        },
+        {
+          "id": "reportage",
+          "label": "Reportage"
+        }
+      ]
+    }
+  ],
   "parameters": [],
   "steps": [
     {
