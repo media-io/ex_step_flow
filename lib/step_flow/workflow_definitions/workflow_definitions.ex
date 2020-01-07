@@ -14,22 +14,7 @@ defmodule StepFlow.WorkflowDefinitions do
     workflow_definitions =
       WorkflowDefinition.get_workflow_definition_directories()
       |> Enum.map(fn directory ->
-        directory
-        |> File.ls!()
-        |> Enum.map(fn filename ->
-          Path.join(directory, filename)
-          |> File.read!()
-          |> Jason.decode!()
-        end)
-        |> Enum.filter(fn workflow_definition ->
-          if WorkflowDefinition.valid?(workflow_definition) do
-            true
-          else
-            errors = WorkflowDefinition.validate(workflow_definition)
-            Logger.error("Workflow definition not valid: #{inspect(errors)}")
-            false
-          end
-        end)
+        list_workflow_definitions_for_a_directory(directory)
       end)
       |> List.flatten()
 
@@ -60,5 +45,23 @@ defmodule StepFlow.WorkflowDefinitions do
     else
       WorkflowDefinition.validate(workflow_definition)
     end
+  end
+
+  defp list_workflow_definitions_for_a_directory(directory) do
+    File.ls!(directory)
+    |> Enum.map(fn filename ->
+      Path.join(directory, filename)
+      |> File.read!()
+      |> Jason.decode!()
+    end)
+    |> Enum.filter(fn workflow_definition ->
+      if WorkflowDefinition.valid?(workflow_definition) do
+        true
+      else
+        errors = WorkflowDefinition.validate(workflow_definition)
+        Logger.error("Workflow definition not valid: #{inspect(errors)}")
+        false
+      end
+    end)
   end
 end
