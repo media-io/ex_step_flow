@@ -33,7 +33,7 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     assert status == 200
     response = body |> Jason.decode!()
 
-    assert response["data"]["identifier"] == "Speech To Text"
+    assert response["data"]["identifier"] == "speech_to_text"
     assert response["data"]["version_major"] == 0
     assert response["data"]["version_minor"] == 0
     assert response["data"]["version_micro"] == 1
@@ -54,7 +54,7 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
                %{
                  "details" => "#",
                  "message" =>
-                   "Required properties identifier, version_major, version_minor, version_micro, tags, parameters, steps were not present."
+                   "Required properties identifier, label, icon, version_major, version_minor, version_micro, tags, parameters, steps were not present."
                }
              ]
            }
