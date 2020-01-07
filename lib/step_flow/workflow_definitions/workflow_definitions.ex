@@ -5,6 +5,7 @@ defmodule StepFlow.WorkflowDefinitions do
 
   import Ecto.Query, warn: false
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
+  require Logger
 
   @doc """
   Returns the list of Workflow Definitions.
@@ -21,7 +22,13 @@ defmodule StepFlow.WorkflowDefinitions do
           |> Jason.decode!()
         end)
         |> Enum.filter(fn workflow_definition ->
-          WorkflowDefinition.valid?(workflow_definition)
+          if WorkflowDefinition.valid?(workflow_definition) do
+            true
+          else
+            errors = WorkflowDefinition.validate(workflow_definition)
+            Logger.error("Workflow definition not valid: #{inspect errors}")
+            false
+          end
         end)
       end)
       |> List.flatten
