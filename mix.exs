@@ -84,7 +84,7 @@ defmodule StepFlow.MixProject do
   defp package() do
     [
       name: "step_flow",
-      files: ["lib", "mix.exs", "README*", "LICENSE*", "VERSION"],
+      files: ["lib", "mix.exs", "README*", "LICENSE*"],
       maintainers: [
         "Valentin Noël",
         "Marc-Antoine Arnaud"
