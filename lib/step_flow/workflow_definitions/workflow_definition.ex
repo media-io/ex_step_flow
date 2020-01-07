@@ -33,10 +33,14 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
         System.get_env(key)
         |> String.split(get_separator())
 
-      key when is_list(key) -> key
-      key when is_bitstring(key) -> [key]
+      key when is_list(key) ->
+        key
+
+      key when is_bitstring(key) ->
+        [key]
+
       key ->
-        Logger.info("unable to use #{inspect key} to list directory")
+        Logger.info("unable to use #{inspect(key)} to list directory")
         []
     end
   end

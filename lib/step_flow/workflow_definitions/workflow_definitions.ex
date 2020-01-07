@@ -26,13 +26,12 @@ defmodule StepFlow.WorkflowDefinitions do
             true
           else
             errors = WorkflowDefinition.validate(workflow_definition)
-            Logger.error("Workflow definition not valid: #{inspect errors}")
+            Logger.error("Workflow definition not valid: #{inspect(errors)}")
             false
           end
         end)
       end)
-      |> List.flatten
-
+      |> List.flatten()
 
     total = length(workflow_definitions)
 
