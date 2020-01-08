@@ -4,6 +4,7 @@ defmodule StepFlow.WorkflowEventsController do
 
   alias StepFlow.Amqp.CommonEmitter
   alias StepFlow.Jobs
+  alias StepFlow.Jobs.Status
   alias StepFlow.Workflows
 
   action_fallback(StepFlow.FallbackController)
@@ -26,6 +27,8 @@ defmodule StepFlow.WorkflowEventsController do
       %{"event" => "retry", "job_id" => job_id} ->
         Logger.warn("retry job #{job_id}")
         job = Jobs.get_job!(job_id)
+
+        Status.set_job_status(job_id, "processing")
 
         params = %{
           job_id: job.id,
