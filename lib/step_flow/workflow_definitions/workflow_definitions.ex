@@ -49,6 +49,9 @@ defmodule StepFlow.WorkflowDefinitions do
 
   defp list_workflow_definitions_for_a_directory(directory) do
     File.ls!(directory)
+    |> Enum.filter(fn filename ->
+      String.ends_with?(filename, ".json")
+    end)
     |> Enum.map(fn filename ->
       Path.join(directory, filename)
       |> File.read!()
