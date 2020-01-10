@@ -4,7 +4,7 @@ defmodule StepFlow.MixProject do
   def project do
     [
       app: :step_flow,
-      version: "0.0.13",
+      version: "0.0.14",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
