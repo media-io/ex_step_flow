@@ -72,7 +72,7 @@ defmodule StepFlow.Step.Launch do
         workflow
       )
 
-    case CommonEmitter.publish_json(step_name, message) do
+    case CommonEmitter.publish_json(step_name, step_id, message) do
       :ok ->
         start_job_one_for_one(source_paths, step, step_name, step_id, dates, first_file, workflow)
 
@@ -103,7 +103,7 @@ defmodule StepFlow.Step.Launch do
     message =
       generate_message_one_for_many(source_paths, step, step_name, step_id, dates, workflow)
 
-    case CommonEmitter.publish_json(step_name, message) do
+    case CommonEmitter.publish_json(step_name, step_id, message) do
       :ok -> {:ok, "started"}
       _ -> {:error, "unable to publish message"}
     end

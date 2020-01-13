@@ -35,7 +35,7 @@ defmodule StepFlow.WorkflowEventsController do
           parameters: job.parameters
         }
 
-        case CommonEmitter.publish_json(job.name, params) do
+        case CommonEmitter.publish_json(job.name, job.step_id, params) do
           :ok ->
             conn
             |> put_status(:ok)
