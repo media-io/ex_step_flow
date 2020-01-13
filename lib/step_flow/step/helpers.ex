@@ -118,30 +118,31 @@ defmodule StepFlow.Step.Helpers do
     }
   end
 
-  def get_work_directory do
+  def get_work_directory(step) do
+    StepFlow.Map.get_by_key_or_atom(step, :work_dir) ||
     System.get_env("WORK_DIR") ||
       Application.get_env(:step_flow, :work_dir) ||
       ""
   end
 
-  def get_base_directory(workflow) do
-    get_work_directory() <> "/" <> Integer.to_string(workflow.id) <> "/"
+  def get_base_directory(workflow, step) do
+    get_work_directory(step) <> "/" <> Integer.to_string(workflow.id) <> "/"
   end
 
-  def templates_process(_templates, _workflow, _dates, result \\ [])
-  def templates_process([], _workflow, _dates, result), do: result
+  def templates_process(_templates, _workflow, _step, _dates, result \\ [])
+  def templates_process([], _workflow, _step, _dates, result), do: result
 
-  def templates_process([template | templates], workflow, dates, result) do
-    processed = intern_template_process(template, workflow, dates, [])
+  def templates_process([template | templates], workflow, step, dates, result) do
+    processed = intern_template_process(template, workflow, step, dates, [])
     result = List.insert_at(result, -1, processed)
-    templates_process(templates, workflow, dates, result)
+    templates_process(templates, workflow, step, dates, result)
   end
 
-  def template_process(template, workflow, dates, nil) do
-    intern_template_process(template, workflow, dates, [])
+  def template_process(template, workflow, step, dates, nil) do
+    intern_template_process(template, workflow, step, dates, [])
   end
 
-  def template_process(template, workflow, dates, source_path) when is_binary(source_path) do
+  def template_process(template, workflow, step, dates, source_path) when is_binary(source_path) do
     filename = Path.basename(source_path)
     extension = Path.extname(source_path)
     name = Path.basename(source_path, extension)
@@ -153,18 +154,18 @@ defmodule StepFlow.Step.Helpers do
       |> Keyword.put(:extension, extension)
       |> Keyword.put(:name, name)
 
-    intern_template_process(template, workflow, dates, source_keywords)
+    intern_template_process(template, workflow, step, dates, source_keywords)
   end
 
-  def template_process(template, workflow, dates, source_paths) when is_list(source_paths) do
+  def template_process(template, workflow, step, dates, source_paths) when is_list(source_paths) do
     source_keywords =
       Keyword.new()
       |> Keyword.put(:source_paths, source_paths)
 
-    intern_template_process(template, workflow, dates, source_keywords)
+    intern_template_process(template, workflow, step, dates, source_keywords)
   end
 
-  defp intern_template_process(template, workflow, dates, source_keywords) do
+  defp intern_template_process(template, workflow, step, dates, source_keywords) do
     defined_parameters =
       workflow.parameters
       |> Enum.filter(fn item ->
@@ -186,7 +187,7 @@ defmodule StepFlow.Step.Helpers do
       end)
       |> Keyword.put(:workflow_id, workflow.id)
       |> Keyword.put(:workflow_reference, workflow.reference)
-      |> Keyword.put(:work_directory, get_work_directory())
+      |> Keyword.put(:work_directory, get_work_directory(step))
       |> Keyword.put(:date_time, dates.date_time)
       |> Keyword.put(:date, dates.date)
       |> Keyword.merge(source_keywords)
