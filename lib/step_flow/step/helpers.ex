@@ -120,7 +120,7 @@ defmodule StepFlow.Step.Helpers do
 
   def get_work_directory(step) do
     StepFlow.Map.get_by_key_or_atom(step, :work_dir) ||
-    System.get_env("WORK_DIR") ||
+      System.get_env("WORK_DIR") ||
       Application.get_env(:step_flow, :work_dir) ||
       ""
   end
@@ -142,7 +142,8 @@ defmodule StepFlow.Step.Helpers do
     intern_template_process(template, workflow, step, dates, [])
   end
 
-  def template_process(template, workflow, step, dates, source_path) when is_binary(source_path) do
+  def template_process(template, workflow, step, dates, source_path)
+      when is_binary(source_path) do
     filename = Path.basename(source_path)
     extension = Path.extname(source_path)
     name = Path.basename(source_path, extension)
@@ -157,7 +158,8 @@ defmodule StepFlow.Step.Helpers do
     intern_template_process(template, workflow, step, dates, source_keywords)
   end
 
-  def template_process(template, workflow, step, dates, source_paths) when is_list(source_paths) do
+  def template_process(template, workflow, step, dates, source_paths)
+      when is_list(source_paths) do
     source_keywords =
       Keyword.new()
       |> Keyword.put(:source_paths, source_paths)
