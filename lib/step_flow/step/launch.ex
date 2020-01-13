@@ -88,7 +88,7 @@ defmodule StepFlow.Step.Launch do
       [] ->
         Helpers.get_value_in_parameters(step, "source_paths")
         |> List.flatten()
-        |> Helpers.templates_process(workflow, dates, [])
+        |> Helpers.templates_process(workflow, step, dates)
         |> Helpers.filter_path_list(input_filter)
 
       parent_ids ->
@@ -124,12 +124,16 @@ defmodule StepFlow.Step.Launch do
     destination_filename_templates =
       Helpers.get_value_in_parameters_with_type(step, "destination_filename", "template")
 
+    base_directory = Helpers.get_base_directory(workflow, step)
+
     {required_paths, destination_path} =
       build_requirements_and_destination_path(
         destination_path_templates,
         destination_filename_templates,
         workflow,
+        step,
         dates,
+        base_directory,
         source_path,
         first_file
       )
@@ -212,10 +216,10 @@ defmodule StepFlow.Step.Launch do
           else
             filename =
               destination_filename_template
-              |> Helpers.template_process(workflow, dates, source_paths)
+              |> Helpers.template_process(workflow, step, dates, source_paths)
               |> Path.basename()
 
-            destination_path = Helpers.get_base_directory(workflow) <> filename
+            destination_path = Helpers.get_base_directory(workflow, step) <> filename
 
             Enum.concat(select_input, [
               %{
@@ -268,12 +272,13 @@ defmodule StepFlow.Step.Launch do
         [destination_path_template],
         _,
         workflow,
+        step,
         dates,
         source_path,
         _first_file
       ) do
     destination_path =
-      Helpers.template_process(destination_path_template, workflow, dates, source_path)
+      Helpers.template_process(destination_path_template, workflow, step, dates, source_path)
 
     {[], destination_path}
   end
@@ -282,15 +287,15 @@ defmodule StepFlow.Step.Launch do
         _,
         [destination_filename_template],
         workflow,
+        step,
         dates,
+        base_directory,
         source_path,
         first_file
       ) do
     filename =
-      Helpers.template_process(destination_filename_template, workflow, dates, source_path)
+      Helpers.template_process(destination_filename_template, workflow, step, dates, source_path)
       |> Path.basename()
-
-    base_directory = Helpers.get_base_directory(workflow)
 
     required_paths =
       if source_path != first_file do
@@ -302,9 +307,7 @@ defmodule StepFlow.Step.Launch do
     {required_paths, base_directory <> filename}
   end
 
-  def build_requirements_and_destination_path(_, _, workflow, _dates, source_path, first_file) do
-    base_directory = Helpers.get_base_directory(workflow)
-
+  def build_requirements_and_destination_path(_, _, _workflow, _step, _dates, base_directory, source_path, first_file) do
     required_paths =
       if source_path != first_file do
         base_directory <> Path.basename(first_file)
@@ -331,7 +334,7 @@ defmodule StepFlow.Step.Launch do
         Enum.map(
           templates,
           fn template ->
-            Helpers.template_process(template, workflow, dates, nil)
+            Helpers.template_process(template, workflow, step, dates, nil)
           end
         )
     end
@@ -348,7 +351,7 @@ defmodule StepFlow.Step.Launch do
               :value,
               StepFlow.Map.get_by_key_or_atom(param, :default)
             )
-            |> Helpers.template_process(workflow, dates, source_paths)
+            |> Helpers.template_process(workflow, step, dates, source_paths)
 
           %{
             id: StepFlow.Map.get_by_key_or_atom(param, :id),
@@ -357,7 +360,7 @@ defmodule StepFlow.Step.Launch do
           }
 
         "array_of_templates" ->
-          filter_and_pre_compile_array_of_templates_parameter(param, workflow, dates)
+          filter_and_pre_compile_array_of_templates_parameter(param, workflow, step, dates)
 
         _ ->
           param
@@ -371,7 +374,7 @@ defmodule StepFlow.Step.Launch do
     end)
   end
 
-  defp filter_and_pre_compile_array_of_templates_parameter(param, workflow, dates) do
+  defp filter_and_pre_compile_array_of_templates_parameter(param, workflow, step, dates) do
     case StepFlow.Map.get_by_key_or_atom(param, :id) do
       "source_paths" ->
         param
@@ -383,7 +386,7 @@ defmodule StepFlow.Step.Launch do
             :value,
             StepFlow.Map.get_by_key_or_atom(param, :default)
           )
-          |> Helpers.templates_process(workflow, dates)
+          |> Helpers.templates_process(workflow, step, dates)
 
         %{
           id: StepFlow.Map.get_by_key_or_atom(param, :id),
