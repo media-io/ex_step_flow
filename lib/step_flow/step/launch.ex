@@ -307,7 +307,16 @@ defmodule StepFlow.Step.Launch do
     {required_paths, base_directory <> filename}
   end
 
-  def build_requirements_and_destination_path(_, _, _workflow, _step, _dates, base_directory, source_path, first_file) do
+  def build_requirements_and_destination_path(
+        _,
+        _,
+        _workflow,
+        _step,
+        _dates,
+        base_directory,
+        source_path,
+        first_file
+      ) do
     required_paths =
       if source_path != first_file do
         base_directory <> Path.basename(first_file)
