@@ -27,25 +27,32 @@ defmodule StepFlow.WorkflowEventsController do
 
       %{"event" => "retry", "job_id" => job_id} ->
         Logger.warn("retry job #{job_id}")
-        job = Jobs.get_job!(job_id)
 
-        Status.set_job_status(job_id, Status.state_enum_label(:retrying))
+        job = Jobs.get_job_with_status!(job_id)
 
-        params = %{
-          job_id: job.id,
-          parameters: job.parameters
-        }
+        last_status = Status.get_last_status(job.status)
 
-        case CommonEmitter.publish_json(job.name, job.step_id, params) do
-          :ok ->
-            conn
-            |> put_status(:ok)
-            |> json(%{status: "ok"})
+        if Status.state_enum_from_label(last_status.state) == :error do
+          Status.set_job_status(job_id, Status.state_enum_label(:retrying))
 
-          _ ->
-            conn
-            |> put_status(:ok)
-            |> json(%{status: "error", message: "unable to publish message"})
+          params = %{
+            job_id: job.id,
+            parameters: job.parameters
+          }
+
+          case CommonEmitter.publish_json(job.name, job.step_id, params) do
+            :ok ->
+              conn
+              |> put_status(:ok)
+              |> json(%{status: "ok"})
+
+            _ ->
+              conn
+              |> put_status(:ok)
+              |> json(%{status: "error", message: "unable to publish message"})
+          end
+        else
+          send_resp(conn, :forbidden, "illegal operation")
         end
 
       %{"event" => "delete"} ->
