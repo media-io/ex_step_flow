@@ -13,8 +13,8 @@ defmodule StepFlow.Amqp.CommonEmitter do
   StepFlow.Amqp.CommonEmitter.publish_json("my_rabbit_mq_queue", "{\\\"key\\\": \\\"value\\\"}")
   ```
   """
-  def publish(queue, message) do
-    Connection.publish(queue, message)
+  def publish(queue, message, options \\ []) do
+    Connection.publish(queue, message, options)
   end
 
   @doc """
@@ -22,16 +22,20 @@ defmodule StepFlow.Amqp.CommonEmitter do
 
   Example:
   ```elixir
-  StepFlow.Amqp.CommonEmitter.publish_json("my_rabbit_mq_queue", %{key: "value"})
+  StepFlow.Amqp.CommonEmitter.publish_json("my_rabbit_mq_queue", 0, %{key: "value"})
   ```
   """
-  def publish_json(queue, message) do
+  def publish_json(queue, priority, message) do
     message =
       message
       |> check_message_parameters
       |> Jason.encode!()
 
-    publish(queue, message)
+    options = [
+      priority: min(priority, 100)
+    ]
+
+    publish(queue, message, options)
   end
 
   defp check_message_parameters(message) do
