@@ -169,7 +169,7 @@ defmodule StepFlow.HelpersTest do
       |> Map.get(:data)
 
     for job <- all_jobs do
-      Status.set_job_status(job.id, "completed")
+      Status.set_job_status(job.id, Status.status_enum_label(:completed))
     end
 
     all_jobs

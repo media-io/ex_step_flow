@@ -137,7 +137,7 @@ defmodule StepFlow.Jobs do
     }
 
     {:ok, job} = create_job(job_params)
-    Status.set_job_status(job.id, "skipped")
+    Status.set_job_status(job.id, Status.status_enum_label(:skipped))
     {:ok, "skipped"}
   end
 
@@ -159,7 +159,7 @@ defmodule StepFlow.Jobs do
     }
 
     {:ok, job} = create_job(job_params)
-    Status.set_job_status(job.id, "error", %{message: description})
+    Status.set_job_status(job.id, Status.status_enum_label(:error), %{message: description})
     {:ok, "created"}
   end
 
@@ -186,7 +186,7 @@ defmodule StepFlow.Jobs do
       end
     end)
     |> Enum.each(fn job ->
-      Status.set_job_status(job.id, "skipped")
+      Status.set_job_status(job.id, Status.status_enum_label(:skipped))
     end)
   end
 

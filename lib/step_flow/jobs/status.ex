@@ -1,6 +1,7 @@
 defmodule StepFlow.Jobs.Status do
   use Ecto.Schema
   import Ecto.Changeset
+  import EctoEnum
 
   alias StepFlow.Jobs.Job
   alias StepFlow.Jobs.Status
@@ -28,5 +29,18 @@ defmodule StepFlow.Jobs.Status do
     %Status{}
     |> Status.changeset(%{job_id: job_id, state: status, description: description})
     |> Repo.insert()
+  end
+
+  defenum StatusEnum, queued: 0, skipped: 1, processing: 2, error: 3, completed: 4
+
+  def status_enum_label(value) do
+    case value do
+      value when value in [0, :queued] -> "queued"
+      value when value in [1, :skipped] -> "skipped"
+      value when value in [2, :processing] -> "processing"
+      value when value in [3, :error] -> "error"
+      value when value in [4, :completed] -> "completed"
+      _ -> "unknown"
+    end
   end
 end

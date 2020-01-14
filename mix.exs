@@ -63,6 +63,7 @@ defmodule StepFlow.MixProject do
       {:credo, "~> 1.1", only: [:dev, :test], runtime: false},
       {:ecto, "~> 3.1"},
       {:ecto_sql, "~> 3.1"},
+      {:ecto_enum, "~> 1.4"},
       {:excoveralls, "~> 0.10", only: :test},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:gettext, "~> 0.14"},
