@@ -21,14 +21,19 @@ defmodule StepFlow.Jobs.StatusTest do
     assert "processing" == Status.status_enum_label(2)
   end
 
+  test "get retrying status enum label" do
+    assert "retrying" == Status.status_enum_label(:retrying)
+    assert "retrying" == Status.status_enum_label(3)
+  end
+
   test "get error status enum label" do
     assert "error" == Status.status_enum_label(:error)
-    assert "error" == Status.status_enum_label(3)
+    assert "error" == Status.status_enum_label(4)
   end
 
   test "get completed status enum label" do
     assert "completed" == Status.status_enum_label(:completed)
-    assert "completed" == Status.status_enum_label(4)
+    assert "completed" == Status.status_enum_label(5)
   end
 
   test "get unknown status enum label" do
