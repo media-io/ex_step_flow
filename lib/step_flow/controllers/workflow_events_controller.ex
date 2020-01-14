@@ -29,7 +29,7 @@ defmodule StepFlow.WorkflowEventsController do
         Logger.warn("retry job #{job_id}")
         job = Jobs.get_job!(job_id)
 
-        Status.set_job_status(job_id, Status.status_enum_label(:processing))
+        Status.set_job_status(job_id, Status.status_enum_label(:retrying))
 
         params = %{
           job_id: job.id,
@@ -68,9 +68,9 @@ defmodule StepFlow.WorkflowEventsController do
   defp skip_remaining_steps([], _workflow), do: nil
 
   defp skip_remaining_steps([step | steps], workflow) do
-    case step.status do
-      "queued" -> StepFlow.Step.skip_step(workflow, step)
-      "processing" -> StepFlow.Step.skip_step_jobs(workflow, step)
+    case Status.status_enum_from_label(step.status) do
+      :queued -> StepFlow.Step.skip_step(workflow, step)
+      :processing -> StepFlow.Step.skip_step_jobs(workflow, step)
       _ -> nil
     end
 

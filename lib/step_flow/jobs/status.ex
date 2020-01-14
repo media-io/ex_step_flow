@@ -31,7 +31,7 @@ defmodule StepFlow.Jobs.Status do
     |> Repo.insert()
   end
 
-  defenum StatusEnum, queued: 0, skipped: 1, processing: 2, retrying: 3, error: 4, completed: 5
+  defenum(StatusEnum, queued: 0, skipped: 1, processing: 2, retrying: 3, error: 4, completed: 5)
 
   def status_enum_label(value) do
     case value do
@@ -42,6 +42,18 @@ defmodule StepFlow.Jobs.Status do
       value when value in [4, :error] -> "error"
       value when value in [5, :completed] -> "completed"
       _ -> "unknown"
+    end
+  end
+
+  def status_enum_from_label(label) do
+    case label do
+      "queued" -> :queued
+      "skipped" -> :skipped
+      "processing" -> :processing
+      "retrying" -> :retrying
+      "error" -> :error
+      "completed" -> :completed
+      _ -> nil
     end
   end
 end
