@@ -32,7 +32,7 @@ defmodule StepFlow.Amqp.CommonEmitter do
       |> Jason.encode!()
 
     options = [
-      priority: min(priority, 100),
+      priority: min(priority, 100)
     ]
 
     publish(queue, message, options)
