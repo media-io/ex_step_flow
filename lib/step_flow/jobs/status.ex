@@ -56,4 +56,16 @@ defmodule StepFlow.Jobs.Status do
       _ -> nil
     end
   end
+
+  @doc """
+  Returns the last updated status of a list of status.
+  """
+  def get_last_status(status) when is_list(status) do
+    status
+    |> Enum.sort(fn s1, s2 -> s1.updated_at < s2.updated_at end)
+    |> List.last()
+  end
+
+  def get_last_status(%Status{} = status), do: status
+  def get_last_status(_status), do: nil
 end

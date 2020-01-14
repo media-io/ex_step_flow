@@ -69,4 +69,37 @@ defmodule StepFlow.Jobs.StatusTest do
   test "get unknown state from label" do
     assert nil == Status.state_enum_from_label("unknown")
   end
+
+  test "get last status" do
+    status_list = [
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:15:00],
+        job_id: 123,
+        state: "queued",
+        updated_at: ~N[2020-01-14 15:15:00]
+      },
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:17:32],
+        job_id: 123,
+        state: "skipped",
+        updated_at: ~N[2020-01-14 15:17:32]
+      },
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:16:03],
+        job_id: 123,
+        state: "processing",
+        updated_at: ~N[2020-01-14 15:16:03]
+      }
+    ]
+
+    last_status = Status.get_last_status(status_list)
+
+    assert "skipped" == last_status.state
+  end
 end
