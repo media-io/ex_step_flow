@@ -5,8 +5,8 @@ defmodule StepFlow.Api.WorkflowEventsTest do
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Jobs
   alias StepFlow.Jobs.Status
-  alias StepFlow.Workflows
   alias StepFlow.Router
+  alias StepFlow.Workflows
   doctest StepFlow
 
   @opts Router.init([])
@@ -17,7 +17,8 @@ defmodule StepFlow.Api.WorkflowEventsTest do
   end
 
   def create_workflow do
-    {:ok, workflow} = Workflows.create_workflow(%{
+    {:ok, workflow} =
+      Workflows.create_workflow(%{
         identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         version_major: 1,
@@ -70,9 +71,10 @@ defmodule StepFlow.Api.WorkflowEventsTest do
 
     Status.set_job_status(job.id, :error)
 
-    :timer.sleep(1000);
+    :timer.sleep(1000)
 
     # Retry workflow job
+
     {status, _headers, _body} =
       conn(:post, "/workflows/#{workflow.id}/events", %{event: "retry", job_id: job.id})
       |> Router.call(@opts)
