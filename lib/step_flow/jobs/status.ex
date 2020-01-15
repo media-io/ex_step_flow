@@ -50,7 +50,9 @@ defmodule StepFlow.Jobs.Status do
   """
   def get_last_status(status) when is_list(status) do
     status
-    |> Enum.sort(fn s1, s2 -> s1.updated_at < s2.updated_at end)
+    |> Enum.sort(fn state_1, state_2 ->
+      state_1.updated_at <= state_2.updated_at
+    end)
     |> List.last()
   end
 

@@ -42,7 +42,9 @@ defmodule StepFlow.Workflows do
 
     status = Map.get(params, "state")
 
-    completed_status = ["completed"]
+    completed_status = [
+      Status.state_enum_label(:completed)
+    ]
 
     query =
       if status != nil do
