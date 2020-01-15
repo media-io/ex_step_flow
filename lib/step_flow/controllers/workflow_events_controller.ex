@@ -41,6 +41,8 @@ defmodule StepFlow.WorkflowEventsController do
 
           case CommonEmitter.publish_json(job.name, job.step_id, params) do
             :ok ->
+              StepFlow.Notification.send("retry_job", %{workflow_id: workflow.id, body: params})
+
               conn
               |> put_status(:ok)
               |> json(%{status: "ok"})
