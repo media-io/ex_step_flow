@@ -70,6 +70,8 @@ defmodule StepFlow.Api.WorkflowEventsTest do
 
     Status.set_job_status(job.id, :error)
 
+    :timer.sleep(1000);
+
     # Retry workflow job
     {status, _headers, _body} =
       conn(:post, "/workflows/#{workflow.id}/events", %{event: "retry", job_id: job.id})
