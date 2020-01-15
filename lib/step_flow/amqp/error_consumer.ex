@@ -19,7 +19,7 @@ defmodule StepFlow.Amqp.ErrorConsumer do
   """
   def consume(channel, tag, _redelivered, %{"job_id" => job_id, "error" => description} = payload) do
     Logger.error("Job error #{inspect(payload)}")
-    Status.set_job_status(job_id, Status.state_enum_label(:error), %{message: description})
+    Status.set_job_status(job_id, :error, %{message: description})
     Workflows.notification_from_job(job_id)
     Basic.ack(channel, tag)
   end
@@ -35,7 +35,7 @@ defmodule StepFlow.Amqp.ErrorConsumer do
         } = payload
       ) do
     Logger.error("Job error #{inspect(payload)}")
-    Status.set_job_status(job_id, Status.state_enum_label(:error), %{message: description})
+    Status.set_job_status(job_id, :error, %{message: description})
     Workflows.notification_from_job(job_id)
     Basic.ack(channel, tag)
   end

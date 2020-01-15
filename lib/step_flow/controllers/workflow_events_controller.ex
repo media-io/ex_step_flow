@@ -6,7 +6,6 @@ defmodule StepFlow.WorkflowEventsController do
   alias StepFlow.Jobs
   alias StepFlow.Jobs.Status
   alias StepFlow.Workflows
-  alias StepFlow.Jobs.Status
 
   action_fallback(StepFlow.FallbackController)
 
@@ -32,8 +31,8 @@ defmodule StepFlow.WorkflowEventsController do
 
         last_status = Status.get_last_status(job.status)
 
-        if Status.state_enum_from_label(last_status.state) == :error do
-          Status.set_job_status(job_id, Status.state_enum_label(:retrying))
+        if last_status.state == :error do
+          Status.set_job_status(job_id, :retrying)
 
           params = %{
             job_id: job.id,
@@ -75,7 +74,7 @@ defmodule StepFlow.WorkflowEventsController do
   defp skip_remaining_steps([], _workflow), do: nil
 
   defp skip_remaining_steps([step | steps], workflow) do
-    case Status.state_enum_from_label(step.status) do
+    case step.status do
       :queued -> StepFlow.Step.skip_step(workflow, step)
       :processing -> StepFlow.Step.skip_step_jobs(workflow, step)
       _ -> nil

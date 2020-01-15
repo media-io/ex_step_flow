@@ -42,7 +42,7 @@ defmodule StepFlow.Step do
 
         StepFlow.Notification.send(topic, %{workflow_id: workflow.id})
 
-        case StepFlow.Jobs.Status.state_enum_from_label(status) do
+        case status do
           :skipped -> start_next(workflow)
           :completed -> start_next(workflow)
           _ -> {result, status}

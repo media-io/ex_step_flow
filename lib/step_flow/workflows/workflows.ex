@@ -221,9 +221,9 @@ defmodule StepFlow.Workflows do
       workflow_jobs
       |> Enum.filter(fn job -> job.name == name && job.step_id == step_id end)
 
-    completed = count_status(jobs, Status.state_enum_label(:completed))
-    errors = count_status(jobs, Status.state_enum_label(:error))
-    skipped = count_status(jobs, Status.state_enum_label(:skipped))
+    completed = count_status(jobs, :completed)
+    errors = count_status(jobs, :error)
+    skipped = count_status(jobs, :skipped)
     queued = count_queued_status(jobs)
 
     job_status = %{
@@ -236,11 +236,11 @@ defmodule StepFlow.Workflows do
 
     status =
       cond do
-        errors > 0 -> Status.state_enum_label(:error)
-        queued > 0 -> Status.state_enum_label(:processing)
-        skipped > 0 -> Status.state_enum_label(:skipped)
-        completed > 0 -> Status.state_enum_label(:completed)
-        true -> Status.state_enum_label(:queued)
+        errors > 0 -> :error
+        queued > 0 -> :processing
+        skipped > 0 -> :skipped
+        completed > 0 -> :completed
+        true -> :queued
       end
 
     step =
@@ -258,12 +258,12 @@ defmodule StepFlow.Workflows do
   defp count_status([job | jobs], status, count) do
     count_completed =
       job.status
-      |> Enum.filter(fn s -> Status.state_enum_from_label(s.state) == :completed end)
+      |> Enum.filter(fn s -> s.state == :completed end)
       |> length
 
     count =
       if count_completed >= 1 do
-        if Status.state_enum_from_label(status) == :completed do
+        if status == :completed do
           count + 1
         else
           count

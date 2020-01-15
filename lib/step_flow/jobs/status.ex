@@ -9,8 +9,22 @@ defmodule StepFlow.Jobs.Status do
 
   @moduledoc false
 
+  defenum(StateEnum, ["queued", "skipped", "processing", "retrying", "error", "completed"])
+
+  def state_enum_label(value) do
+    case value do
+      value when value in [0, :queued] -> "queued"
+      value when value in [1, :skipped] -> "skipped"
+      value when value in [2, :processing] -> "processing"
+      value when value in [3, :retrying] -> "retrying"
+      value when value in [4, :error] -> "error"
+      value when value in [5, :completed] -> "completed"
+      _ -> "unknown"
+    end
+  end
+
   schema "step_flow_status" do
-    field(:state, :string)
+    field(:state, StepFlow.Jobs.Status.StateEnum)
     field(:description, :map, default: %{})
     belongs_to(:job, Job, foreign_key: :job_id)
 
@@ -29,32 +43,6 @@ defmodule StepFlow.Jobs.Status do
     %Status{}
     |> Status.changeset(%{job_id: job_id, state: status, description: description})
     |> Repo.insert()
-  end
-
-  defenum(StateEnum, queued: 0, skipped: 1, processing: 2, retrying: 3, error: 4, completed: 5)
-
-  def state_enum_label(value) do
-    case value do
-      value when value in [0, :queued] -> "queued"
-      value when value in [1, :skipped] -> "skipped"
-      value when value in [2, :processing] -> "processing"
-      value when value in [3, :retrying] -> "retrying"
-      value when value in [4, :error] -> "error"
-      value when value in [5, :completed] -> "completed"
-      _ -> "unknown"
-    end
-  end
-
-  def state_enum_from_label(label) do
-    case label do
-      "queued" -> :queued
-      "skipped" -> :skipped
-      "processing" -> :processing
-      "retrying" -> :retrying
-      "error" -> :error
-      "completed" -> :completed
-      _ -> nil
-    end
   end
 
   @doc """

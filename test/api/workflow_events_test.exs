@@ -3,9 +3,9 @@ defmodule StepFlow.Api.WorkflowEventsTest do
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox
-  alias StepFlow.Router
   alias StepFlow.Jobs
   alias StepFlow.Jobs.Status
+  alias StepFlow.Router
   doctest StepFlow
 
   @opts Router.init([])
@@ -116,7 +116,7 @@ defmodule StepFlow.Api.WorkflowEventsTest do
 
     assert result == :ok
 
-    Status.set_job_status(job.id, Status.state_enum_label(:error))
+    Status.set_job_status(job.id, :error)
 
     # Retry workflow job
     {status, _headers, _body} =
@@ -129,7 +129,7 @@ defmodule StepFlow.Api.WorkflowEventsTest do
     job = Jobs.get_job_with_status!(job.id)
     last_status = Status.get_last_status(job.status)
 
-    assert Status.state_enum_from_label(last_status.state) == :retrying
+    assert last_status.state == :retrying
   end
 
   test "POST /workflows/:id/events retry invalid (on non-failed job)" do
