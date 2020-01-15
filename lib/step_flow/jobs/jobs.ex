@@ -102,6 +102,25 @@ defmodule StepFlow.Jobs do
   def get_job!(id), do: Repo.get!(Job, id)
 
   @doc """
+  Gets a single job with its related status.
+
+  Raises `Ecto.NoResultsError` if the Job does not exist.
+
+  ## Examples
+
+      iex> get_job_with_status!(123)
+      %Job{}
+
+      iex> get_job!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_job_with_status!(id) do
+    get_job!(id)
+    |> Repo.preload(:status)
+  end
+
+  @doc """
   Creates a job.
 
   ## Examples
@@ -137,7 +156,7 @@ defmodule StepFlow.Jobs do
     }
 
     {:ok, job} = create_job(job_params)
-    Status.set_job_status(job.id, "skipped")
+    Status.set_job_status(job.id, :skipped)
     {:ok, "skipped"}
   end
 
@@ -159,7 +178,7 @@ defmodule StepFlow.Jobs do
     }
 
     {:ok, job} = create_job(job_params)
-    Status.set_job_status(job.id, "error", %{message: description})
+    Status.set_job_status(job.id, :error, %{message: description})
     {:ok, "created"}
   end
 
@@ -186,7 +205,7 @@ defmodule StepFlow.Jobs do
       end
     end)
     |> Enum.each(fn job ->
-      Status.set_job_status(job.id, "skipped")
+      Status.set_job_status(job.id, :skipped)
     end)
   end
 

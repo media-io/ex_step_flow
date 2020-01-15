@@ -42,11 +42,13 @@ defmodule StepFlow.Workflows do
 
     status = Map.get(params, "state")
 
-    completed_status = ["completed"]
+    completed_status = [
+      Status.state_enum_label(:completed)
+    ]
 
     query =
       if status != nil do
-        if "completed" in status do
+        if Status.state_enum_label(:completed) in status do
           if status == completed_status do
             from(
               workflow in query,
@@ -57,7 +59,7 @@ defmodule StepFlow.Workflows do
             query
           end
         else
-          if "error" in status do
+          if Status.state_enum_label(:error) in status do
             completed_jobs_to_exclude =
               from(
                 workflow in query,
@@ -221,9 +223,9 @@ defmodule StepFlow.Workflows do
       workflow_jobs
       |> Enum.filter(fn job -> job.name == name && job.step_id == step_id end)
 
-    completed = count_status(jobs, "completed")
-    errors = count_status(jobs, "error")
-    skipped = count_status(jobs, "skipped")
+    completed = count_status(jobs, :completed)
+    errors = count_status(jobs, :error)
+    skipped = count_status(jobs, :skipped)
     queued = count_queued_status(jobs)
 
     job_status = %{
@@ -236,11 +238,11 @@ defmodule StepFlow.Workflows do
 
     status =
       cond do
-        errors > 0 -> "error"
-        queued > 0 -> "processing"
-        skipped > 0 -> "skipped"
-        completed > 0 -> "completed"
-        true -> "queued"
+        errors > 0 -> :error
+        queued > 0 -> :processing
+        skipped > 0 -> :skipped
+        completed > 0 -> :completed
+        true -> :queued
       end
 
     step =
@@ -258,12 +260,12 @@ defmodule StepFlow.Workflows do
   defp count_status([job | jobs], status, count) do
     count_completed =
       job.status
-      |> Enum.filter(fn s -> s.state == "completed" end)
+      |> Enum.filter(fn s -> s.state == :completed end)
       |> length
 
     count =
       if count_completed >= 1 do
-        if status == "completed" do
+        if status == :completed do
           count + 1
         else
           count

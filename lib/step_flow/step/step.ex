@@ -35,17 +35,17 @@ defmodule StepFlow.Step do
         )
 
         step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
-        status = Launch.launch_step(workflow, step_name, step)
+        {result, status} = Launch.launch_step(workflow, step_name, step)
 
-        Logger.info("#{step_name}: #{inspect(status)}")
+        Logger.info("#{step_name}: #{inspect({result, status})}")
         topic = "update_workflow_" <> Integer.to_string(workflow_id)
 
         StepFlow.Notification.send(topic, %{workflow_id: workflow.id})
 
         case status do
-          {:ok, "skipped"} -> start_next(workflow)
-          {:ok, "completed"} -> start_next(workflow)
-          _ -> status
+          :skipped -> start_next(workflow)
+          :completed -> start_next(workflow)
+          _ -> {result, status}
         end
     end
   end

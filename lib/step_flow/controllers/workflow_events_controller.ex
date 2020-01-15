@@ -26,25 +26,34 @@ defmodule StepFlow.WorkflowEventsController do
 
       %{"event" => "retry", "job_id" => job_id} ->
         Logger.warn("retry job #{job_id}")
-        job = Jobs.get_job!(job_id)
 
-        Status.set_job_status(job_id, "processing")
+        job = Jobs.get_job_with_status!(job_id)
 
-        params = %{
-          job_id: job.id,
-          parameters: job.parameters
-        }
+        last_status = Status.get_last_status(job.status)
 
-        case CommonEmitter.publish_json(job.name, job.step_id, params) do
-          :ok ->
-            conn
-            |> put_status(:ok)
-            |> json(%{status: "ok"})
+        if last_status.state == :error do
+          Status.set_job_status(job_id, :retrying)
 
-          _ ->
-            conn
-            |> put_status(:ok)
-            |> json(%{status: "error", message: "unable to publish message"})
+          params = %{
+            job_id: job.id,
+            parameters: job.parameters
+          }
+
+          case CommonEmitter.publish_json(job.name, job.step_id, params) do
+            :ok ->
+              StepFlow.Notification.send("retry_job", %{workflow_id: workflow.id, body: params})
+
+              conn
+              |> put_status(:ok)
+              |> json(%{status: "ok"})
+
+            _ ->
+              conn
+              |> put_status(:ok)
+              |> json(%{status: "error", message: "unable to publish message"})
+          end
+        else
+          send_resp(conn, :forbidden, "illegal operation")
         end
 
       %{"event" => "delete"} ->
@@ -68,8 +77,8 @@ defmodule StepFlow.WorkflowEventsController do
 
   defp skip_remaining_steps([step | steps], workflow) do
     case step.status do
-      "queued" -> StepFlow.Step.skip_step(workflow, step)
-      "processing" -> StepFlow.Step.skip_step_jobs(workflow, step)
+      :queued -> StepFlow.Step.skip_step(workflow, step)
+      :processing -> StepFlow.Step.skip_step_jobs(workflow, step)
       _ -> nil
     end
 

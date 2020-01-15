@@ -31,7 +31,7 @@ defmodule StepFlow.StatusViewTest do
 
     {:ok, status} =
       %Status{}
-      |> Status.changeset(%{state: "completed", job_id: job.id})
+      |> Status.changeset(%{state: :completed, job_id: job.id})
       |> StepFlow.Repo.insert()
 
     assert render(StepFlow.StatusView, "show.json", %{status: status}) == %{
@@ -39,7 +39,7 @@ defmodule StepFlow.StatusViewTest do
                id: status.id,
                description: %{},
                inserted_at: status.inserted_at,
-               state: "completed"
+               state: :completed
              }
            }
   end
@@ -53,7 +53,7 @@ defmodule StepFlow.StatusViewTest do
 
     {:ok, status} =
       %Status{}
-      |> Status.changeset(%{state: "completed", job_id: job.id})
+      |> Status.changeset(%{state: :completed, job_id: job.id})
       |> StepFlow.Repo.insert()
 
     assert render(StepFlow.StatusView, "index.json", %{status: [status]}) == %{
@@ -62,7 +62,7 @@ defmodule StepFlow.StatusViewTest do
                  id: status.id,
                  description: %{},
                  inserted_at: status.inserted_at,
-                 state: "completed"
+                 state: :completed
                }
              ]
            }
