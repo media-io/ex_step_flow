@@ -21,6 +21,10 @@ defmodule StepFlow.Workflows.StepManager do
     GenServer.cast(__MODULE__, {:check_step_status, message})
   end
 
+  def check_step_progression(message)do
+    GenServer.cast(__MODULE__, {:check_step_progression, message})
+  end
+
   def handle_cast({:check_step_status, %{job_id: job_id}}, state) do
     Logger.warn("#{__MODULE__}: check for job #{job_id}")
 
