@@ -3,6 +3,7 @@ defmodule StepFlow.Jobs.Job do
   import Ecto.Changeset
   alias StepFlow.Jobs.Job
   alias StepFlow.Jobs.Status
+  alias StepFlow.Progressions.Progression
   alias StepFlow.Workflows.Workflow
 
   @moduledoc false
@@ -13,6 +14,7 @@ defmodule StepFlow.Jobs.Job do
     field(:parameters, {:array, :map}, default: [])
     belongs_to(:workflow, Workflow, foreign_key: :workflow_id)
     has_many(:status, Status, on_delete: :delete_all)
+    has_many(:progressions, Progression, on_delete: :delete_all)
 
     timestamps()
   end
