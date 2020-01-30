@@ -40,7 +40,7 @@ defmodule StepFlow.Migration.All do
 
     Ecto.Migrator.up(
       StepFlow.Repo,
-      20_191_022_164_300,
+      20_200_130_170_300,
       StepFlow.Migration.CreateProgressions
     )
   end

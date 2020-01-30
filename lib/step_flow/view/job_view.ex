@@ -29,7 +29,7 @@ defmodule StepFlow.JobView do
         else
           []
         end
-      IO.inspect(job)
+
       progressions =
         if is_list(job.progressions) do
           render_many(job.progressions, StepFlow.ProgressionsView, "progression.json")

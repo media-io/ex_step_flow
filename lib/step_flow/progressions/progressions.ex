@@ -4,9 +4,8 @@ defmodule StepFlow.Progressions do
   """
 
   import Ecto.Query, warn: false
-  alias StepFlow.Repo
-
   alias StepFlow.Progressions.Progression
+  alias StepFlow.Repo
 
   @doc """
   Creates a progression.
@@ -25,6 +24,4 @@ defmodule StepFlow.Progressions do
     |> Progression.changeset(attrs)
     |> Repo.insert()
   end
-
- 
 end

@@ -7,7 +7,6 @@ defmodule StepFlow.Migration.CreateProgressions do
       add(:datetime, :utc_datetime)
       add(:docker_container_id, :string)
       add(:progression, :integer)
-
       add(:job_id, references(:step_flow_jobs, on_delete: :nothing))
 
       timestamps()
