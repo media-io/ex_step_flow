@@ -13,14 +13,14 @@ defmodule StepFlow.Amqp.ProgressionConsumer do
     queue: "job_progression",
     consumer: &ProgressionConsumer.consume/4
   }
-  
+
   @doc """
   Consumme message with job progression and save it in database
   """
   def consume(
-      channel, 
-      tag, 
-      _redelivered, 
+      channel,
+      tag,
+      _redelivered,
       %{
         "job_id" => job_id
       } = payload
