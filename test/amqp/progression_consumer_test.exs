@@ -19,7 +19,18 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
     tag = "acs"
     {:ok, datetime, 0} = DateTime.from_iso8601("2020-01-31T09:48:53Z")
 
-    result = ProgressionConsumer.consume(channel, tag, false, @message)
+    result =
+      ProgressionConsumer.consume(
+        channel,
+        tag,
+        false,
+        %{
+          job_id: 2,
+          datetime: datetime,
+          docker_container_id: "unknown",
+          progression: 50
+        }
+      )
 
     assert result == :ok
   end
