@@ -25,7 +25,7 @@ defmodule StepFlow.Amqp.ProgressionConsumer do
         "job_id" => job_id
       } = payload
     ) do
-    job = Jobs.get_job!(job_id)
+    _job = Jobs.get_job!(job_id)
 
     Progressions.create_progression(payload)
     Workflows.notification_from_job(job_id)
