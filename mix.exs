@@ -5,7 +5,7 @@ defmodule StepFlow.MixProject do
     [
       app: :step_flow,
       version: "0.0.15",
-      elixir: "~> 1.6",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
