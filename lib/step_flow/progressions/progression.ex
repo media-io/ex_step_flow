@@ -33,6 +33,7 @@ defmodule StepFlow.Progressions.Progression do
     end)
     |> List.last()
   end
+
   def get_last_progression(%Progression{} = progression), do: progression
   def get_last_progression(_progression), do: nil
 end

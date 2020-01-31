@@ -18,13 +18,13 @@ defmodule StepFlow.Amqp.ProgressionConsumer do
   Consumme message with job progression and save it in database
   """
   def consume(
-      channel,
-      tag,
-      _redelivered,
-      %{
-        "job_id" => job_id
-      } = payload
-    ) do
+        channel,
+        tag,
+        _redelivered,
+        %{
+          "job_id" => job_id
+        } = payload
+      ) do
     _job = Jobs.get_job!(job_id)
 
     Progressions.create_progression(payload)

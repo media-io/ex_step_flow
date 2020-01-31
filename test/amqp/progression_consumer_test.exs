@@ -15,17 +15,12 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
     [channel: channel]
   end
 
-  @message %{
-      job_id: 2,
-      datetime: ~N[2020-01-31 09:48:53],
-      docker_container_id: "unknown",
-      progression: 50
-  }
+  test "consume a job progression message", %{channel: channel} do
+    tag = "acs"
+    {:ok, datetime, 0} = DateTime.from_iso8601("2020-01-31T09:48:53Z")
 
-  test "consume a job progression message" , %{channel: channel} do
-      tag = "acs"
-      result = ProgressionConsumer.consume(channel, tag, false, @message)
+    result = ProgressionConsumer.consume(channel, tag, false, @message)
 
-      assert result == :ok
+    assert result == :ok
   end
 end

@@ -14,21 +14,22 @@ defmodule StepFlow.ProgressionsTest do
   end
 
   @workflow %{
-      identifier: "id",
-      version_major: 6,
-      version_minor: 5,
-      version_micro: 4,
-      reference: "some id",
-      steps: []
+    identifier: "id",
+    version_major: 6,
+    version_minor: 5,
+    version_micro: 4,
+    reference: "some id",
+    steps: []
   }
 
   test "create job progression" do
     {_, workflow} = Workflows.create_workflow(@workflow)
+
     {_, job} =
       Jobs.create_job(%{
-          name: "job_test",
-          step_id: 0,
-          workflow_id: workflow.id
+        name: "job_test",
+        step_id: 0,
+        workflow_id: workflow.id
       })
 
     {result, _} =
@@ -37,9 +38,8 @@ defmodule StepFlow.ProgressionsTest do
         datetime: ~N[2020-01-31 09:48:53],
         docker_container_id: "unknown",
         progression: 50
-    })
+      })
 
     assert result == :ok
-
   end
 end

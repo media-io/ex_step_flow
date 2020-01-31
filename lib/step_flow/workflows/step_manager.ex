@@ -21,7 +21,7 @@ defmodule StepFlow.Workflows.StepManager do
     GenServer.cast(__MODULE__, {:check_step_status, message})
   end
 
-  def check_step_progression(message)do
+  def check_step_progression(message) do
     GenServer.cast(__MODULE__, {:check_step_progression, message})
   end
 
