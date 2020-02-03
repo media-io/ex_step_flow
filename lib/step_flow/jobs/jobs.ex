@@ -75,7 +75,7 @@ defmodule StepFlow.Jobs do
 
     jobs =
       Repo.all(query)
-      |> Repo.preload(:status)
+      |> Repo.preload([:status, :progressions])
 
     %{
       data: jobs,
@@ -117,7 +117,7 @@ defmodule StepFlow.Jobs do
   """
   def get_job_with_status!(id) do
     get_job!(id)
-    |> Repo.preload(:status)
+    |> Repo.preload([:status, :progressions])
   end
 
   @doc """
