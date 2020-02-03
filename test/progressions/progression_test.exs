@@ -32,4 +32,15 @@ defmodule StepFlow.Progressions.ProgressionTest do
 
     assert 50 == last_progression.progression
   end
+
+  test "get last progression of a progression" do
+    progression = %Progression{
+      datetime: ~N[2020-01-31 10:05:36],
+      docker_container_id: "unknown",
+      job_id: 123,
+      progression: 50
+    }
+
+    assert progression == Progression.get_last_progression(progression)
+  end
 end

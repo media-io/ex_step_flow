@@ -4,6 +4,8 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
 
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Amqp.ProgressionConsumer
+  alias StepFlow.Jobs
+  alias StepFlow.Workflows
 
   doctest StepFlow
 
@@ -15,9 +17,27 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
     [channel: channel]
   end
 
-  test "consume a job progression message", %{channel: channel} do
+  @workflow %{
+    identifier: "id",
+    version_major: 6,
+    version_minor: 5,
+    version_micro: 4,
+    reference: "some id",
+    steps: []
+  }
+
+  test "consume well formed message", %{channel: channel} do
+    {_, workflow} = Workflows.create_workflow(@workflow)
+
+    {_, job} =
+      Jobs.create_job(%{
+        name: "job_test",
+        step_id: 0,
+        workflow_id: workflow.id
+      })
+
     tag = "acs"
-    {:ok, datetime, 0} = DateTime.from_iso8601("2020-01-31T09:48:53Z")
+    {_, datetime, _} = DateTime.from_iso8601("2020-01-31T09:48:53Z")
 
     result =
       ProgressionConsumer.consume(
@@ -25,12 +45,20 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
         tag,
         false,
         %{
-          job_id: 2,
-          datetime: datetime,
-          docker_container_id: "unknown",
-          progression: 50
+          "job_id" => job.id,
+          "datetime" => datetime,
+          "docker_container_id" => "unknown",
+          "progression" => 50
         }
       )
+
+    assert result == :ok
+  end
+
+  test "consume badly formed message", %{channel: channel} do
+    tag = "acs"
+
+    result = ProgressionConsumer.consume(channel, tag, false, %{})
 
     assert result == :ok
   end
