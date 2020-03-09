@@ -25,15 +25,19 @@ defmodule StepFlow.Amqp.ProgressionConsumer do
           "job_id" => job_id
         } = payload
       ) do
-    _job = Jobs.get_job!(job_id)
+    case Jobs.get_job(job_id) do
+      nil ->
+        Basic.reject(channel, tag, requeue: false)
 
-    Progressions.create_progression(payload)
-    Workflows.notification_from_job(job_id)
-    Basic.ack(channel, tag)
+      _ ->
+        Progressions.create_progression(payload)
+        Workflows.notification_from_job(job_id)
+        Basic.ack(channel, tag)
+    end
   end
 
   def consume(channel, tag, _redelivered, payload) do
-    Logger.error("Job completed #{inspect(payload)}")
-    Basic.ack(channel, tag)
+    Logger.error("Job progression #{inspect(payload)}")
+    Basic.reject(channel, tag, requeue: false)
   end
 end

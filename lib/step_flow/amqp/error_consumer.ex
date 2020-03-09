@@ -6,6 +6,7 @@ defmodule StepFlow.Amqp.ErrorConsumer do
   require Logger
 
   alias StepFlow.Amqp.ErrorConsumer
+  alias StepFlow.Jobs
   alias StepFlow.Jobs.Status
   alias StepFlow.Workflows
 
@@ -18,10 +19,16 @@ defmodule StepFlow.Amqp.ErrorConsumer do
   Consume message with error topic, update Job and send a notification
   """
   def consume(channel, tag, _redelivered, %{"job_id" => job_id, "error" => description} = payload) do
-    Logger.error("Job error #{inspect(payload)}")
-    Status.set_job_status(job_id, :error, %{message: description})
-    Workflows.notification_from_job(job_id)
-    Basic.ack(channel, tag)
+    case Jobs.get_job(job_id) do
+      nil ->
+        Basic.reject(channel, tag, requeue: false)
+
+      _ ->
+        Logger.error("Job error #{inspect(payload)}")
+        Status.set_job_status(job_id, :error, %{message: description})
+        Workflows.notification_from_job(job_id)
+        Basic.ack(channel, tag)
+    end
   end
 
   def consume(
@@ -34,14 +41,20 @@ defmodule StepFlow.Amqp.ErrorConsumer do
           "status" => "error"
         } = payload
       ) do
-    Logger.error("Job error #{inspect(payload)}")
-    Status.set_job_status(job_id, :error, %{message: description})
-    Workflows.notification_from_job(job_id)
-    Basic.ack(channel, tag)
+    case Jobs.get_job(job_id) do
+      nil ->
+        Basic.reject(channel, tag, requeue: false)
+
+      _ ->
+        Logger.error("Job error #{inspect(payload)}")
+        Status.set_job_status(job_id, :error, %{message: description})
+        Workflows.notification_from_job(job_id)
+        Basic.ack(channel, tag)
+    end
   end
 
   def consume(channel, tag, _redelivered, payload) do
     Logger.error("Job error #{inspect(payload)}")
-    Basic.ack(channel, tag)
+    Basic.reject(channel, tag, requeue: false)
   end
 end

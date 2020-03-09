@@ -102,6 +102,20 @@ defmodule StepFlow.Jobs do
   def get_job!(id), do: Repo.get!(Job, id)
 
   @doc """
+  Gets a single job.
+
+  ## Examples
+
+      iex> get_job(123)
+      %Job{}
+
+      iex> get_job(456)
+      nil
+
+  """
+  def get_job(id), do: Repo.get(Job, id)
+
+  @doc """
   Gets a single job with its related status.
 
   Raises `Ecto.NoResultsError` if the Job does not exist.
