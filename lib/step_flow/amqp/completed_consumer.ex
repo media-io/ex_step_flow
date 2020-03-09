@@ -27,13 +27,33 @@ defmodule StepFlow.Amqp.CompletedConsumer do
           "status" => status
         } = payload
       ) do
-    job = Jobs.get_job!(job_id)
+    case Jobs.get_job(job_id) do
+      nil ->
+        Basic.reject(channel, tag, requeue: false)
 
-    workflow =
-      job
-      |> Map.get(:workflow_id)
-      |> Workflows.get_workflow!()
+      job ->
+        workflow =
+          job
+          |> Map.get(:workflow_id)
+          |> Workflows.get_workflow!()
 
+        set_generated_destination_paths(payload, job)
+        set_output_parameters(payload, workflow)
+
+        Status.set_job_status(job_id, status)
+        Workflows.notification_from_job(job_id)
+        StepManager.check_step_status(%{job_id: job_id})
+
+        Basic.ack(channel, tag)
+    end
+  end
+
+  def consume(channel, tag, _redelivered, payload) do
+    Logger.error("Job completed #{inspect(payload)}")
+    Basic.reject(channel, tag, requeue: false)
+  end
+
+  defp set_generated_destination_paths(payload, job) do
     case StepFlow.Map.get_by_key_or_atom(payload, "destination_paths") do
       nil ->
         nil
@@ -51,7 +71,9 @@ defmodule StepFlow.Amqp.CompletedConsumer do
 
         Jobs.update_job(job, %{parameters: job_parameters})
     end
+  end
 
+  defp set_output_parameters(payload, workflow) do
     case StepFlow.Map.get_by_key_or_atom(payload, "parameters") do
       nil ->
         nil
@@ -60,15 +82,5 @@ defmodule StepFlow.Amqp.CompletedConsumer do
         parameters = workflow.parameters ++ parameters
         Workflows.update_workflow(workflow, %{parameters: parameters})
     end
-
-    Status.set_job_status(job_id, status)
-    Workflows.notification_from_job(job_id)
-    StepManager.check_step_status(%{job_id: job_id})
-    Basic.ack(channel, tag)
-  end
-
-  def consume(channel, tag, _redelivered, payload) do
-    Logger.error("Job completed #{inspect(payload)}")
-    Basic.ack(channel, tag)
   end
 end
