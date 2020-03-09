@@ -57,7 +57,7 @@ defmodule StepFlow.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:amqp, "~> 1.2"},
+      {:amqp, "~> 1.4"},
       {:blue_bird, "~> 0.4.1"},
       {:cowboy, "~> 2.6"},
       {:credo, "~> 1.1", only: [:dev, :test], runtime: false},
@@ -98,7 +98,7 @@ defmodule StepFlow.MixProject do
   defp aliases do
     [
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate", "test"],
+      test: ["ecto.create --quiet", "test"],
       checks: [
         "ecto.create --quiet",
         "test",
