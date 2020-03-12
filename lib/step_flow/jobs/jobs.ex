@@ -197,6 +197,28 @@ defmodule StepFlow.Jobs do
   end
 
   @doc """
+  Creates a job with an completed status.
+
+  ## Examples
+
+      iex> create_completed_job(workflow, step_id, "webhook_notification")
+      {:ok, "completed"}
+
+  """
+  def create_completed_job(workflow, step_id, action) do
+    job_params = %{
+      name: action,
+      step_id: step_id,
+      workflow_id: workflow.id,
+      parameters: []
+    }
+
+    {:ok, job} = create_job(job_params)
+    Status.set_job_status(job.id, :completed)
+    {:ok, :completed}
+  end
+
+  @doc """
   Set skipped status to all queued jobs.
 
   ## Examples

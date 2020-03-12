@@ -189,14 +189,20 @@ defmodule StepFlow.Step.Helpers do
       end)
       |> Keyword.put(:workflow_id, workflow.id)
       |> Keyword.put(:workflow_reference, workflow.reference)
+      |> Keyword.put(:step_name, step.name)
       |> Keyword.put(:work_directory, get_work_directory(step))
       |> Keyword.put(:date_time, dates.date_time)
       |> Keyword.put(:date, dates.date)
       |> Keyword.merge(source_keywords)
 
-    template
-    |> String.replace("{", "<%= ")
-    |> String.replace("}", " %>")
+    Keyword.keys(defined_parameters)
+    |> replace(template)
     |> EEx.eval_string(defined_parameters)
+  end
+
+  defp replace([], template), do: template
+  defp replace([key | keys], template) do
+    template = String.replace(template, "{" <> Atom.to_string(key) <> "}", "<%= " <> Atom.to_string(key) <> "%>")
+    replace(keys, template)
   end
 end

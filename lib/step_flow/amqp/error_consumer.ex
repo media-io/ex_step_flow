@@ -26,7 +26,8 @@ defmodule StepFlow.Amqp.ErrorConsumer do
       _ ->
         Logger.error("Job error #{inspect(payload)}")
         Status.set_job_status(job_id, :error, %{message: description})
-        Workflows.notification_from_job(job_id)
+        Workflows.notification_from_job(job_id, description)
+
         Basic.ack(channel, tag)
     end
   end
@@ -48,7 +49,8 @@ defmodule StepFlow.Amqp.ErrorConsumer do
       _ ->
         Logger.error("Job error #{inspect(payload)}")
         Status.set_job_status(job_id, :error, %{message: description})
-        Workflows.notification_from_job(job_id)
+        Workflows.notification_from_job(job_id, description)
+
         Basic.ack(channel, tag)
     end
   end

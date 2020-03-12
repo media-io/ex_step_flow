@@ -11,7 +11,6 @@ defmodule StepFlow.Step.Launch do
 
   def launch_step(workflow, step_name, step) do
     dates = Helpers.get_dates()
-
     # refresh workflow to get recent stored parameters on it
     workflow = Workflows.get_workflow!(workflow.id)
 
@@ -20,6 +19,9 @@ defmodule StepFlow.Step.Launch do
     source_paths = get_source_paths(workflow, step, dates)
 
     case {source_paths, step_mode} do
+      {_, "notification"} ->
+        Logger.debug("Notification step")
+        StepFlow.Notifications.Notification.process(workflow, dates, step_name, step, step_id, source_paths)
       {[], _} ->
         Logger.debug("job one for one path")
         Jobs.create_skipped_job(workflow, step_id, step_name)
