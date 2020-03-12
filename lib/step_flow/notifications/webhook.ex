@@ -21,7 +21,7 @@ defmodule StepFlow.Notifications.WebHook do
 
     headers = get_headers(workflow, step, dates, source_paths)
 
-    Logger.info(
+    Logger.debug(
       "#{__MODULE__}: #{method} #{url}, headers: #{inspect(headers)}, body: #{inspect(body)}"
     )
 
@@ -30,6 +30,7 @@ defmodule StepFlow.Notifications.WebHook do
     if response.status_code == 200 do
       {:ok, response.body}
     else
+      Logger.error("Unable to notify: #{inspect response}")
       {:error,
        "response status code: #{response.status_code} with body: #{inspect(response.body)}"}
     end

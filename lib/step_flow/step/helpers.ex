@@ -199,7 +199,12 @@ defmodule StepFlow.Step.Helpers do
     defined_parameters =
       workflow.parameters
       |> Enum.filter(fn item ->
-        StepFlow.Map.get_by_key_or_atom(item, :type) in ["string", "array_of_strings"]
+        StepFlow.Map.get_by_key_or_atom(item, :type) in [
+          "string",
+          "array_of_strings",
+          "integer",
+          "array_of_integers"
+        ]
       end)
       |> Enum.map(fn item ->
         identifier =
@@ -210,8 +215,9 @@ defmodule StepFlow.Step.Helpers do
           StepFlow.Map.get_by_key_or_atom(
             item,
             :value,
-            StepFlow.Map.get_by_key_or_atom(item, :value)
+            StepFlow.Map.get_by_key_or_atom(item, :default)
           )
+          |> convert_to_string()
 
         {identifier, value}
       end)
@@ -240,4 +246,7 @@ defmodule StepFlow.Step.Helpers do
 
     replace(keys, template)
   end
+
+  defp convert_to_string(value) when is_bitstring(value), do: value
+  defp convert_to_string(value), do: "#{inspect value}"
 end
