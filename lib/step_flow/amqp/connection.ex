@@ -71,6 +71,7 @@ defmodule StepFlow.Amqp.Connection do
     Process.monitor(connection.pid)
 
     {:ok, channel} = AMQP.Channel.open(connection)
+
     # AMQP.Queue.declare(channel, queue)
     # Logger.warn("#{__MODULE__}: connected to queue #{queue}")
 
