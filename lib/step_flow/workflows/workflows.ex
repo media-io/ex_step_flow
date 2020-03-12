@@ -340,7 +340,15 @@ defmodule StepFlow.Workflows do
     channel = StepFlow.Configuration.get_slack_channel()
 
     if StepFlow.Configuration.get_slack_token() != nil and description != nil and channel != nil do
-      send(:step_flow_slack_bot, {:message, "Error for job #{job.name} ##{job_id} <http://localhost:4000/workflows/#{job.workflow_id} |Open Workflow>\n```#{description}```", channel})
+      exposed_domain_name = StepFlow.Configuration.get_exposed_domain_name()
+
+      send(
+        :step_flow_slack_bot,
+        {:message,
+         "Error for job #{job.name} ##{job_id} <#{exposed_domain_name}/workflows/#{
+           job.workflow_id
+         } |Open Workflow>\n```#{description}```", channel}
+      )
     end
 
     StepFlow.Notification.send(topic, %{workflow_id: job.workflow_id})

@@ -12,7 +12,6 @@ defmodule StepFlow.Notifications.SlackTest do
   end
 
   test "notify Slack channel" do
-
     workflow_definition = %{
       identifier: "notification",
       version_major: 1,
@@ -38,7 +37,8 @@ defmodule StepFlow.Notifications.SlackTest do
             %{
               id: "body",
               type: "template",
-              value: "Workflow #<%= workflow_id %> - {step_name}\n\nFiles generated: <%= inspect source_paths %>"
+              value:
+                "Workflow #<%= workflow_id %> - {step_name}\n\nFiles generated: <%= inspect source_paths %>"
             }
           ]
         }
@@ -46,8 +46,7 @@ defmodule StepFlow.Notifications.SlackTest do
     }
 
     {:ok, workflow} = Workflows.create_workflow(workflow_definition)
-    {:ok, "completed"} =
-      Step.start_next(workflow)
+    {:ok, "created"} = Step.start_next(workflow)
 
     jobs = StepFlow.HelpersTest.get_jobs(workflow.id, "notification_step")
 
@@ -55,11 +54,14 @@ defmodule StepFlow.Notifications.SlackTest do
 
     status =
       jobs
-      |> List.first
+      |> List.first()
       |> Map.get(:status)
 
     assert length(status) == 1
-    assert :completed == status |> List.first |> Map.get(:state)
-  end
+    assert :error == status |> List.first() |> Map.get(:state)
 
+    assert status |> List.first() |> Map.get(:description) == %{
+             "message" => "missing slack configuration"
+           }
+  end
 end

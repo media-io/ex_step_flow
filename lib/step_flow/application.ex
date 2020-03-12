@@ -8,7 +8,7 @@ defmodule StepFlow.Application do
 
   def start(_type, _args) do
     import Supervisor.Spec
-    
+
     options = %{
       keepalive: 10_000,
       name: :step_flow_slack_bot,
@@ -26,7 +26,9 @@ defmodule StepFlow.Application do
     children =
       StepFlow.Configuration.get_slack_token()
       |> case do
-        nil -> children
+        nil ->
+          children
+
         slack_token ->
           List.insert_at(
             children,

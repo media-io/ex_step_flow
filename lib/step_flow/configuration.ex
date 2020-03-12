@@ -1,6 +1,13 @@
 defmodule StepFlow.Configuration do
   @moduledoc false
 
+  def get_exposed_domain_name do
+    case Application.get_env(:step_flow, StepFlow)[:exposed_domain_name] do
+      {:system, key} -> System.get_env(key)
+      exposed_domain_name -> exposed_domain_name
+    end
+  end
+
   def get_slack_token do
     if Application.get_env(:step_flow, StepFlow)[:skip_notification] != true do
       case Application.get_env(:step_flow, StepFlow)[:slack_api_token] do

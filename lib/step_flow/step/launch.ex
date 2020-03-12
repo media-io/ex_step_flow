@@ -6,6 +6,7 @@ defmodule StepFlow.Step.Launch do
 
   alias StepFlow.Amqp.CommonEmitter
   alias StepFlow.Jobs
+  alias StepFlow.Notifications.Notification
   alias StepFlow.Step.Helpers
   alias StepFlow.Workflows
 
@@ -21,7 +22,16 @@ defmodule StepFlow.Step.Launch do
     case {source_paths, step_mode} do
       {_, "notification"} ->
         Logger.debug("Notification step")
-        StepFlow.Notifications.Notification.process(workflow, dates, step_name, step, step_id, source_paths)
+
+        Notification.process(
+          workflow,
+          dates,
+          step_name,
+          step,
+          step_id,
+          source_paths
+        )
+
       {[], _} ->
         Logger.debug("job one for one path")
         Jobs.create_skipped_job(workflow, step_id, step_name)

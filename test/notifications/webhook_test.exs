@@ -15,7 +15,13 @@ defmodule StepFlow.Notifications.WebhookTest do
   end
 
   test_with_server "notify HTTP endpoint" do
-    route "/notification/test_work_dir", fn(_) -> Response.ok!("{\"status\": \"ok\"}") end
+    route("/notification/test_work_dir", fn query ->
+      if Map.get(query.headers, "content-type") == "application/json" do
+        Response.ok!(~s({"status": "ok"}))
+      else
+        Response.no_content!()
+      end
+    end)
 
     workflow_definition = %{
       identifier: "notification",
@@ -37,7 +43,7 @@ defmodule StepFlow.Notifications.WebhookTest do
             %{
               id: "url",
               type: "template",
-              value: "http://#{FakeServer.address}/notification{work_directory}"
+              value: "http://#{FakeServer.address()}/notification{work_directory}"
             },
             %{
               id: "method",
@@ -45,9 +51,14 @@ defmodule StepFlow.Notifications.WebhookTest do
               value: "POST"
             },
             %{
+              id: "headers",
+              type: "string",
+              value: ~s({"content-type": "application/json"})
+            },
+            %{
               id: "body",
               type: "template",
-              value: "{\"workflow_id\": {workflow_id}}"
+              value: ~s({"workflow_id": {workflow_id}})
             }
           ]
         }
@@ -55,8 +66,7 @@ defmodule StepFlow.Notifications.WebhookTest do
     }
 
     {:ok, workflow} = Workflows.create_workflow(workflow_definition)
-    {:ok, "completed"} =
-      Step.start_next(workflow)
+    {:ok, "completed"} = Step.start_next(workflow)
 
     jobs = StepFlow.HelpersTest.get_jobs(workflow.id, "notification_step")
 
@@ -64,15 +74,15 @@ defmodule StepFlow.Notifications.WebhookTest do
 
     status =
       jobs
-      |> List.first
+      |> List.first()
       |> Map.get(:status)
 
     assert length(status) == 1
-    assert :completed == status |> List.first |> Map.get(:state)
+    assert :completed == status |> List.first() |> Map.get(:state)
   end
 
   test_with_server "notify HTTP endpoint in error" do
-    route "/bad_endpoint", fn(_) -> Response.ok!("{\"status\": \"ok\"}") end
+    route("/bad_endpoint", fn _ -> Response.ok!(~s({"status": "ok"})) end)
 
     workflow_definition = %{
       identifier: "notification",
@@ -94,7 +104,7 @@ defmodule StepFlow.Notifications.WebhookTest do
             %{
               id: "url",
               type: "template",
-              value: "http://#{FakeServer.address}/notification{work_directory}"
+              value: "http://#{FakeServer.address()}/notification{work_directory}"
             },
             %{
               id: "method",
@@ -104,7 +114,7 @@ defmodule StepFlow.Notifications.WebhookTest do
             %{
               id: "body",
               type: "template",
-              value: "{\"workflow_id\": {workflow_id}}"
+              value: ~s({"workflow_id": {workflow_id}})
             }
           ]
         }
@@ -112,8 +122,7 @@ defmodule StepFlow.Notifications.WebhookTest do
     }
 
     {:ok, workflow} = Workflows.create_workflow(workflow_definition)
-    {:ok, "created"} =
-      Step.start_next(workflow)
+    {:ok, "created"} = Step.start_next(workflow)
 
     jobs = StepFlow.HelpersTest.get_jobs(workflow.id, "notification_step")
 
@@ -121,11 +130,14 @@ defmodule StepFlow.Notifications.WebhookTest do
 
     status =
       jobs
-      |> List.first
+      |> List.first()
       |> Map.get(:status)
 
     assert length(status) == 1
-    assert :error == status |> List.first |> Map.get(:state)
-    assert status |> List.first |> Map.get(:description) == %{"message" => "response status code: 404 with body: \"\""}
+    assert :error == status |> List.first() |> Map.get(:state)
+
+    assert status |> List.first() |> Map.get(:description) == %{
+             "message" => ~s(response status code: 404 with body: "")
+           }
   end
 end
