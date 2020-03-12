@@ -334,9 +334,22 @@ defmodule StepFlow.Workflows do
     |> Repo.update()
   end
 
-  def notification_from_job(job_id) do
+  def notification_from_job(job_id, description \\ nil) do
     job = Jobs.get_job!(job_id)
     topic = "update_workflow_" <> Integer.to_string(job.workflow_id)
+    channel = StepFlow.Configuration.get_slack_channel()
+
+    if StepFlow.Configuration.get_slack_token() != nil and description != nil and channel != nil do
+      exposed_domain_name = StepFlow.Configuration.get_exposed_domain_name()
+
+      send(
+        :step_flow_slack_bot,
+        {:message,
+         "Error for job #{job.name} ##{job_id} <#{exposed_domain_name}/workflows/#{
+           job.workflow_id
+         } |Open Workflow>\n```#{description}```", channel}
+      )
+    end
 
     StepFlow.Notification.send(topic, %{workflow_id: job.workflow_id})
   end

@@ -16,7 +16,9 @@ defmodule StepFlow.StepHelpersTest do
         parameters: []
       }
 
-      step = %{}
+      step = %{
+        name: "my_step"
+      }
 
       source_path = "source_folder/filename.ttml"
 
@@ -38,7 +40,9 @@ defmodule StepFlow.StepHelpersTest do
         parameters: []
       }
 
-      step = %{}
+      step = %{
+        name: "my_step"
+      }
 
       source_path = "source_folder/filename.ttml"
 
@@ -71,7 +75,9 @@ defmodule StepFlow.StepHelpersTest do
         ]
       }
 
-      step = %{}
+      step = %{
+        name: "my_step"
+      }
 
       source_path = "source_folder/filename.ttml"
 
@@ -85,7 +91,7 @@ defmodule StepFlow.StepHelpersTest do
     end
 
     test "template multiple source paths" do
-      template = "{work_directory}/{title}/{Enum.at(source_paths, 1) |> Path.basename()}"
+      template = "{work_directory}/{title}/<%= Enum.at(source_paths, 1) |> Path.basename() %>"
 
       workflow = %{
         id: 666,
@@ -104,7 +110,9 @@ defmodule StepFlow.StepHelpersTest do
         ]
       }
 
-      step = %{}
+      step = %{
+        name: "my_step"
+      }
 
       source_paths = [
         "source_folder/filename.ttml",
@@ -141,6 +149,7 @@ defmodule StepFlow.StepHelpersTest do
       }
 
       step = %{
+        name: "my_step",
         work_dir: "/custom/work_dir"
       }
 

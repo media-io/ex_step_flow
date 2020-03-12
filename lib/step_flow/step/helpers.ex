@@ -38,6 +38,34 @@ defmodule StepFlow.Step.Helpers do
     end)
   end
 
+  def get_string_or_processed_template_value(
+        workflow,
+        step,
+        dates,
+        source_paths,
+        key,
+        default \\ ""
+      ) do
+    get_value_in_parameters_with_type(step, key, "string")
+    |> List.first()
+    |> case do
+      nil ->
+        get_value_in_parameters_with_type(step, key, "template")
+        |> List.first()
+        |> case do
+          nil ->
+            default
+
+          template ->
+            template
+            |> template_process(workflow, step, dates, source_paths)
+        end
+
+      strng_value ->
+        strng_value
+    end
+  end
+
   def get_jobs_destination_paths(jobs) do
     jobs
     |> Enum.map(fn job ->
@@ -189,14 +217,27 @@ defmodule StepFlow.Step.Helpers do
       end)
       |> Keyword.put(:workflow_id, workflow.id)
       |> Keyword.put(:workflow_reference, workflow.reference)
+      |> Keyword.put(:step_name, step.name)
       |> Keyword.put(:work_directory, get_work_directory(step))
       |> Keyword.put(:date_time, dates.date_time)
       |> Keyword.put(:date, dates.date)
       |> Keyword.merge(source_keywords)
 
-    template
-    |> String.replace("{", "<%= ")
-    |> String.replace("}", " %>")
+    Keyword.keys(defined_parameters)
+    |> replace(template)
     |> EEx.eval_string(defined_parameters)
+  end
+
+  defp replace([], template), do: template
+
+  defp replace([key | keys], template) do
+    template =
+      String.replace(
+        template,
+        "{" <> Atom.to_string(key) <> "}",
+        "<%= " <> Atom.to_string(key) <> "%>"
+      )
+
+    replace(keys, template)
   end
 end

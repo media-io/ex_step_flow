@@ -148,31 +148,28 @@ defmodule StepFlow.HelpersTest do
   end
 
   def check(workflow_id, type, total) do
-    all_jobs =
-      StepFlow.Jobs.list_jobs(%{
-        "job_type" => type,
-        "workflow_id" => workflow_id |> Integer.to_string(),
-        "size" => 50
-      })
-      |> Map.get(:data)
+    all_jobs = get_jobs(workflow_id, type)
 
     assert length(all_jobs) == total
   end
 
   def complete_jobs(workflow_id, type) do
-    all_jobs =
-      StepFlow.Jobs.list_jobs(%{
-        "job_type" => type,
-        "workflow_id" => workflow_id |> Integer.to_string(),
-        "size" => 50
-      })
-      |> Map.get(:data)
+    all_jobs = get_jobs(workflow_id, type)
 
     for job <- all_jobs do
       Status.set_job_status(job.id, Status.state_enum_label(:completed))
     end
 
     all_jobs
+  end
+
+  def get_jobs(workflow_id, type) do
+    StepFlow.Jobs.list_jobs(%{
+      "job_type" => type,
+      "workflow_id" => workflow_id |> Integer.to_string(),
+      "size" => 50
+    })
+    |> Map.get(:data)
   end
 
   def set_output_files(workflow_id, type, paths) do

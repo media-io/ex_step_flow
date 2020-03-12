@@ -45,6 +45,7 @@ defmodule StepFlow.MixProject do
         :phoenix,
         :plug,
         :postgrex,
+        :slack,
         :timex
       ]
     ]
@@ -66,14 +67,16 @@ defmodule StepFlow.MixProject do
       {:ecto_enum, "~> 1.4"},
       {:excoveralls, "~> 0.10", only: :test},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
+      {:ex_json_schema, "~> 0.7.3"},
+      {:fake_server, "~> 2.1", only: :test},
       {:gettext, "~> 0.14"},
       {:httpoison, "~> 1.6"},
       {:jason, "~> 1.1"},
-      {:ex_json_schema, "~> 0.7.3"},
       {:phoenix, "~> 1.4"},
       {:phoenix_html, "~> 2.10"},
       {:plug, "~> 1.8"},
       {:postgrex, "~> 0.15.0"},
+      {:slack, "~> 0.20.0"},
       {:timex, "~> 3.2"}
     ]
   end
