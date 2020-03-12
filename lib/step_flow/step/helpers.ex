@@ -248,5 +248,5 @@ defmodule StepFlow.Step.Helpers do
   end
 
   defp convert_to_string(value) when is_bitstring(value), do: value
-  defp convert_to_string(value), do: "#{inspect value}"
+  defp convert_to_string(value), do: "#{inspect(value)}"
 end

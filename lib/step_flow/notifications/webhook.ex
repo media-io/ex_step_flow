@@ -30,7 +30,8 @@ defmodule StepFlow.Notifications.WebHook do
     if response.status_code == 200 do
       {:ok, response.body}
     else
-      Logger.error("Unable to notify: #{inspect response}")
+      Logger.error("Unable to notify: #{inspect(response)}")
+
       {:error,
        "response status code: #{response.status_code} with body: #{inspect(response.body)}"}
     end
