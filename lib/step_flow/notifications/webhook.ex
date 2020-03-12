@@ -13,8 +13,11 @@ defmodule StepFlow.Notifications.WebHook do
       Helpers.get_value_in_parameters_with_type(step, "method", "string")
       |> List.first() || "POST"
 
-    url = Helpers.get_string_or_processed_template_value(workflow, step, dates, source_paths, "url")
-    body = Helpers.get_string_or_processed_template_value(workflow, step, dates, source_paths, "body")
+    url =
+      Helpers.get_string_or_processed_template_value(workflow, step, dates, source_paths, "url")
+
+    body =
+      Helpers.get_string_or_processed_template_value(workflow, step, dates, source_paths, "body")
 
     headers = get_headers(workflow, step, dates, source_paths)
 
@@ -33,7 +36,14 @@ defmodule StepFlow.Notifications.WebHook do
   end
 
   def get_headers(workflow, step, dates, source_paths) do
-    Helpers.get_string_or_processed_template_value(workflow, step, dates, source_paths, "headers", "{}")
+    Helpers.get_string_or_processed_template_value(
+      workflow,
+      step,
+      dates,
+      source_paths,
+      "headers",
+      "{}"
+    )
     |> Jason.decode()
     |> case do
       {:ok, parsed} ->

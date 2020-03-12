@@ -38,7 +38,14 @@ defmodule StepFlow.Step.Helpers do
     end)
   end
 
-  def get_string_or_processed_template_value(workflow, step, dates, source_paths, key, default \\ "") do
+  def get_string_or_processed_template_value(
+        workflow,
+        step,
+        dates,
+        source_paths,
+        key,
+        default \\ ""
+      ) do
     get_value_in_parameters_with_type(step, key, "string")
     |> List.first()
     |> case do

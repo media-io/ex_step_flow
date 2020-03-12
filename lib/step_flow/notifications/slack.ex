@@ -10,7 +10,8 @@ defmodule StepFlow.Notifications.Slack do
       Helpers.get_value_in_parameters_with_type(step, "channel", "string")
       |> List.first() || "general"
 
-    body = Helpers.get_string_or_processed_template_value(workflow, step, dates, source_paths, "body")
+    body =
+      Helpers.get_string_or_processed_template_value(workflow, step, dates, source_paths, "body")
 
     if StepFlow.Configuration.get_slack_token() != nil do
       send(:step_flow_slack_bot, {:message, body, StepFlow.Configuration.format_channel(channel)})
