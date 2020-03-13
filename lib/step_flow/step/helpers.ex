@@ -223,7 +223,7 @@ defmodule StepFlow.Step.Helpers do
       end)
       |> Keyword.put(:workflow_id, workflow.id)
       |> Keyword.put(:workflow_reference, workflow.reference)
-      |> Keyword.put(:step_name, step.name)
+      |> Keyword.put(:step_name, StepFlow.Map.get_by_key_or_atom(step, :name))
       |> Keyword.put(:work_directory, get_work_directory(step))
       |> Keyword.put(:date_time, dates.date_time)
       |> Keyword.put(:date, dates.date)
