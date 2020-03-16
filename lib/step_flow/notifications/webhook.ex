@@ -25,7 +25,7 @@ defmodule StepFlow.Notifications.WebHook do
       "#{__MODULE__}: #{method} #{url}, headers: #{inspect(headers)}, body: #{inspect(body)}"
     )
 
-    {:ok, response} = HTTPoison.request(method, url, body |> Jason.encode!, headers)
+    {:ok, response} = HTTPoison.request(method, url, body, headers)
 
     if response.status_code == 200 do
       {:ok, response.body}
