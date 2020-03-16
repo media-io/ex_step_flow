@@ -14,7 +14,7 @@ defmodule StepFlow.Repo do
       |> replace_if_present(:username)
       |> replace_if_present(:password)
       |> replace_if_present(:database)
-      |> replace_if_present(:pool_size, &StepFlow.Configuration.to_integer/1 )
+      |> replace_if_present(:pool_size, &StepFlow.Configuration.to_integer/1)
 
     Logger.debug("connect to #{inspect(opts)}")
     {:ok, opts}

@@ -4,10 +4,10 @@ defmodule StepFlow.Notification do
   """
 
   def send(topic, body) do
-    endpoint = Application.get_env(:step_flow, :endpoint)
+    configuration = Application.get_env(:step_flow, StepFlow)
 
-    if endpoint do
-      endpoint.broadcast!("notifications:all", topic, %{body: body})
+    if Keyword.has_key?(configuration, :endpoint) do
+      Keyword.get(configuration, :endpoint).broadcast!("notifications:all", topic, %{body: body})
     end
   end
 end

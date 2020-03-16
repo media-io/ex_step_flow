@@ -3,6 +3,7 @@ defmodule StepFlow.Configuration do
 
   def get_var_value(module, key, default \\ nil) do
     conf_module = Application.get_env(:step_flow, module)
+
     case Keyword.get(conf_module, key) do
       {:system, variable} -> System.get_env(variable)
       nil -> default
@@ -15,7 +16,7 @@ defmodule StepFlow.Configuration do
   end
 
   def get_slack_token do
-    if is_notifications_enabled() do
+    if notifications_enabled?() do
       get_var_value(StepFlow, :slack_api_token)
     else
       nil
@@ -23,7 +24,7 @@ defmodule StepFlow.Configuration do
   end
 
   def get_slack_channel do
-    get_var_value(StepFlow, :slack_api_token)
+    get_var_value(StepFlow, :slack_api_channel)
     |> format_channel
   end
 
@@ -38,9 +39,16 @@ defmodule StepFlow.Configuration do
     {value, _} = Integer.parse(value)
     value
   end
+
   def to_integer(value) when is_integer(value), do: value
 
-  defp is_notifications_enabled do
-    Application.get_env(:step_flow, StepFlow)[:skip_notification] != true
+  defp notifications_enabled? do
+    skip_notification = get_var_value(StepFlow, :skip_notification)
+
+    case skip_notification do
+      false -> false
+      "false" -> false
+      _ -> true
+    end
   end
 end

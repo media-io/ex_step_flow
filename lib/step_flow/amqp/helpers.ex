@@ -47,7 +47,7 @@ defmodule StepFlow.Amqp.Helpers do
 
   defp get_amqp_port do
     StepFlow.Configuration.get_var_value(StepFlow.Amqp, :port, 5672)
-      |> StepFlow.Configuration.to_string
+    |> StepFlow.Configuration.to_string()
   end
 
   defp get_amqp_virtual_host do

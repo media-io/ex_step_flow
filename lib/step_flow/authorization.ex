@@ -25,7 +25,7 @@ defmodule StepFlow.Authorization do
   def check(conn) do
     key = String.to_atom(String.downcase(conn.method) <> "_" <> get_path(conn.path_info))
 
-    authorize = Application.get_env(:step_flow, :authorize)
+    authorize = Application.get_env(:step_flow, StepFlow)[:authorize]
 
     if authorize &&
          Keyword.has_key?(authorize, :module) &&
