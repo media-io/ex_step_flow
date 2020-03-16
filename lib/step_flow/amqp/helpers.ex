@@ -7,17 +7,32 @@ defmodule StepFlow.Amqp.Helpers do
 
   @doc """
   Get AMQP URL from the configuration or environment variables.
-  - `AMQP_HOSTNAME` Setup the hostname of the RabbitMQ service
-  - `AMQP_USERNAME` Setup the username of the RabbitMQ service
-  - `AMQP_PASSWORD` Setup the password of the RabbitMQ service
-  - `AMQP_PORT` Setup the port of the RabbitMQ service
-  - `AMQP_VHOST` Setup the virtual host of the RabbitMQ service
+  - `hostname` Setup the hostname of the RabbitMQ service
+  - `username` Setup the username of the RabbitMQ service
+  - `password` Setup the password of the RabbitMQ service
+  - `port` Setup the port of the RabbitMQ service
+  - `virtual_host` Setup the virtual host of the RabbitMQ service
+
+  Hardcoded example:
+  config :step_flow, StepFlow.Amqp,
+    hostname: "example.com",
+    port: "5678",
+    username: "mediacloudai",
+    password: "mediacloudai",
+    virtual_host: "media_cloud_ai_dev"
+
+  Environment getter example:
+  config :step_flow, StepFlow.Amqp,
+    hostname: {:system, "AMQP_HOSTNAME"},
+    port: {:system, "AMQP_PORT"},
+    username: {:system, "AMQP_USERNAME"},
+    password: {:system, "AMQP_PASSWORD"},
+    virtual_host: {:system, "AMQP_VIRTUAL_HOST"},
   """
   def get_amqp_connection_url do
-    hostname = System.get_env("AMQP_HOSTNAME") || Application.get_env(:amqp, :hostname)
-    username = System.get_env("AMQP_USERNAME") || Application.get_env(:amqp, :username)
-    password = System.get_env("AMQP_PASSWORD") || Application.get_env(:amqp, :password)
-
+    hostname = StepFlow.Configuration.get_var_value(StepFlow.Amqp, :hostname)
+    username = StepFlow.Configuration.get_var_value(StepFlow.Amqp, :username)
+    password = StepFlow.Configuration.get_var_value(StepFlow.Amqp, :password)
     virtual_host = get_amqp_virtual_host()
     port = get_amqp_port()
 
@@ -31,25 +46,15 @@ defmodule StepFlow.Amqp.Helpers do
   end
 
   defp get_amqp_port do
-    System.get_env("AMQP_PORT") || Application.get_env(:amqp, :port) ||
-      5672
-      |> port_format
+    StepFlow.Configuration.get_var_value(StepFlow.Amqp, :port, 5672)
+      |> StepFlow.Configuration.to_string
   end
 
   defp get_amqp_virtual_host do
-    virtual_host = System.get_env("AMQP_VHOST") || Application.get_env(:amqp, :virtual_host) || ""
-
-    case virtual_host do
+    StepFlow.Configuration.get_var_value(StepFlow.Amqp, :virtual_host, "")
+    |> case do
       "" -> ""
-      _ -> "/" <> virtual_host
+      virtual_host -> "/" <> virtual_host
     end
-  end
-
-  defp port_format(port) when is_integer(port) do
-    Integer.to_string(port)
-  end
-
-  defp port_format(port) do
-    port
   end
 end

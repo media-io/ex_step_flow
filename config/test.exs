@@ -11,12 +11,14 @@ config :step_flow,
 
 config :step_flow, StepFlow.Repo,
   hostname: "localhost",
+  port: 5432,
   username: "postgres",
   password: "postgres",
   database: "step_flow_test",
+  pool_size: 10,
   pool: Ecto.Adapters.SQL.Sandbox
 
-config :amqp,
+config :step_flow, StepFlow.Amqp,
   hostname: "localhost",
   username: "guest",
   password: "guest",

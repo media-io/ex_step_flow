@@ -11,6 +11,7 @@ defmodule StepFlow.Amqp.ProgressionConsumer do
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "job_progression",
+    prefetch_count: 1,
     consumer: &ProgressionConsumer.consume/4
   }
 

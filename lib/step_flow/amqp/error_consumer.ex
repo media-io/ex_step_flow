@@ -12,6 +12,7 @@ defmodule StepFlow.Amqp.ErrorConsumer do
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "job_error",
+    prefetch_count: 1,
     consumer: &ErrorConsumer.consume/4
   }
 

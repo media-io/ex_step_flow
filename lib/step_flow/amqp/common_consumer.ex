@@ -99,8 +99,8 @@ defmodule StepFlow.Amqp.CommonConsumer do
         {:ok, channel} = AMQP.Channel.open(connection)
         queue = unquote(opts).queue
 
-        if queue == "worker_discovery" do
-          :ok = AMQP.Basic.qos(channel, prefetch_count: 1)
+        if Map.has_key?(unquote(opts), :prefetch_count) do
+          :ok = AMQP.Basic.qos(channel, prefetch_count: unquote(opts).prefetch_count)
         end
 
         AMQP.Queue.declare(channel, "job_response_not_found", durable: true)
