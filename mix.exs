@@ -26,7 +26,7 @@ defmodule StepFlow.MixProject do
       source_url: "https://github.com/media-io/ex_step_flow",
       homepage_url: "https://github.com/media-io/ex_step_flow",
       docs: [
-        main: "StepFlow",
+        main: "readme",
         extras: ["README.md"]
       ]
     ]

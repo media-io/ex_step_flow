@@ -28,7 +28,9 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
   end
 
   def get_workflow_definition_directories do
-    case Application.get_env(:step_flow, :workflow_definition) do
+    Application.get_env(:step_flow, StepFlow)
+    |> Keyword.get(:workflow_definition)
+    |> case do
       {:system, key} ->
         System.get_env(key)
         |> String.split(get_separator())

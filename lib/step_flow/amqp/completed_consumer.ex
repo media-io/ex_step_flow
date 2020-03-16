@@ -12,6 +12,7 @@ defmodule StepFlow.Amqp.CompletedConsumer do
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "job_completed",
+    prefetch_count: 1,
     consumer: &CompletedConsumer.consume/4
   }
 

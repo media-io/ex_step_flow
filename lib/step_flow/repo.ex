@@ -6,37 +6,30 @@ defmodule StepFlow.Repo do
 
   require Logger
 
-  @doc """
-  Dynamically loads the repository url from the
-  DATABASE_URL environment variable.
-  """
   def init(_, opts) do
-    case System.get_env("DATABASE_URL") do
-      nil ->
-        opts =
-          opts
-          |> get_from_env("DATABASE_HOSTNAME", :hostname)
-          |> get_from_env("DATABASE_PORT", :port)
-          |> get_from_env("DATABASE_USERNAME", :username)
-          |> get_from_env("DATABASE_PASSWORD", :password)
-          |> get_from_env("DATABASE_NAME", :database)
+    opts =
+      opts
+      |> replace_if_present(:hostname)
+      |> replace_if_present(:port)
+      |> replace_if_present(:username)
+      |> replace_if_present(:password)
+      |> replace_if_present(:database)
+      |> replace_if_present(:pool_size, &StepFlow.Configuration.to_integer/1)
 
-        Logger.info("connect to #{inspect(opts)}")
-        {:ok, opts}
-
-      url ->
-        Logger.info("connect to #{url}")
-        {:ok, Keyword.put(opts, :url, url)}
-    end
+    Logger.debug("connect to #{inspect(opts)}")
+    {:ok, opts}
   end
 
-  defp get_from_env(opts, env_var_name, key_in_opts) do
-    case System.get_env(env_var_name) do
+  defp replace_if_present(opts, key, processor \\ &StepFlow.Repo.bypass/1) do
+    case StepFlow.Configuration.get_var_value(StepFlow.Repo, key) do
       nil ->
         opts
 
       value ->
-        Keyword.put(opts, key_in_opts, value)
+        value = processor.(value)
+        Keyword.put(opts, key, value)
     end
   end
+
+  def bypass(value), do: value
 end
