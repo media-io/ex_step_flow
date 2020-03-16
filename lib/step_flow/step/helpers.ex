@@ -148,7 +148,7 @@ defmodule StepFlow.Step.Helpers do
 
   def get_work_directory(step) do
     StepFlow.Map.get_by_key_or_atom(step, :work_dir) ||
-      StepFlow.Configuration.get_var_value(StepFlow, :workers_work_directory)
+      StepFlow.Configuration.get_var_value(StepFlow, :workers_work_directory) ||
       ""
   end
 
