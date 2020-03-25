@@ -44,7 +44,7 @@ config :step_flow, Ecto.Repo,
   username: "postgres",
   password: "postgres",
   database: "step_flow_dev",
-  pool_size: 10
+  runtime_pool_size: 10
 ```
 
 it can also be used with environment variables:
@@ -54,7 +54,7 @@ config :step_flow, Ecto.Repo,
   username: {:system, "DATABASE_USERNAME"},
   password: {:system, "DATABASE_PASSWORD"},
   database: {:system, "DATABASE_NAME"},
-  pool_size: {:system, "DATABASE_POOL_SIZE"}
+  runtime_pool_size: {:system, "DATABASE_POOL_SIZE"}
 ```
 
 ### RabbitMQ configuration
