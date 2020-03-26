@@ -5,6 +5,7 @@ defmodule StepFlow.Application do
 
   use Application
   alias StepFlow.Migration
+  require Logger
 
   def start(_type, _args) do
     import Supervisor.Spec
@@ -35,6 +36,7 @@ defmodule StepFlow.Application do
             -1,
             worker(Slack.Bot, [StepFlow.SlackBot, [], slack_token, options], restart: :transient)
           )
+          Logger.info("Starting Slack Bot")
       end
 
     # See https://hexdocs.pm/elixir/Supervisor.html

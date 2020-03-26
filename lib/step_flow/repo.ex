@@ -16,7 +16,7 @@ defmodule StepFlow.Repo do
       |> replace_if_present(:database)
       |> replace_if_present(:pool_size, &StepFlow.Configuration.to_integer/1)
 
-    Logger.debug("connect to #{inspect(opts)}")
+    Logger.debug("StepFlow connecting to Postgres with parameters: #{inspect(opts)}")
     {:ok, opts}
   end
 
