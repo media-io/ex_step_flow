@@ -46,7 +46,7 @@ defmodule StepFlow.Notifications.SlackTest do
     }
 
     {:ok, workflow} = Workflows.create_workflow(workflow_definition)
-    {:ok, "created"} = Step.start_next(workflow)
+    {:ok, "started"} = Step.start_next(workflow)
 
     jobs = StepFlow.HelpersTest.get_jobs(workflow.id, "notification_step")
 

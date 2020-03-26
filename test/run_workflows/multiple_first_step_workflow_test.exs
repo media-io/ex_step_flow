@@ -1,4 +1,4 @@
-defmodule StepFlow.RunWorkflows.TwoStepsWorkflowTest do
+defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
   use ExUnit.Case
   use Plug.Test
 
@@ -14,7 +14,7 @@ defmodule StepFlow.RunWorkflows.TwoStepsWorkflowTest do
     channel = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 2)
+      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 3)
     end)
 
     :ok
@@ -22,7 +22,7 @@ defmodule StepFlow.RunWorkflows.TwoStepsWorkflowTest do
 
   describe "workflows" do
     @workflow_definition %{
-      identifier: "id",
+      identifier: "multiple_first_step",
       version_major: 6,
       version_minor: 5,
       version_micro: 4,
@@ -30,24 +30,32 @@ defmodule StepFlow.RunWorkflows.TwoStepsWorkflowTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "first_first_step",
           parameters: [
             %{
               id: "source_paths",
               type: "array_of_strings",
-              value: ["my_file.mov"]
+              value: [
+                "my_file_1.mov",
+                "my_file_2.mov"
+              ]
             }
           ]
         },
         %{
           id: 1,
-          name: "my_second_step",
-          parent_ids: [0],
-          required_to_start: [0],
-          parameters: []
+          name: "second_first_step",
+          parameters: [
+            %{
+              id: "source_paths",
+              type: "array_of_strings",
+              value: [
+                "my_file_3.mov"
+              ]
+            }
+          ]
         }
-      ],
-      parameters: []
+      ]
     }
 
     def workflow_fixture(workflow, attrs \\ %{}) do
@@ -59,23 +67,19 @@ defmodule StepFlow.RunWorkflows.TwoStepsWorkflowTest do
       workflow
     end
 
-    test "run simple workflow with 2 steps" do
+    test "run workflow with 2 starting steps" do
       workflow = workflow_fixture(@workflow_definition)
 
       {:ok, "started"} = Step.start_next(workflow)
 
-      StepFlow.HelpersTest.check(workflow.id, 1)
-      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
-
-      {:ok, "started"} = Step.start_next(workflow)
-      StepFlow.HelpersTest.check(workflow.id, 2)
-      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
-      StepFlow.HelpersTest.check(workflow.id, "my_second_step", 1)
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "my_second_step")
+      StepFlow.HelpersTest.check(workflow.id, 3)
+      StepFlow.HelpersTest.check(workflow.id, "first_first_step", 2)
+      StepFlow.HelpersTest.check(workflow.id, "second_first_step", 1)
+      StepFlow.HelpersTest.complete_jobs(workflow.id, "first_first_step")
+      StepFlow.HelpersTest.complete_jobs(workflow.id, "second_first_step")
 
       {:ok, "completed"} = Step.start_next(workflow)
-      StepFlow.HelpersTest.check(workflow.id, 2)
+      StepFlow.HelpersTest.check(workflow.id, 3)
     end
   end
 end
