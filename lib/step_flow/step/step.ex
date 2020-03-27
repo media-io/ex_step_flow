@@ -117,6 +117,7 @@ defmodule StepFlow.Step do
     for step <- steps do
       step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
       step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
+
       Logger.warn(
         "#{__MODULE__}: start to process step #{step_name} (index #{step_id}) for workflow #{
           workflow.id

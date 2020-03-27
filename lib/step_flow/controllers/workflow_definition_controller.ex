@@ -20,7 +20,10 @@ defmodule StepFlow.WorkflowDefinitionController do
         conn
         |> put_status(:unprocessable_entity)
         |> put_view(StepFlow.WorkflowDefinitionView)
-        |> render("error.json", errors: %{identifier: "Unable to locate workflow with this identifier"})
+        |> render("error.json",
+          errors: %{identifier: "Unable to locate workflow with this identifier"}
+        )
+
       workflow_definition ->
         conn
         |> put_view(StepFlow.WorkflowDefinitionView)

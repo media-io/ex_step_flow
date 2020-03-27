@@ -28,6 +28,6 @@ defmodule StepFlow.WorkflowDefinitions do
   def get_workflow_definition(workflow_identifier) do
     WorkflowDefinition.get_workflows()
     |> Enum.filter(fn workflow -> Map.get(workflow, "identifier") == workflow_identifier end)
-    |> List.first
+    |> List.first()
   end
 end

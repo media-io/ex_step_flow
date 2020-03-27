@@ -10,7 +10,14 @@ defmodule StepFlow.WorkflowDefinitionView do
   end
 
   def render("show.json", %{workflow_definition: workflow_definition}) do
-    %{data: render_one(workflow_definition, WorkflowDefinitionView, "workflow_definition_with_steps.json")}
+    %{
+      data:
+        render_one(
+          workflow_definition,
+          WorkflowDefinitionView,
+          "workflow_definition_with_steps.json"
+        )
+    }
   end
 
   def render("workflow_definition.json", %{workflow_definition: workflow_definition}) do
