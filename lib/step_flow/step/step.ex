@@ -44,7 +44,7 @@ defmodule StepFlow.Step do
 
     results = start_steps(steps_to_start, workflow)
 
-    get_final_status(workflow, is_completed_workflow, Enum.uniq(results))
+    get_final_status(workflow, is_completed_workflow, Enum.uniq(results) |> Enum.sort)
   end
 
   def skip_step(workflow, step) do
@@ -81,7 +81,7 @@ defmodule StepFlow.Step do
 
   defp iter_get_steps_to_start([step | steps], all_steps, completed, result) do
     completed =
-      if step.status == :completed do
+      if step.status in [:completed, :skipped] do
         completed
       else
         false
@@ -93,7 +93,7 @@ defmodule StepFlow.Step do
           count_not_completed =
             Enum.filter(all_steps, fn s -> s.id in step.required_to_start end)
             |> Enum.map(fn s -> s.status end)
-            |> Enum.filter(fn s -> s != :completed end)
+            |> Enum.filter(fn s -> s != :completed and s != :skipped end)
             |> length
 
           if count_not_completed == 0 do
@@ -136,9 +136,10 @@ defmodule StepFlow.Step do
   defp get_final_status(_workflow, _is_completed_workflow, ["started"]), do: {:ok, "started"}
   defp get_final_status(_workflow, _is_completed_workflow, ["created"]), do: {:ok, "started"}
 
-  defp get_final_status(_workflow, _is_completed_workflow, ["started", "created"]),
+  defp get_final_status(_workflow, _is_completed_workflow, ["created", "started"]),
     do: {:ok, "started"}
 
+  defp get_final_status(workflow, _is_completed_workflow, ["skipped"]), do: start_next(workflow)
   defp get_final_status(workflow, _is_completed_workflow, ["completed"]), do: start_next(workflow)
 
   defp get_final_status(workflow, true, [:completed_workflow]) do
