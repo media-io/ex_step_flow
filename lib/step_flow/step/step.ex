@@ -44,7 +44,7 @@ defmodule StepFlow.Step do
 
     results = start_steps(steps_to_start, workflow)
 
-    get_final_status(workflow, is_completed_workflow, Enum.uniq(results) |> Enum.sort)
+    get_final_status(workflow, is_completed_workflow, Enum.uniq(results) |> Enum.sort())
   end
 
   def skip_step(workflow, step) do
