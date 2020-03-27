@@ -39,6 +39,30 @@ defmodule StepFlow.WorkflowController do
     end
   end
 
+  def create_workflow(conn, %{"workflow_identifier" => identifier} = workflow_params) do
+    case StepFlow.WorkflowDefinitions.get_workflow_definition(identifier) do
+      nil ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(StepFlow.WorkflowDefinitionView)
+        |> render("error.json", errors: %{workflow_identifier: "Unable to locate workflow with this identifier"})
+      workflow_definition ->
+        workflow_description =
+          workflow_definition
+          |> Map.put("reference", Map.get(workflow_params, "reference"))
+          |> Map.put("parameters", Map.get(workflow_params, "parameters", []))
+
+        create(conn, workflow_description)
+    end
+  end
+
+  def create_workflow(conn, _workflow_params) do
+    conn
+    |> put_status(:unprocessable_entity)
+    |> put_view(StepFlow.WorkflowDefinitionView)
+    |> render("error.json", errors: %{workflow_identifier: "Missing Workflow identifier parameter"})
+  end
+
   def show(conn, %{"id" => id}) do
     workflow =
       Workflows.get_workflow!(id)

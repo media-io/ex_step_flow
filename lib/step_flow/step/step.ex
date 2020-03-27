@@ -115,13 +115,14 @@ defmodule StepFlow.Step do
 
   defp start_steps({:ok, steps}, workflow) do
     for step <- steps do
+      step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
+      step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
       Logger.warn(
-        "#{__MODULE__}: start to process step #{step["name"]} (index #{step.id}) for workflow #{
+        "#{__MODULE__}: start to process step #{step_name} (index #{step_id}) for workflow #{
           workflow.id
         }"
       )
 
-      step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
       {result, status} = Launch.launch_step(workflow, step_name, step)
 
       Logger.info("#{step_name}: #{inspect({result, status})}")
