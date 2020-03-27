@@ -9,45 +9,42 @@ defmodule StepFlow.Step do
   alias StepFlow.Jobs
   alias StepFlow.Repo
   alias StepFlow.Step.Launch
+  alias StepFlow.Workflows
   alias StepFlow.Workflows.Workflow
 
   def start_next(%Workflow{id: workflow_id} = workflow) do
     workflow = Repo.preload(workflow, :jobs, force: true)
 
-    step_index =
-      Enum.map(workflow.jobs, fn job -> (job.step_id |> Integer.to_string()) <> job.name end)
-      |> Enum.uniq()
-      |> length
+    jobs = Repo.preload(workflow.jobs, :status)
 
-    steps = StepFlow.Map.get_by_key_or_atom(workflow, :steps)
+    steps =
+      StepFlow.Map.get_by_key_or_atom(workflow, :steps)
+      |> Workflows.get_step_status(jobs)
 
-    case Enum.at(steps, step_index) do
-      nil ->
-        set_artifacts(workflow)
-        Logger.warn("#{__MODULE__}: workflow #{workflow_id} is completed")
-        {:ok, "completed"}
+    {is_completed_workflow, steps_to_start} = get_steps_to_start(steps)
 
-      step ->
-        Logger.warn(
-          "#{__MODULE__}: start to process step #{step["name"]} (index #{step_index}) for workflow #{
-            workflow_id
-          }"
-        )
+    steps_to_start =
+      case {steps_to_start, jobs} do
+        {[], []} ->
+          case List.first(steps) do
+            nil ->
+              Logger.warn("#{__MODULE__}: empty workflow #{workflow_id} is completed")
+              {:completed_workflow, []}
 
-        step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
-        {result, status} = Launch.launch_step(workflow, step_name, step)
+            step ->
+              {:ok, [step]}
+          end
 
-        Logger.info("#{step_name}: #{inspect({result, status})}")
-        topic = "update_workflow_" <> Integer.to_string(workflow_id)
+        {[], _} ->
+          {:completed_workflow, []}
 
-        StepFlow.Notification.send(topic, %{workflow_id: workflow.id})
+        {list, _} ->
+          {:ok, list}
+      end
 
-        case status do
-          :skipped -> start_next(workflow)
-          :completed -> start_next(workflow)
-          _ -> {result, status}
-        end
-    end
+    results = start_steps(steps_to_start, workflow)
+
+    get_final_status(workflow, is_completed_workflow, Enum.uniq(results) |> Enum.sort())
   end
 
   def skip_step(workflow, step) do
@@ -76,4 +73,80 @@ defmodule StepFlow.Step do
 
     Artifacts.create_artifact(params)
   end
+
+  defp get_steps_to_start(steps), do: iter_get_steps_to_start(steps, steps)
+
+  defp iter_get_steps_to_start(steps, all_steps, completed \\ true, result \\ [])
+  defp iter_get_steps_to_start([], _all_steps, completed, result), do: {completed, result}
+
+  defp iter_get_steps_to_start([step | steps], all_steps, completed, result) do
+    completed =
+      if step.status in [:completed, :skipped] do
+        completed
+      else
+        false
+      end
+
+    result =
+      if step.status == :queued do
+        if Map.has_key?(step, :required_to_start) do
+          count_not_completed =
+            Enum.filter(all_steps, fn s -> s.id in step.required_to_start end)
+            |> Enum.map(fn s -> s.status end)
+            |> Enum.filter(fn s -> s != :completed and s != :skipped end)
+            |> length
+
+          if count_not_completed == 0 do
+            List.insert_at(result, -1, step)
+          else
+            result
+          end
+        else
+          List.insert_at(result, -1, step)
+        end
+      else
+        result
+      end
+
+    iter_get_steps_to_start(steps, all_steps, completed, result)
+  end
+
+  defp start_steps({:completed_workflow, _}, _workflow), do: [:completed_workflow]
+
+  defp start_steps({:ok, steps}, workflow) do
+    for step <- steps do
+      Logger.warn(
+        "#{__MODULE__}: start to process step #{step["name"]} (index #{step.id}) for workflow #{
+          workflow.id
+        }"
+      )
+
+      step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
+      {result, status} = Launch.launch_step(workflow, step_name, step)
+
+      Logger.info("#{step_name}: #{inspect({result, status})}")
+      topic = "update_workflow_" <> Integer.to_string(workflow.id)
+
+      StepFlow.Notification.send(topic, %{workflow_id: workflow.id})
+
+      status
+    end
+  end
+
+  defp get_final_status(_workflow, _is_completed_workflow, ["started"]), do: {:ok, "started"}
+  defp get_final_status(_workflow, _is_completed_workflow, ["created"]), do: {:ok, "started"}
+
+  defp get_final_status(_workflow, _is_completed_workflow, ["created", "started"]),
+    do: {:ok, "started"}
+
+  defp get_final_status(workflow, _is_completed_workflow, ["skipped"]), do: start_next(workflow)
+  defp get_final_status(workflow, _is_completed_workflow, ["completed"]), do: start_next(workflow)
+
+  defp get_final_status(workflow, true, [:completed_workflow]) do
+    set_artifacts(workflow)
+    Logger.warn("#{__MODULE__}: workflow #{workflow.id} is completed")
+    {:ok, "completed"}
+  end
+
+  defp get_final_status(_workflow, _is_completed_workflow, _states), do: {:ok, "still_processing"}
 end

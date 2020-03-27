@@ -31,12 +31,13 @@ defmodule StepFlow.Application do
           children
 
         slack_token ->
+          Logger.info("Starting Slack Bot")
+
           List.insert_at(
             children,
             -1,
             worker(Slack.Bot, [StepFlow.SlackBot, [], slack_token, options], restart: :transient)
           )
-          Logger.info("Starting Slack Bot")
       end
 
     # See https://hexdocs.pm/elixir/Supervisor.html

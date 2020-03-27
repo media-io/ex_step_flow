@@ -211,13 +211,13 @@ defmodule StepFlow.Workflows do
     preload_workflows(workflows, result)
   end
 
-  defp get_step_status(steps, workflow_jobs, result \\ [])
-  defp get_step_status([], _workflow_jobs, result), do: result
-  defp get_step_status(nil, _workflow_jobs, result), do: result
+  def get_step_status(steps, workflow_jobs, result \\ [])
+  def get_step_status([], _workflow_jobs, result), do: result
+  def get_step_status(nil, _workflow_jobs, result), do: result
 
-  defp get_step_status([step | steps], workflow_jobs, result) do
-    name = Map.get(step, "name")
-    step_id = Map.get(step, "id")
+  def get_step_status([step | steps], workflow_jobs, result) do
+    name = StepFlow.Map.get_by_key_or_atom(step, :name)
+    step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
 
     jobs =
       workflow_jobs

@@ -215,7 +215,7 @@ defmodule StepFlow.Jobs do
 
     {:ok, job} = create_job(job_params)
     Status.set_job_status(job.id, :completed)
-    {:ok, :completed}
+    {:ok, "completed"}
   end
 
   @doc """
