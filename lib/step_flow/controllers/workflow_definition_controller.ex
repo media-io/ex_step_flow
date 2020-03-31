@@ -14,18 +14,20 @@ defmodule StepFlow.WorkflowDefinitionController do
     |> render("index.json", workflow_definitions: workflow_definitions)
   end
 
-  def show(conn, %{"filename" => filename}) do
-    case WorkflowDefinitions.get_workflow_definition(filename) do
-      {:ok, workflow_definition} ->
-        conn
-        |> put_view(StepFlow.WorkflowDefinitionView)
-        |> render("show.json", workflow_definition: workflow_definition)
-
-      {:error, errors} ->
+  def show(conn, %{"identifier" => identifier}) do
+    case WorkflowDefinitions.get_workflow_definition(identifier) do
+      nil ->
         conn
         |> put_status(:unprocessable_entity)
         |> put_view(StepFlow.WorkflowDefinitionView)
-        |> render("error.json", errors: errors)
+        |> render("error.json",
+          errors: %{reason: "Unable to locate workflow with this identifier"}
+        )
+
+      workflow_definition ->
+        conn
+        |> put_view(StepFlow.WorkflowDefinitionView)
+        |> render("show.json", workflow_definition: workflow_definition)
     end
   end
 end

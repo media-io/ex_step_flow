@@ -10,10 +10,31 @@ defmodule StepFlow.WorkflowDefinitionView do
   end
 
   def render("show.json", %{workflow_definition: workflow_definition}) do
-    %{data: render_one(workflow_definition, WorkflowDefinitionView, "workflow_definition.json")}
+    %{
+      data:
+        render_one(
+          workflow_definition,
+          WorkflowDefinitionView,
+          "workflow_definition_with_steps.json"
+        )
+    }
   end
 
   def render("workflow_definition.json", %{workflow_definition: workflow_definition}) do
+    %{
+      identifier: workflow_definition["identifier"],
+      label: workflow_definition["label"],
+      icon: workflow_definition["icon"],
+      version_major: workflow_definition["version_major"],
+      version_minor: workflow_definition["version_minor"],
+      version_micro: workflow_definition["version_micro"],
+      tags: workflow_definition["tags"],
+      start_parameters: workflow_definition["start_parameters"],
+      parameters: workflow_definition["parameters"]
+    }
+  end
+
+  def render("workflow_definition_with_steps.json", %{workflow_definition: workflow_definition}) do
     %{
       identifier: workflow_definition["identifier"],
       label: workflow_definition["label"],
@@ -33,7 +54,7 @@ defmodule StepFlow.WorkflowDefinitionView do
       errors: [
         %{
           reason: errors.reason,
-          message: errors.message || "Incorrect parameters"
+          message: Map.get(errors, :message, "Incorrect parameters")
         }
       ]
     }

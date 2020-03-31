@@ -24,16 +24,16 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     assert Map.get(response, "total") == 1
   end
 
-  test "GET /definitions/simple_workflow.json" do
+  test "GET /definitions/simple_workflow" do
     {status, _headers, body} =
-      conn(:get, "/definitions/simple_workflow.json")
+      conn(:get, "/definitions/simple_workflow")
       |> Router.call(@opts)
       |> sent_resp
 
     assert status == 200
     response = body |> Jason.decode!()
 
-    assert response["data"]["identifier"] == "speech_to_text"
+    assert response["data"]["identifier"] == "simple_workflow"
     assert response["data"]["version_major"] == 0
     assert response["data"]["version_minor"] == 0
     assert response["data"]["version_micro"] == 1
@@ -53,7 +53,7 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
              "errors" => [
                %{
                  "message" => "Incorrect parameters",
-                 "reason" => %{"required" => ["icon", "identifier", "label", "parameters", "steps", "tags", "version_major", "version_micro", "version_minor"]},
+                 "reason" => "Unable to locate workflow with this identifier"
                }
              ]
            }

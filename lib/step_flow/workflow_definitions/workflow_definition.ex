@@ -66,11 +66,40 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
     end
   end
 
+  def get_workflows do
+    get_workflow_definition_directories()
+    |> Enum.map(fn directory ->
+      list_workflow_definitions_for_a_directory(directory)
+    end)
+    |> List.flatten()
+  end
+
   defp get_separator do
     if :os.type() |> elem(0) == :unix do
       ":"
     else
       ";"
     end
+  end
+
+  defp list_workflow_definitions_for_a_directory(directory) do
+    File.ls!(directory)
+    |> Enum.filter(fn filename ->
+      String.ends_with?(filename, ".json")
+    end)
+    |> Enum.map(fn filename ->
+      Path.join(directory, filename)
+      |> File.read!()
+      |> Jason.decode!()
+    end)
+    |> Enum.filter(fn workflow_definition ->
+      if valid?(workflow_definition) do
+        true
+      else
+        errors = validate(workflow_definition)
+        Logger.error("Workflow definition not valid: #{inspect(errors)}")
+        false
+      end
+    end)
   end
 end
