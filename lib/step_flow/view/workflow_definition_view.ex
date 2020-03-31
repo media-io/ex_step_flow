@@ -50,17 +50,13 @@ defmodule StepFlow.WorkflowDefinitionView do
   end
 
   def render("error.json", %{errors: errors}) do
-    formatted =
-      Enum.map(errors, fn error ->
-        case error do
-          {message, details} ->
-            %{
-              message: message,
-              details: details
-            }
-        end
-      end)
-
-    %{errors: formatted}
+    %{
+      errors: [
+        %{
+          reason: errors.reason,
+          message: Map.get(errors, :message, "Incorrect parameters")
+        }
+      ]
+    }
   end
 end

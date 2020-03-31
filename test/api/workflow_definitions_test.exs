@@ -52,8 +52,8 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     assert response == %{
              "errors" => [
                %{
-                 "details" => "Unable to locate workflow with this identifier",
-                 "message" => "identifier"
+                 "message" => "Incorrect parameters",
+                 "reason" => "Unable to locate workflow with this identifier"
                }
              ]
            }

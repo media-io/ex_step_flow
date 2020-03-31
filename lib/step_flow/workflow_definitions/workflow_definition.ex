@@ -12,19 +12,38 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
 
   def valid?(definition) do
     get_schema()
-    |> ExJsonSchema.Validator.valid?(definition)
+    |> JsonXema.valid?(definition)
   end
 
   def validate(definition) do
     get_schema()
-    |> ExJsonSchema.Validator.validate(definition)
+    |> JsonXema.validate(definition)
   end
 
   defp get_schema do
-    "https://media-cloud.ai/standard/1.0/workflow-definition.schema.json"
-    |> HTTPoison.get!()
+    schema =
+      "https://media-cloud.ai/standard/1.1/workflow-definition.schema.json"
+      |> load_content()
+      |> Jason.decode!()
+
+    :ok = JsonXema.SchemaValidator.validate("http://json-schema.org/draft-07/schema#", schema)
+
+    schema
+    |> JsonXema.new()
+  end
+
+  defp load_content("http://" <> _ = url) do
+    HTTPoison.get!(url)
     |> Map.get(:body)
-    |> Jason.decode!()
+  end
+
+  defp load_content("https://" <> _ = url) do
+    HTTPoison.get!(url)
+    |> Map.get(:body)
+  end
+
+  defp load_content(source_filename) do
+    File.read!(source_filename)
   end
 
   def get_workflow_definition_directories do

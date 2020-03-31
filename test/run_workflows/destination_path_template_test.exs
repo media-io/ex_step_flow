@@ -4,7 +4,6 @@ defmodule StepFlow.RunWorkflows.DestinationPathTemplateTest do
 
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Step
-  alias StepFlow.Workflows
 
   doctest StepFlow
 
@@ -22,15 +21,20 @@ defmodule StepFlow.RunWorkflows.DestinationPathTemplateTest do
 
   describe "workflows" do
     @workflow_definition %{
-      identifier: "id",
+      identifier: "destination_path",
       version_major: 6,
       version_minor: 5,
       version_micro: 4,
       reference: "some-identifier",
+      icon: "custom_icon",
+      label: "Destination Path",
+      tags: ["test"],
       steps: [
         %{
           id: 0,
           name: "my_first_step",
+          icon: "step_icon",
+          label: "My first step",
           parameters: [
             %{
               id: "source_paths",
@@ -49,17 +53,8 @@ defmodule StepFlow.RunWorkflows.DestinationPathTemplateTest do
       parameters: []
     }
 
-    def workflow_fixture(workflow, attrs \\ %{}) do
-      {:ok, workflow} =
-        attrs
-        |> Enum.into(workflow)
-        |> Workflows.create_workflow()
-
-      workflow
-    end
-
     test "run destination path with template" do
-      workflow = workflow_fixture(@workflow_definition)
+      workflow = StepFlow.HelpersTest.workflow_fixture(@workflow_definition)
 
       {:ok, "started"} = Step.start_next(workflow)
 
