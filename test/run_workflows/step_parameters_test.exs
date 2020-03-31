@@ -23,6 +23,7 @@ defmodule StepFlow.RunWorkflows.StepParametersTest do
           name: "my_first_step",
           icon: "step_icon",
           label: "My first step",
+          work_dir: "/custom/work/directory/",
           parameters: [
             %{
               id: "param",
