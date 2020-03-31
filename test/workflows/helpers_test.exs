@@ -212,9 +212,10 @@ defmodule StepFlow.HelpersTest do
   end
 
   def workflow_fixture(workflow_definition, attrs \\ %{}) do
-    :ok = workflow_definition
-      |> Jason.encode!
-      |> Jason.decode!
+    :ok =
+      workflow_definition
+      |> Jason.encode!()
+      |> Jason.decode!()
       |> WorkflowDefinition.validate()
 
     {:ok, workflow} =

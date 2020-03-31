@@ -95,8 +95,8 @@ defmodule StepFlow.RunWorkflows.StepParametersTest do
 
     test "check parameters type on step" do
       @workflow_definition
-      |> Jason.encode!
-      |> Jason.decode!
+      |> Jason.encode!()
+      |> Jason.decode!()
       |> WorkflowDefinition.validate()
     end
   end
