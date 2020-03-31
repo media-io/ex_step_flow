@@ -44,6 +44,29 @@ defmodule StepFlow.Api.WorkflowsTest do
     assert body |> Jason.decode!() |> Map.get("total") == 1
   end
 
+  test "POST /launch_workflow valid" do
+    {status, _headers, _body} =
+      conn(:post, "/launch_workflow", %{
+        workflow_identifier: "simple_workflow",
+        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
+      })
+      |> Router.call(@opts)
+      |> sent_resp
+
+    assert status == 201
+  end
+
+  test "POST /launch_workflow invalid" do
+    {status, _headers, _body} =
+      conn(:post, "/launch_workflow", %{
+        workflow_identifier: "simple_workflow"
+      })
+      |> Router.call(@opts)
+      |> sent_resp
+
+    assert status == 422
+  end
+
   test "POST /workflows invalid" do
     {status, _headers, body} =
       conn(:post, "/workflows", %{})
