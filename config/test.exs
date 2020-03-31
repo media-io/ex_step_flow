@@ -18,16 +18,9 @@ config :step_flow, StepFlow.Repo,
   pool_size: 10,
   pool: Ecto.Adapters.SQL.Sandbox
 
-# config :step_flow, StepFlow.Amqp,
-#   hostname: "localhost",
-#   port: 5672,
-#   username: "guest",
-#   password: "guest",
-#   virtual_host: ""
-
 config :step_flow, StepFlow.Amqp,
-  hostname: "192.168.99.101",
-  port: 5678,
-  username: "mediacloudai",
-  password: "mediacloudai",
-  virtual_host: "media_cloud_ai_dev"
+  hostname: "localhost",
+  port: 5672,
+  username: "guest",
+  password: "guest",
+  virtual_host: ""
