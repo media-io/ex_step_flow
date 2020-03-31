@@ -20,7 +20,7 @@ defmodule StepFlow.RunWorkflows.SkippedStepsTest do
       version_micro: 4,
       reference: "some id",
       icon: "custom_icon",
-      label: "Simple workflow test",
+      label: "Skipped steps",
       tags: ["test"],
       parameters: [],
       steps: [

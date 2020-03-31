@@ -27,7 +27,7 @@ defmodule StepFlow.RunWorkflows.TwoStepsWorkflowTest do
       version_micro: 4,
       reference: "some id",
       icon: "custom_icon",
-      label: "Source paths template",
+      label: "Two steps workflow",
       tags: ["test"],
       steps: [
         %{

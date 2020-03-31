@@ -27,7 +27,7 @@ defmodule StepFlow.RunWorkflows.MultipleInputsTest do
       version_micro: 4,
       reference: "some id",
       icon: "custom_icon",
-      label: "Multiple first step",
+      label: "Multiple inputs",
       tags: ["test"],
       parameters: [],
       steps: [

@@ -27,7 +27,7 @@ defmodule StepFlow.RunWorkflows.ParallelStepsTest do
       version_micro: 4,
       reference: "some id",
       icon: "custom_icon",
-      label: "Multiple first step",
+      label: "Parallel steps",
       tags: ["test"],
       parameters: [],
       steps: [

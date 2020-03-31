@@ -14,7 +14,7 @@ defmodule StepFlow.RunWorkflows.StepParametersTest do
       version_micro: 4,
       reference: "some id",
       icon: "custom_icon",
-      label: "Parallel steps with notification",
+      label: "Workflow with all the possible parameter types",
       tags: ["test"],
       parameters: [],
       steps: [
