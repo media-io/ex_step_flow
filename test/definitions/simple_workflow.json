@@ -110,31 +110,26 @@
         {
           "id": "destination_filename",
           "type": "template",
-          "enable": false,
           "value": "{source_path}.wav"
         },
         {
           "id": "output_codec_audio",
           "type": "string",
-          "enable": false,
           "value": "pcm_s16le"
         },
         {
           "id": "audio_sampling_rate",
           "type": "integer",
-          "enable": false,
           "value": 16000
         },
         {
           "id": "audio_channels",
           "type": "integer",
-          "enable": false,
           "value": 1
         },
         {
           "id": "audio_filters",
           "type": "string",
-          "enable": false,
           "value": "aresample=precision=28:dither_method=shibata"
         }
       ]
