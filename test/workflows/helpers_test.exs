@@ -5,6 +5,8 @@ defmodule StepFlow.HelpersTest do
   require Logger
   alias StepFlow.Amqp.Helpers
   alias StepFlow.Jobs.Status
+  alias StepFlow.Workflows
+  alias StepFlow.WorkflowDefinitions.WorkflowDefinition
 
   doctest StepFlow.Step.Helpers
 
@@ -207,5 +209,19 @@ defmodule StepFlow.HelpersTest do
 
     {:empty, %{cluster_id: ""}} = AMQP.Basic.get(channel, queue)
     list
+  end
+
+  def workflow_fixture(workflow_definition, attrs \\ %{}) do
+    :ok = workflow_definition
+      |> Jason.encode!
+      |> Jason.decode!
+      |> WorkflowDefinition.validate()
+
+    {:ok, workflow} =
+      attrs
+      |> Enum.into(workflow_definition)
+      |> Workflows.create_workflow()
+
+    workflow
   end
 end

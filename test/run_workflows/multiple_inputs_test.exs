@@ -4,7 +4,6 @@ defmodule StepFlow.RunWorkflows.MultipleInputsTest do
 
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Step
-  alias StepFlow.Workflows
 
   doctest StepFlow
 
@@ -27,10 +26,16 @@ defmodule StepFlow.RunWorkflows.MultipleInputsTest do
       version_minor: 5,
       version_micro: 4,
       reference: "some id",
+      icon: "custom_icon",
+      label: "Multiple first step",
+      tags: ["test"],
+      parameters: [],
       steps: [
         %{
           id: 0,
           name: "my_first_step",
+          icon: "step_icon",
+          label: "My first step",
           parameters: [
             %{
               id: "source_paths",
@@ -45,17 +50,8 @@ defmodule StepFlow.RunWorkflows.MultipleInputsTest do
       ]
     }
 
-    def workflow_fixture(workflow, attrs \\ %{}) do
-      {:ok, workflow} =
-        attrs
-        |> Enum.into(workflow)
-        |> Workflows.create_workflow()
-
-      workflow
-    end
-
     test "run simple workflow with 1 step" do
-      workflow = workflow_fixture(@workflow_definition)
+      workflow = StepFlow.HelpersTest.workflow_fixture(@workflow_definition)
 
       {:ok, "started"} = Step.start_next(workflow)
 

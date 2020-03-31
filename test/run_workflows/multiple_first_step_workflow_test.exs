@@ -4,7 +4,6 @@ defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
 
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Step
-  alias StepFlow.Workflows
 
   doctest StepFlow
 
@@ -27,10 +26,16 @@ defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
       version_minor: 5,
       version_micro: 4,
       reference: "some id",
+      icon: "custom_icon",
+      label: "Multiple first step",
+      tags: ["test"],
+      parameters: [],
       steps: [
         %{
           id: 0,
           name: "first_first_step",
+          icon: "step_icon",
+          label: "First step",
           parameters: [
             %{
               id: "source_paths",
@@ -45,6 +50,8 @@ defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
         %{
           id: 1,
           name: "second_first_step",
+          icon: "step_icon",
+          label: "Second step",
           parameters: [
             %{
               id: "source_paths",
@@ -58,17 +65,8 @@ defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
       ]
     }
 
-    def workflow_fixture(workflow, attrs \\ %{}) do
-      {:ok, workflow} =
-        attrs
-        |> Enum.into(workflow)
-        |> Workflows.create_workflow()
-
-      workflow
-    end
-
     test "run workflow with 2 starting steps" do
-      workflow = workflow_fixture(@workflow_definition)
+      workflow = StepFlow.HelpersTest.workflow_fixture(@workflow_definition)
 
       {:ok, "started"} = Step.start_next(workflow)
 

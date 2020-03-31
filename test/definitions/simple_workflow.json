@@ -61,7 +61,6 @@
       "name": "job_transfer",
       "label": "Download source elements",
       "icon": "file_download",
-      "enable": true,
       "parameters": [
         {
           "id": "source_paths",
@@ -98,51 +97,44 @@
     {
       "id": 1,
       "parent_ids": [0],
-      "required": [0],
+      "required_to_start": [0],
       "name": "job_ffmpeg",
       "label": "Convert audio",
       "icon": "queue_music",
-      "enable": true,
       "parameters": [
         {
           "id": "command_template",
           "type": "string",
-          "default": "ffmpeg -i {source_path} -codec:a {output_codec_audio} -ar {audio_sampling_rate} -ac {audio_channels} -af {audio_filters} -vn -dn {destination_path}",
           "value": "ffmpeg -i {source_path} -codec:a {output_codec_audio} -ar {audio_sampling_rate} -ac {audio_channels} -af {audio_filters} -vn -dn {destination_path}"
         },
         {
           "id": "destination_filename",
           "type": "template",
           "enable": false,
-          "default": "{source_path}.wav",
           "value": "{source_path}.wav"
         },
         {
           "id": "output_codec_audio",
           "type": "string",
           "enable": false,
-          "default": "pcm_s16le",
           "value": "pcm_s16le"
         },
         {
           "id": "audio_sampling_rate",
           "type": "integer",
           "enable": false,
-          "default": 16000,
           "value": 16000
         },
         {
           "id": "audio_channels",
           "type": "integer",
           "enable": false,
-          "default": 1,
           "value": 1
         },
         {
           "id": "audio_filters",
           "type": "string",
           "enable": false,
-          "default": "aresample=resampler=soxr:precision=28:dither_method=shibata",
           "value": "aresample=precision=28:dither_method=shibata"
         }
       ]
@@ -150,11 +142,10 @@
     {
       "id": 2,
       "parent_ids": [1],
-      "required": [1],
+      "required_to_start": [1],
       "name": "job_speech_to_text",
       "label": "Speech To Text",
       "icon": "text_fields",
-      "enable": true,
       "parameters": [
         {
           "id": "provider",
@@ -188,9 +179,8 @@
       "name": "job_transfer",
       "label": "Upload generated elements to S3",
       "icon": "file_upload",
-      "enable": true,
       "parent_ids": [2],
-      "required": [2],
+      "required_to_start": [2],
       "parameters": [
         {
           "id": "destination_hostname",
@@ -236,12 +226,10 @@
       "label": "Clean workspace",
       "icon": "delete_forever",
       "mode": "one_for_many",
-      "enable": true,
       "parameters": [
         {
           "id": "action",
           "type": "string",
-          "default": "remove",
           "value": "remove"
         },
         {

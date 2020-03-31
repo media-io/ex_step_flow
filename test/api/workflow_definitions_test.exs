@@ -52,9 +52,8 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     assert response == %{
              "errors" => [
                %{
-                 "details" => "#",
-                 "message" =>
-                   "Required properties identifier, label, icon, version_major, version_minor, version_micro, tags, parameters, steps were not present."
+                 "message" => "Incorrect parameters",
+                 "reason" => %{"required" => ["icon", "identifier", "label", "parameters", "steps", "tags", "version_major", "version_micro", "version_minor"]},
                }
              ]
            }
