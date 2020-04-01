@@ -5,8 +5,8 @@ defmodule StepFlow.HelpersTest do
   require Logger
   alias StepFlow.Amqp.Helpers
   alias StepFlow.Jobs.Status
-  alias StepFlow.Workflows
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
+  alias StepFlow.Workflows
 
   doctest StepFlow.Step.Helpers
 
@@ -212,15 +212,16 @@ defmodule StepFlow.HelpersTest do
   end
 
   def workflow_fixture(workflow_definition, attrs \\ %{}) do
-    :ok =
+    json_workflow_definition =
       workflow_definition
       |> Jason.encode!()
       |> Jason.decode!()
-      |> WorkflowDefinition.validate()
+
+    :ok = WorkflowDefinition.validate(json_workflow_definition)
 
     {:ok, workflow} =
       attrs
-      |> Enum.into(workflow_definition)
+      |> Enum.into(json_workflow_definition)
       |> Workflows.create_workflow()
 
     workflow

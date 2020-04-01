@@ -89,20 +89,24 @@ defmodule StepFlow.Step do
 
     result =
       if step.status == :queued do
-        if Map.has_key?(step, :required_to_start) do
-          count_not_completed =
-            Enum.filter(all_steps, fn s -> s.id in step.required_to_start end)
-            |> Enum.map(fn s -> s.status end)
-            |> Enum.filter(fn s -> s != :completed and s != :skipped end)
-            |> length
-
-          if count_not_completed == 0 do
+        case StepFlow.Map.get_by_key_or_atom(step, :required_to_start) do
+          nil ->
             List.insert_at(result, -1, step)
-          else
-            result
-          end
-        else
-          List.insert_at(result, -1, step)
+
+          required_to_start ->
+            count_not_completed =
+              Enum.filter(all_steps, fn s ->
+                StepFlow.Map.get_by_key_or_atom(s, :id) in required_to_start
+              end)
+              |> Enum.map(fn s -> StepFlow.Map.get_by_key_or_atom(s, :status) end)
+              |> Enum.filter(fn s -> s != :completed and s != :skipped end)
+              |> length
+
+            if count_not_completed == 0 do
+              List.insert_at(result, -1, step)
+            else
+              result
+            end
         end
       else
         result
