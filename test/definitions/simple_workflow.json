@@ -54,7 +54,13 @@
       ]
     }
   ],
-  "parameters": [],
+  "parameters": [
+    {
+      "id": "audio_source_filename",
+      "type": "string",
+      "value": "to_change.mp4"
+    }
+  ],
   "steps": [
     {
       "id": 0,
