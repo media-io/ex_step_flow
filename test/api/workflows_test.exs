@@ -45,6 +45,24 @@ defmodule StepFlow.Api.WorkflowsTest do
   end
 
   test "POST /launch_workflow valid" do
+    {status, _headers, body} =
+      conn(:post, "/launch_workflow", %{
+        workflow_identifier: "simple_workflow",
+        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+        parameters: %{}
+      })
+      |> Router.call(@opts)
+      |> sent_resp
+
+    assert status == 201
+
+    assert body
+           |> Jason.decode!()
+           |> Map.get("data")
+           |> Map.get("reference") == "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
+  end
+
+  test "POST /launch_workflow valid missing parameters" do
     {status, _headers, _body} =
       conn(:post, "/launch_workflow", %{
         workflow_identifier: "simple_workflow",
@@ -56,7 +74,19 @@ defmodule StepFlow.Api.WorkflowsTest do
     assert status == 201
   end
 
-  test "POST /launch_workflow invalid" do
+  test "POST /launch_workflow invalid missing reference" do
+    {status, _headers, _body} =
+      conn(:post, "/launch_workflow", %{
+        workflow_identifier: "simple_workflow",
+        parameters: %{}
+      })
+      |> Router.call(@opts)
+      |> sent_resp
+
+    assert status == 422
+  end
+
+  test "POST /launch_workflow invalid missing reference and parameters" do
     {status, _headers, _body} =
       conn(:post, "/launch_workflow", %{
         workflow_identifier: "simple_workflow"
@@ -65,6 +95,57 @@ defmodule StepFlow.Api.WorkflowsTest do
       |> sent_resp
 
     assert status == 422
+  end
+
+  test "POST /launch_workflow valid with valid parameters" do
+    {status, _headers, body} =
+      conn(:post, "/launch_workflow", %{
+        workflow_identifier: "simple_workflow",
+        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+        parameters: %{
+          "audio_source_filename" => "awsome.mp4"
+        }
+      })
+      |> Router.call(@opts)
+      |> sent_resp
+
+    assert status == 201
+
+    assert body
+           |> Jason.decode!()
+           |> Map.get("data")
+           |> Map.get("parameters")
+           |> List.first() == %{
+             "id" => "audio_source_filename",
+             "type" => "string",
+             "value" => "awsome.mp4"
+           }
+  end
+
+  test "POST /launch_workflow valid with invalid parameter" do
+    {status, _headers, body} =
+      conn(:post, "/launch_workflow", %{
+        workflow_identifier: "simple_workflow",
+        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+        parameters: %{
+          "invalid" => "parameter"
+        }
+      })
+      |> Router.call(@opts)
+      |> sent_resp
+
+    assert status == 201
+
+    assert body
+           |> Jason.decode!()
+           |> Map.get("data")
+           |> Map.get("parameters") == [
+             %{
+               "id" => "audio_source_filename",
+               "type" => "string",
+               "value" => "to_change.mp4"
+             }
+           ]
   end
 
   test "POST /workflows invalid" do

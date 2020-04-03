@@ -53,7 +53,13 @@ defmodule StepFlow.WorkflowController do
         workflow_description =
           workflow_definition
           |> Map.put("reference", Map.get(workflow_params, "reference"))
-          |> Map.put("parameters", Map.get(workflow_params, "parameters", []))
+          |> Map.put(
+            "parameters",
+            merge_parameters(
+              Map.get(workflow_definition, "parameters"),
+              Map.get(workflow_params, "parameters", %{})
+            )
+          )
 
         create(conn, workflow_description)
     end
@@ -66,6 +72,22 @@ defmodule StepFlow.WorkflowController do
     |> render("error.json",
       errors: %{workflow_identifier: "Missing Workflow identifier parameter"}
     )
+  end
+
+  defp merge_parameters(parameters, request_parameters, result \\ [])
+  defp merge_parameters([], _request_parameters, result), do: result
+
+  defp merge_parameters([parameter | tail], request_parameters, result) do
+    result =
+      case Map.get(request_parameters, Map.get(parameter, "id")) do
+        nil ->
+          List.insert_at(result, -1, parameter)
+
+        parameter_value ->
+          List.insert_at(result, -1, Map.put(parameter, "value", parameter_value))
+      end
+
+    merge_parameters(tail, request_parameters, result)
   end
 
   def show(conn, %{"id" => id}) do
