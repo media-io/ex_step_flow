@@ -33,10 +33,8 @@ defmodule StepFlow.Workflows.StepManager do
     topic = "update_workflow_" <> Integer.to_string(job.workflow_id)
     StepFlow.Notification.send(topic, %{workflow_id: job.workflow_id})
 
-    if StepFlow.Workflows.jobs_without_status?(job.workflow_id) == true do
-      job = Repo.preload(job, :workflow)
-      Step.start_next(job.workflow)
-    end
+    job = Repo.preload(job, :workflow)
+    Step.start_next(job.workflow)
 
     {:noreply, state}
   end
