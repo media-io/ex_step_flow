@@ -383,36 +383,6 @@ defmodule StepFlow.Workflows do
     Workflow.changeset(workflow, %{})
   end
 
-  def jobs_without_status?(workflow_id, status \\ ["completed", "skipped"]) do
-    query_count_jobs =
-      from(
-        workflow in Workflow,
-        where: workflow.id == ^workflow_id,
-        join: jobs in assoc(workflow, :jobs),
-        select: count(jobs.id)
-      )
-
-    query_count_state =
-      from(
-        workflow in Workflow,
-        where: workflow.id == ^workflow_id,
-        join: jobs in assoc(workflow, :jobs),
-        join: status in assoc(jobs, :status),
-        where: status.state in ^status,
-        select: count(status.id)
-      )
-
-    total =
-      Repo.all(query_count_jobs)
-      |> List.first()
-
-    researched =
-      Repo.all(query_count_state)
-      |> List.first()
-
-    researched >= total
-  end
-
   def get_workflow_history(%{scale: scale}) do
     Enum.map(
       0..49,
