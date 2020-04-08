@@ -13,7 +13,7 @@ defmodule StepFlow.RunWorkflows.ParallelSequentialStepsTest do
     channel = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 4)
+      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 5)
     end)
 
     :ok
@@ -106,22 +106,20 @@ defmodule StepFlow.RunWorkflows.ParallelSequentialStepsTest do
 
       StepFlow.HelpersTest.complete_jobs(workflow.id, "first_parallel_step")
 
+      {:ok, "started"} = Step.start_next(workflow)
+
       StepFlow.HelpersTest.check(workflow.id, "first_parallel_step", 1)
       StepFlow.HelpersTest.check(workflow.id, "second_parallel_step", 1)
       StepFlow.HelpersTest.check(workflow.id, "third_parallel_step", 1)
-
-      {:ok, "still_processing"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.complete_jobs(workflow.id, "second_parallel_step")
+      {:ok, "still_processing"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.check(workflow.id, "first_parallel_step", 1)
       StepFlow.HelpersTest.check(workflow.id, "second_parallel_step", 1)
       StepFlow.HelpersTest.check(workflow.id, "third_parallel_step", 1)
 
-      {:ok, "still_processing"} = Step.start_next(workflow)
-
       StepFlow.HelpersTest.complete_jobs(workflow.id, "third_parallel_step")
-
       {:ok, "started"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
