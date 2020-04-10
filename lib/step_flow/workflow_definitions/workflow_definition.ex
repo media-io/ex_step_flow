@@ -4,6 +4,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
   """
 
   require Logger
+  alias StepFlow.WorkflowDefinitions.ExternalLoader
 
   defstruct(
     identifier: "",
@@ -28,8 +29,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
 
     :ok = JsonXema.SchemaValidator.validate("http://json-schema.org/draft-07/schema#", schema)
 
-    schema
-    |> JsonXema.new()
+    JsonXema.new(schema, loader: ExternalLoader)
   end
 
   defp load_content("http://" <> _ = url) do
