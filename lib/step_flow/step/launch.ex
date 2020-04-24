@@ -42,15 +42,52 @@ defmodule StepFlow.Step.Launch do
           |> Enum.sort()
           |> List.first()
 
-        start_job_one_for_one(
-          source_paths,
-          step,
-          step_name,
-          step_id,
-          dates,
-          first_file,
-          workflow
-        )
+        case StepFlow.Map.get_by_key_or_atom(step, :multiple_jobs) do
+          nil ->
+            start_job_one_for_one(
+              source_paths,
+              step,
+              step_name,
+              step_id,
+              dates,
+              first_file,
+              workflow
+            )
+
+          multiple_jobs_parameter ->
+            segments =
+              Helpers.get_value_in_parameters_with_type(
+                workflow,
+                multiple_jobs_parameter,
+                "array_of_media_segments"
+              )
+              |> List.first()
+
+            case segments do
+              nil ->
+                start_job_one_for_one(
+                  source_paths,
+                  step,
+                  step_name,
+                  step_id,
+                  dates,
+                  first_file,
+                  workflow
+                )
+
+              segments ->
+                start_jobs_one_for_one_for_segments(
+                  segments,
+                  source_paths,
+                  step,
+                  step_name,
+                  step_id,
+                  dates,
+                  first_file,
+                  workflow
+                )
+            end
+        end
 
       {source_paths, "one_for_many"} when is_list(source_paths) ->
         Logger.debug("job one for many paths")
@@ -87,6 +124,124 @@ defmodule StepFlow.Step.Launch do
     case CommonEmitter.publish_json(step_name, step_id, message) do
       :ok ->
         start_job_one_for_one(source_paths, step, step_name, step_id, dates, first_file, workflow)
+
+      _ ->
+        {:error, "unable to publish message"}
+    end
+  end
+
+  defp start_jobs_one_for_one_for_segments(
+         [],
+         _source_paths,
+         _step,
+         _step_name,
+         _step_id,
+         _dates,
+         _first_file,
+         _workflow
+       ),
+       do: {:ok, "started"}
+
+  defp start_jobs_one_for_one_for_segments(
+         [segment | segments],
+         source_paths,
+         step,
+         step_name,
+         step_id,
+         dates,
+         first_file,
+         workflow
+       ) do
+    _result =
+      start_job_one_for_one_with_segment(
+        source_paths,
+        step,
+        step_name,
+        step_id,
+        dates,
+        first_file,
+        workflow,
+        segment
+      )
+
+    start_jobs_one_for_one_for_segments(
+      segments,
+      source_paths,
+      step,
+      step_name,
+      step_id,
+      dates,
+      first_file,
+      workflow
+    )
+  end
+
+  defp start_job_one_for_one_with_segment(
+         [],
+         _step,
+         _step_name,
+         _step_id,
+         _dates,
+         _first_file,
+         _workflow,
+         _segment
+       ),
+       do: {:ok, "started"}
+
+  defp start_job_one_for_one_with_segment(
+         [source_path | source_paths],
+         step,
+         step_name,
+         step_id,
+         dates,
+         first_file,
+         workflow,
+         segment
+       ) do
+    parameters =
+      generate_job_parameters_one_for_one(
+        source_path,
+        step,
+        dates,
+        first_file,
+        workflow
+      )
+      |> Enum.concat([
+        %{
+          "id" => "sdk_start_index",
+          "type" => "integer",
+          "value" => StepFlow.Map.get_by_key_or_atom(segment, :start)
+        },
+        %{
+          "id" => "sdk_stop_index",
+          "type" => "integer",
+          "value" => StepFlow.Map.get_by_key_or_atom(segment, :end)
+        }
+      ])
+
+    job_params = %{
+      name: step_name,
+      step_id: step_id,
+      workflow_id: workflow.id,
+      parameters: parameters
+    }
+
+    {:ok, job} = Jobs.create_job(job_params)
+
+    message = Jobs.get_message(job)
+
+    case CommonEmitter.publish_json(step_name, step_id, message) do
+      :ok ->
+        start_job_one_for_one_with_segment(
+          source_paths,
+          step,
+          step_name,
+          step_id,
+          dates,
+          first_file,
+          workflow,
+          segment
+        )
 
       _ ->
         {:error, "unable to publish message"}
@@ -130,6 +285,34 @@ defmodule StepFlow.Step.Launch do
         first_file,
         workflow
       ) do
+    parameters =
+      generate_job_parameters_one_for_one(
+        source_path,
+        step,
+        dates,
+        first_file,
+        workflow
+      )
+
+    job_params = %{
+      name: step_name,
+      step_id: step_id,
+      workflow_id: workflow.id,
+      parameters: parameters
+    }
+
+    {:ok, job} = Jobs.create_job(job_params)
+
+    Jobs.get_message(job)
+  end
+
+  defp generate_job_parameters_one_for_one(
+        source_path,
+        step,
+        dates,
+        first_file,
+        workflow
+      ) do
     destination_path_templates =
       Helpers.get_value_in_parameters_with_type(step, "destination_path", "template")
 
@@ -167,32 +350,20 @@ defmodule StepFlow.Step.Launch do
         ]
       end
 
-    parameters =
-      filter_and_pre_compile_parameters(step, workflow, dates, source_path)
-      |> Enum.concat(destination_path_parameter)
-      |> Enum.concat([
-        %{
-          "id" => "source_path",
-          "type" => "string",
-          "value" => source_path
-        },
-        %{
-          "id" => "requirements",
-          "type" => "requirements",
-          "value" => requirements
-        }
-      ])
-
-    job_params = %{
-      name: step_name,
-      step_id: step_id,
-      workflow_id: workflow.id,
-      parameters: parameters
-    }
-
-    {:ok, job} = Jobs.create_job(job_params)
-
-    Jobs.get_message(job)
+    filter_and_pre_compile_parameters(step, workflow, dates, source_path)
+    |> Enum.concat(destination_path_parameter)
+    |> Enum.concat([
+      %{
+        "id" => "source_path",
+        "type" => "string",
+        "value" => source_path
+      },
+      %{
+        "id" => "requirements",
+        "type" => "requirements",
+        "value" => requirements
+      }
+    ])
   end
 
   def generate_message_one_for_many(source_paths, step, step_name, step_id, dates, workflow) do
