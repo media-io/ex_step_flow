@@ -12,8 +12,6 @@ defmodule StepFlow.RunWorkflows.MultipleJobsTest do
     :ok = Sandbox.checkout(StepFlow.Repo)
     channel = StepFlow.HelpersTest.get_amqp_connection()
 
-    IO.inspect(channel)
-
     on_exit(fn ->
       StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 3)
     end)

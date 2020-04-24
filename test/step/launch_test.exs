@@ -228,15 +228,18 @@ defmodule StepFlow.LaunchTest do
         Timex.now()
         |> Timex.format!("%Y_%m_%d", :strftime)
 
+      launch_params =
+        StepFlow.Step.LaunchParams.new(
+          workflow,
+          step,
+          %{date_time: current_date_time, date: current_date},
+          first_file
+        )
+
       message =
         Launch.generate_message_one_for_one(
           source_path,
-          step,
-          step_name,
-          step_id,
-          %{date_time: current_date_time, date: current_date},
-          first_file,
-          workflow
+          launch_params
         )
 
       assert message.parameters == [
@@ -284,15 +287,12 @@ defmodule StepFlow.LaunchTest do
 
       dates = Helpers.get_dates()
 
+      launch_params = StepFlow.Step.LaunchParams.new(workflow, step, dates, first_file)
+
       message =
         Launch.generate_message_one_for_one(
           source_path,
-          step,
-          step_name,
-          step_id,
-          dates,
-          first_file,
-          workflow
+          launch_params
         )
 
       assert message.parameters == [
@@ -343,14 +343,12 @@ defmodule StepFlow.LaunchTest do
 
       dates = Helpers.get_dates()
 
+      launch_params = StepFlow.Step.LaunchParams.new(workflow, step, dates)
+
       message =
         Launch.generate_message_one_for_many(
           source_paths,
-          step,
-          step_name,
-          step_id,
-          dates,
-          workflow
+          launch_params
         )
 
       assert message.parameters == [
@@ -400,14 +398,12 @@ defmodule StepFlow.LaunchTest do
 
       dates = Helpers.get_dates()
 
+      launch_params = StepFlow.Step.LaunchParams.new(workflow, step, dates)
+
       message =
         Launch.generate_message_one_for_many(
           source_paths,
-          step,
-          step_name,
-          step_id,
-          dates,
-          workflow
+          launch_params
         )
 
       assert message.parameters == [
