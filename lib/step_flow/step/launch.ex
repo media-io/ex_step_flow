@@ -8,8 +8,8 @@ defmodule StepFlow.Step.Launch do
   alias StepFlow.Jobs
   alias StepFlow.Notifications.Notification
   alias StepFlow.Step.Helpers
-  alias StepFlow.Workflows
   alias StepFlow.Step.LaunchParams
+  alias StepFlow.Workflows
 
   def launch_step(workflow, step) do
     dates = Helpers.get_dates()
@@ -54,28 +54,7 @@ defmodule StepFlow.Step.Launch do
             )
 
           multiple_jobs_parameter ->
-            segments =
-              Helpers.get_value_in_parameters_with_type(
-                workflow,
-                multiple_jobs_parameter,
-                "array_of_media_segments"
-              )
-              |> List.first()
-
-            case segments do
-              nil ->
-                start_job_one_for_one(
-                  source_paths,
-                  launch_params
-                )
-
-              segments ->
-                start_jobs_one_for_one_for_segments(
-                  segments,
-                  source_paths,
-                  launch_params
-                )
-            end
+            start_multiple_jobs_one_for_one(source_paths, multiple_jobs_parameter, launch_params)
         end
 
       {source_paths, "one_for_many"} when is_list(source_paths) ->
@@ -111,6 +90,31 @@ defmodule StepFlow.Step.Launch do
 
       _ ->
         {:error, "unable to publish message"}
+    end
+  end
+
+  defp start_multiple_jobs_one_for_one(source_paths, multiple_jobs_parameter, launch_params) do
+    segments =
+      Helpers.get_value_in_parameters_with_type(
+        launch_params.workflow,
+        multiple_jobs_parameter,
+        "array_of_media_segments"
+      )
+      |> List.first()
+
+    case segments do
+      nil ->
+        start_job_one_for_one(
+          source_paths,
+          launch_params
+        )
+
+      segments ->
+        start_jobs_one_for_one_for_segments(
+          segments,
+          source_paths,
+          launch_params
+        )
     end
   end
 
