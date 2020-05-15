@@ -155,11 +155,8 @@ defmodule StepFlow.Step.Launch do
          [source_path | source_paths],
          launch_params
        ) do
-    parameters =
-      generate_job_parameters_one_for_one(
-        source_path,
-        launch_params
-      )
+    new_parameters =
+      StepFlow.Map.get_by_key_or_atom(launch_params.step, :parameters, [])
       |> Enum.concat([
         %{
           "id" => "sdk_start_index",
@@ -172,6 +169,15 @@ defmodule StepFlow.Step.Launch do
           "value" => StepFlow.Map.get_by_key_or_atom(launch_params.segment, :end)
         }
       ])
+
+    updated_step = StepFlow.Map.replace_by_atom(launch_params.step, :parameters, new_parameters)
+    launch_params = %{launch_params | step: updated_step}
+
+    parameters =
+      generate_job_parameters_one_for_one(
+        source_path,
+        launch_params
+      )
 
     step_name = LaunchParams.get_step_name(launch_params)
     step_id = LaunchParams.get_step_id(launch_params)
