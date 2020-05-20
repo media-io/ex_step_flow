@@ -8,14 +8,16 @@ defmodule StepFlow.Step.Launch do
   alias StepFlow.Jobs
   alias StepFlow.Notifications.Notification
   alias StepFlow.Step.Helpers
+  alias StepFlow.Step.LaunchParams
   alias StepFlow.Workflows
 
-  def launch_step(workflow, step_name, step) do
+  def launch_step(workflow, step) do
     dates = Helpers.get_dates()
     # refresh workflow to get recent stored parameters on it
     workflow = Workflows.get_workflow!(workflow.id)
 
     step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
+    step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
     step_mode = StepFlow.Map.get_by_key_or_atom(step, :mode, "one_for_one")
     source_paths = get_source_paths(workflow, step, dates)
 
@@ -42,51 +44,161 @@ defmodule StepFlow.Step.Launch do
           |> Enum.sort()
           |> List.first()
 
-        start_job_one_for_one(
-          source_paths,
-          step,
-          step_name,
-          step_id,
-          dates,
-          first_file,
-          workflow
-        )
+        launch_params = LaunchParams.new(workflow, step, dates, first_file)
+
+        case StepFlow.Map.get_by_key_or_atom(step, :multiple_jobs) do
+          nil ->
+            start_job_one_for_one(
+              source_paths,
+              launch_params
+            )
+
+          multiple_jobs_parameter ->
+            start_multiple_jobs_one_for_one(source_paths, multiple_jobs_parameter, launch_params)
+        end
 
       {source_paths, "one_for_many"} when is_list(source_paths) ->
         Logger.debug("job one for many paths")
-        start_job_one_for_many(source_paths, step, step_name, step_id, dates, workflow)
+        launch_params = LaunchParams.new(workflow, step, dates)
+        start_job_one_for_many(source_paths, launch_params)
 
       {_, _} ->
         Jobs.create_skipped_job(workflow, step_id, step_name)
     end
   end
 
-  defp start_job_one_for_one([], _step, _step_name, _step_id, _dates, _first_file, _workflow),
+  defp start_job_one_for_one([], _launch_params),
     do: {:ok, "started"}
 
   defp start_job_one_for_one(
          [source_path | source_paths],
-         step,
-         step_name,
-         step_id,
-         dates,
-         first_file,
-         workflow
+         launch_params
        ) do
     message =
       generate_message_one_for_one(
         source_path,
-        step,
-        step_name,
-        step_id,
-        dates,
-        first_file,
-        workflow
+        launch_params
       )
+
+    case CommonEmitter.publish_json(
+           LaunchParams.get_step_name(launch_params),
+           LaunchParams.get_step_id(launch_params),
+           message
+         ) do
+      :ok ->
+        start_job_one_for_one(source_paths, launch_params)
+
+      _ ->
+        {:error, "unable to publish message"}
+    end
+  end
+
+  defp start_multiple_jobs_one_for_one(source_paths, multiple_jobs_parameter, launch_params) do
+    segments =
+      Helpers.get_value_in_parameters_with_type(
+        launch_params.workflow,
+        multiple_jobs_parameter,
+        "array_of_media_segments"
+      )
+      |> List.first()
+
+    case segments do
+      nil ->
+        start_job_one_for_one(
+          source_paths,
+          launch_params
+        )
+
+      segments ->
+        start_jobs_one_for_one_for_segments(
+          segments,
+          source_paths,
+          launch_params
+        )
+    end
+  end
+
+  defp start_jobs_one_for_one_for_segments(
+         [],
+         _source_paths,
+         _launch_params
+       ),
+       do: {:ok, "started"}
+
+  defp start_jobs_one_for_one_for_segments(
+         [segment | segments],
+         source_paths,
+         launch_params
+       ) do
+    launch_params = %{launch_params | segment: segment}
+
+    _result =
+      start_job_one_for_one_with_segment(
+        source_paths,
+        launch_params
+      )
+
+    start_jobs_one_for_one_for_segments(
+      segments,
+      source_paths,
+      launch_params
+    )
+  end
+
+  defp start_job_one_for_one_with_segment(
+         [],
+         _launch_params
+       ),
+       do: {:ok, "started"}
+
+  defp start_job_one_for_one_with_segment(
+         [source_path | source_paths],
+         launch_params
+       ) do
+    new_parameters =
+      StepFlow.Map.get_by_key_or_atom(launch_params.step, :parameters, [])
+      |> Enum.concat([
+        %{
+          "id" => "sdk_start_index",
+          "type" => "integer",
+          "value" => StepFlow.Map.get_by_key_or_atom(launch_params.segment, :start)
+        },
+        %{
+          "id" => "sdk_stop_index",
+          "type" => "integer",
+          "value" => StepFlow.Map.get_by_key_or_atom(launch_params.segment, :end)
+        }
+      ])
+
+    updated_step = StepFlow.Map.replace_by_atom(launch_params.step, :parameters, new_parameters)
+    launch_params = %{launch_params | step: updated_step}
+
+    parameters =
+      generate_job_parameters_one_for_one(
+        source_path,
+        launch_params
+      )
+
+    step_name = LaunchParams.get_step_name(launch_params)
+    step_id = LaunchParams.get_step_id(launch_params)
+
+    job_params = %{
+      name: step_name,
+      step_id: step_id,
+      workflow_id: launch_params.workflow.id,
+      parameters: parameters
+    }
+
+    {:ok, job} = Jobs.create_job(job_params)
+
+    message = Jobs.get_message(job)
 
     case CommonEmitter.publish_json(step_name, step_id, message) do
       :ok ->
-        start_job_one_for_one(source_paths, step, step_name, step_id, dates, first_file, workflow)
+        start_job_one_for_one_with_segment(
+          source_paths,
+          launch_params
+        )
 
       _ ->
         {:error, "unable to publish message"}
@@ -111,11 +223,14 @@ defmodule StepFlow.Step.Launch do
     end
   end
 
-  def start_job_one_for_many(source_paths, step, step_name, step_id, dates, workflow) do
-    message =
-      generate_message_one_for_many(source_paths, step, step_name, step_id, dates, workflow)
+  def start_job_one_for_many(source_paths, launch_params) do
+    message = generate_message_one_for_many(source_paths, launch_params)
 
-    case CommonEmitter.publish_json(step_name, step_id, message) do
+    case CommonEmitter.publish_json(
+           LaunchParams.get_step_name(launch_params),
+           LaunchParams.get_step_id(launch_params),
+           message
+         ) do
       :ok -> {:ok, "started"}
       _ -> {:error, "unable to publish message"}
     end
@@ -123,39 +238,64 @@ defmodule StepFlow.Step.Launch do
 
   def generate_message_one_for_one(
         source_path,
-        step,
-        step_name,
-        step_id,
-        dates,
-        first_file,
-        workflow
+        launch_params
       ) do
+    parameters =
+      generate_job_parameters_one_for_one(
+        source_path,
+        launch_params
+      )
+
+    job_params = %{
+      name: LaunchParams.get_step_name(launch_params),
+      step_id: LaunchParams.get_step_id(launch_params),
+      workflow_id: launch_params.workflow.id,
+      parameters: parameters
+    }
+
+    {:ok, job} = Jobs.create_job(job_params)
+
+    Jobs.get_message(job)
+  end
+
+  defp generate_job_parameters_one_for_one(
+         source_path,
+         launch_params
+       ) do
     destination_path_templates =
-      Helpers.get_value_in_parameters_with_type(step, "destination_path", "template")
+      Helpers.get_value_in_parameters_with_type(
+        launch_params.step,
+        "destination_path",
+        "template"
+      )
 
     destination_filename_templates =
-      Helpers.get_value_in_parameters_with_type(step, "destination_filename", "template")
+      Helpers.get_value_in_parameters_with_type(
+        launch_params.step,
+        "destination_filename",
+        "template"
+      )
 
-    base_directory = Helpers.get_base_directory(workflow, step)
+    base_directory = Helpers.get_base_directory(launch_params.workflow, launch_params.step)
 
     {required_paths, destination_path} =
       build_requirements_and_destination_path(
         destination_path_templates,
         destination_filename_templates,
-        workflow,
-        step,
-        dates,
+        launch_params.workflow,
+        launch_params.step,
+        launch_params.dates,
         base_directory,
         source_path,
-        first_file
+        launch_params.required_file
       )
 
     requirements =
-      Helpers.get_step_requirements(workflow.jobs, step)
+      Helpers.get_step_requirements(launch_params.workflow.jobs, launch_params.step)
       |> Helpers.add_required_paths(required_paths)
 
     destination_path_parameter =
-      if StepFlow.Map.get_by_key_or_atom(step, :skip_destination_path, false) do
+      if StepFlow.Map.get_by_key_or_atom(launch_params.step, :skip_destination_path, false) do
         []
       else
         [
@@ -167,37 +307,28 @@ defmodule StepFlow.Step.Launch do
         ]
       end
 
-    parameters =
-      filter_and_pre_compile_parameters(step, workflow, dates, source_path)
-      |> Enum.concat(destination_path_parameter)
-      |> Enum.concat([
-        %{
-          "id" => "source_path",
-          "type" => "string",
-          "value" => source_path
-        },
-        %{
-          "id" => "requirements",
-          "type" => "requirements",
-          "value" => requirements
-        }
-      ])
-
-    job_params = %{
-      name: step_name,
-      step_id: step_id,
-      workflow_id: workflow.id,
-      parameters: parameters
-    }
-
-    {:ok, job} = Jobs.create_job(job_params)
-
-    Jobs.get_message(job)
+    filter_and_pre_compile_parameters(
+      launch_params,
+      source_path
+    )
+    |> Enum.concat(destination_path_parameter)
+    |> Enum.concat([
+      %{
+        "id" => "source_path",
+        "type" => "string",
+        "value" => source_path
+      },
+      %{
+        "id" => "requirements",
+        "type" => "requirements",
+        "value" => requirements
+      }
+    ])
   end
 
-  def generate_message_one_for_many(source_paths, step, step_name, step_id, dates, workflow) do
+  def generate_message_one_for_many(source_paths, launch_params) do
     select_input =
-      StepFlow.Map.get_by_key_or_atom(step, :parameters, [])
+      StepFlow.Map.get_by_key_or_atom(launch_params.step, :parameters, [])
       |> Enum.filter(fn param ->
         StepFlow.Map.get_by_key_or_atom(param, :type) == "select_input"
       end)
@@ -218,20 +349,30 @@ defmodule StepFlow.Step.Launch do
       end)
 
     destination_filename_templates =
-      Helpers.get_value_in_parameters_with_type(step, "destination_filename", "template")
+      Helpers.get_value_in_parameters_with_type(
+        launch_params.step,
+        "destination_filename",
+        "template"
+      )
 
     select_input =
       case destination_filename_templates do
         [destination_filename_template] ->
-          if StepFlow.Map.get_by_key_or_atom(step, :skip_destination_path, false) do
+          if StepFlow.Map.get_by_key_or_atom(launch_params.step, :skip_destination_path, false) do
             select_input
           else
             filename =
               destination_filename_template
-              |> Helpers.template_process(workflow, step, dates, source_paths)
+              |> Helpers.template_process(
+                launch_params.workflow,
+                launch_params.step,
+                launch_params.dates,
+                source_paths
+              )
               |> Path.basename()
 
-            destination_path = Helpers.get_base_directory(workflow, step) <> filename
+            destination_path =
+              Helpers.get_base_directory(launch_params.workflow, launch_params.step) <> filename
 
             Enum.concat(select_input, [
               %{
@@ -246,14 +387,20 @@ defmodule StepFlow.Step.Launch do
           select_input
       end
 
-    source_paths = get_source_paths(workflow, dates, step, source_paths)
+    source_paths =
+      get_source_paths(
+        launch_params.workflow,
+        launch_params.dates,
+        launch_params.step,
+        source_paths
+      )
 
     requirements =
-      Helpers.get_step_requirements(workflow.jobs, step)
+      Helpers.get_step_requirements(launch_params.workflow.jobs, launch_params.step)
       |> Helpers.add_required_paths(source_paths)
 
     parameters =
-      filter_and_pre_compile_parameters(step, workflow, dates, source_paths)
+      filter_and_pre_compile_parameters(launch_params, source_paths)
       |> Enum.concat(select_input)
       |> Enum.concat([
         %{
@@ -269,9 +416,9 @@ defmodule StepFlow.Step.Launch do
       ])
 
     job_params = %{
-      name: step_name,
-      step_id: step_id,
-      workflow_id: workflow.id,
+      name: LaunchParams.get_step_name(launch_params),
+      step_id: LaunchParams.get_step_id(launch_params),
+      workflow_id: launch_params.workflow.id,
       parameters: parameters
     }
 
@@ -361,8 +508,8 @@ defmodule StepFlow.Step.Launch do
     end
   end
 
-  defp filter_and_pre_compile_parameters(step, workflow, dates, source_paths) do
-    StepFlow.Map.get_by_key_or_atom(step, :parameters, [])
+  defp filter_and_pre_compile_parameters(launch_params, source_paths) do
+    StepFlow.Map.get_by_key_or_atom(launch_params.step, :parameters, [])
     |> Enum.map(fn param ->
       case StepFlow.Map.get_by_key_or_atom(param, :type) do
         "template" ->
@@ -372,7 +519,12 @@ defmodule StepFlow.Step.Launch do
               :value,
               StepFlow.Map.get_by_key_or_atom(param, :default)
             )
-            |> Helpers.template_process(workflow, step, dates, source_paths)
+            |> Helpers.template_process(
+              launch_params.workflow,
+              launch_params.step,
+              launch_params.dates,
+              source_paths
+            )
 
           %{
             id: StepFlow.Map.get_by_key_or_atom(param, :id),
@@ -381,7 +533,12 @@ defmodule StepFlow.Step.Launch do
           }
 
         "array_of_templates" ->
-          filter_and_pre_compile_array_of_templates_parameter(param, workflow, step, dates)
+          filter_and_pre_compile_array_of_templates_parameter(
+            param,
+            launch_params.workflow,
+            launch_params.step,
+            launch_params.dates
+          )
 
         _ ->
           param

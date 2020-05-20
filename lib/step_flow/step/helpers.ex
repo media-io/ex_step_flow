@@ -195,6 +195,29 @@ defmodule StepFlow.Step.Helpers do
   end
 
   defp intern_template_process(template, workflow, step, dates, source_keywords) do
+    step_parameters =
+      StepFlow.Map.get_by_key_or_atom(step, :parameters, [])
+      |> Enum.filter(fn item ->
+        StepFlow.Map.get_by_key_or_atom(item, :type) in [
+          "string",
+          "integer"
+        ]
+      end)
+      |> Enum.map(fn item ->
+        identifier =
+          StepFlow.Map.get_by_key_or_atom(item, :id)
+          |> String.to_atom()
+
+        value =
+          StepFlow.Map.get_by_key_or_atom(
+            item,
+            :value,
+            StepFlow.Map.get_by_key_or_atom(item, :default)
+          )
+
+        {identifier, value}
+      end)
+
     defined_parameters =
       workflow.parameters
       |> Enum.filter(fn item ->
@@ -227,6 +250,7 @@ defmodule StepFlow.Step.Helpers do
       |> Keyword.put(:date_time, dates.date_time)
       |> Keyword.put(:date, dates.date)
       |> Keyword.merge(source_keywords)
+      |> Keyword.merge(step_parameters)
 
     Keyword.keys(defined_parameters)
     |> replace(template)

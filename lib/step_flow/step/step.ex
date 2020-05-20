@@ -128,7 +128,7 @@ defmodule StepFlow.Step do
         }"
       )
 
-      {result, status} = Launch.launch_step(workflow, step_name, step)
+      {result, status} = Launch.launch_step(workflow, step)
 
       Logger.info("#{step_name}: #{inspect({result, status})}")
       topic = "update_workflow_" <> Integer.to_string(workflow.id)
