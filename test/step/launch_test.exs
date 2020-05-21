@@ -214,8 +214,6 @@ defmodule StepFlow.LaunchTest do
       first_file = "my_file_1.mov"
       source_path = "my_file_2.mov"
       step = @workflow_definition.steps |> List.first()
-      step_name = step.name
-      step_id = step.id
       dates = Helpers.get_dates()
 
       source_paths = Launch.get_source_paths(workflow, step, dates)
@@ -278,8 +276,6 @@ defmodule StepFlow.LaunchTest do
       first_file = "my_file_2.ttml"
       source_path = "my_file_3.wav"
       step = @workflow_definition_with_input_filter.steps |> List.first()
-      step_name = step.name
-      step_id = step.id
       dates = Helpers.get_dates()
 
       source_paths = Launch.get_source_paths(workflow, step, dates)
@@ -334,8 +330,6 @@ defmodule StepFlow.LaunchTest do
         |> Repo.preload([:artifacts, :jobs])
 
       step = @workflow_definition_with_select_input.steps |> List.first()
-      step_name = step.name
-      step_id = step.id
       dates = Helpers.get_dates()
 
       source_paths = Launch.get_source_paths(workflow, step, dates)
@@ -389,8 +383,6 @@ defmodule StepFlow.LaunchTest do
         @workflow_definition_with_select_input_and_array_of_templates_parameter.steps
         |> List.first()
 
-      step_name = step.name
-      step_id = step.id
       dates = Helpers.get_dates()
 
       source_paths = Launch.get_source_paths(workflow, step, dates)
