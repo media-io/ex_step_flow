@@ -410,11 +410,11 @@ defmodule StepFlow.LaunchTest do
       dates = Helpers.get_dates()
 
       source_paths = Launch.get_source_paths(workflow, step, dates)
-      
+
       assert source_paths == ["my_file_1.mov", "my_file_2.mov"]
-      
+
       dates = Helpers.get_dates()
-        
+
       launch_params = LaunchParams.new(workflow, step, dates, first_file)
 
       message =

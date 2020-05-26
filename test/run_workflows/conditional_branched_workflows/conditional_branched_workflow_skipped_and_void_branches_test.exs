@@ -93,7 +93,6 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowSkippedAndVoidTest do
 
       StepFlow.HelpersTest.check(workflow.id, 4)
 
-
       StepFlow.HelpersTest.check(workflow.id, "second_parallel_step_two", 1)
       StepFlow.HelpersTest.check(workflow.id, 4)
 

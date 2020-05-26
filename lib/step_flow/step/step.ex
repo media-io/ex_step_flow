@@ -8,8 +8,8 @@ defmodule StepFlow.Step do
   alias StepFlow.Artifacts
   alias StepFlow.Jobs
   alias StepFlow.Repo
-  alias StepFlow.Step.Launch
   alias StepFlow.Step.Helpers
+  alias StepFlow.Step.Launch
   alias StepFlow.Workflows
   alias StepFlow.Workflows.Workflow
 
@@ -120,6 +120,7 @@ defmodule StepFlow.Step do
 
   defp start_steps({:ok, steps}, workflow) do
     dates = Helpers.get_dates()
+
     for step <- steps do
       step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
       step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
@@ -132,27 +133,37 @@ defmodule StepFlow.Step do
       )
 
       {result, status} =
-      StepFlow.Map.get_by_key_or_atom(step, :condition)
-      |> case do
-        condition when condition in [0, nil] ->
-          Launch.launch_step(workflow, step)
-        condition ->
-        Helpers.template_process("<%= "<> condition <>"%>", workflow, step, dates, source_paths)
+        StepFlow.Map.get_by_key_or_atom(step, :condition)
         |> case do
-          "true" ->
+          condition when condition in [0, nil] ->
             Launch.launch_step(workflow, step)
-          "false" ->
-            skip_step(workflow, step)
-            {:ok, "skipped"}
-          _ ->
-            Logger.error(
-            "#{__MODULE__}: cannot estimate condition for step #{step_name} (index #{step_id}) for workflow #{
-              workflow.id
-            }")
-            {:error, "bad step condition"}
-        end
-      end
 
+          condition ->
+            Helpers.template_process(
+              "<%= " <> condition <> "%>",
+              workflow,
+              step,
+              dates,
+              source_paths
+            )
+            |> case do
+              "true" ->
+                Launch.launch_step(workflow, step)
+
+              "false" ->
+                skip_step(workflow, step)
+                {:ok, "skipped"}
+
+              _ ->
+                Logger.error(
+                  "#{__MODULE__}: cannot estimate condition for step #{step_name} (index #{
+                    step_id
+                  }) for workflow #{workflow.id}"
+                )
+
+                {:error, "bad step condition"}
+            end
+        end
 
       Logger.info("#{step_name}: #{inspect({result, status})}")
 
