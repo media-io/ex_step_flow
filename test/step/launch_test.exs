@@ -118,6 +118,31 @@ defmodule StepFlow.LaunchTest do
       ]
     }
 
+    @workflow_definition_with_conditional_step %{
+      identifier: "id",
+      version_major: 6,
+      version_minor: 5,
+      version_micro: 4,
+      reference: "some id",
+      steps: [
+        %{
+          id: 0,
+          name: "my_first_step",
+          condition: "my_condition",
+          parameters: [
+            %{
+              id: "source_paths",
+              type: "array_of_strings",
+              value: [
+                "my_file_1.mov",
+                "my_file_2.mov"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+
     @workflow_definition_with_select_input_and_array_of_templates_parameter %{
       identifier: "id",
       version_major: 6,
@@ -368,6 +393,57 @@ defmodule StepFlow.LaunchTest do
                  "id" => "requirements",
                  "type" => "requirements",
                  "value" => %{paths: ["my_file_2.ttml", "my_file_3.wav"]}
+               }
+             ]
+
+      assert StepFlow.HelpersTest.validate_message_format(message)
+    end
+
+    test "generate message with conditional step" do
+      workflow =
+        workflow_fixture(@workflow_definition_with_conditional_step)
+        |> Repo.preload([:artifacts, :jobs])
+
+      first_file = "my_file_1.mov"
+      source_path = "my_file_2.mov"
+      step = @workflow_definition_with_conditional_step.steps |> List.first()
+      dates = Helpers.get_dates()
+
+      source_paths = Launch.get_source_paths(workflow, step, dates)
+
+      assert source_paths == ["my_file_1.mov", "my_file_2.mov"]
+
+      dates = Helpers.get_dates()
+
+      launch_params = LaunchParams.new(workflow, step, dates, first_file)
+
+      message =
+        Launch.generate_message_one_for_one(
+          source_path,
+          launch_params
+        )
+
+      assert message.parameters == [
+               %{
+                 id: "source_paths",
+                 type: "array_of_strings",
+                 value: ["my_file_1.mov", "my_file_2.mov"]
+               },
+               %{
+                 "id" => "destination_path",
+                 "type" => "string",
+                 "value" =>
+                   "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_2.mov"
+               },
+               %{"id" => "source_path", "type" => "string", "value" => "my_file_2.mov"},
+               %{
+                 "id" => "requirements",
+                 "type" => "requirements",
+                 "value" => %{
+                   paths: [
+                     "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_1.mov"
+                   ]
+                 }
                }
              ]
 

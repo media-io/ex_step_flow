@@ -8,6 +8,7 @@ defmodule StepFlow.Step do
   alias StepFlow.Artifacts
   alias StepFlow.Jobs
   alias StepFlow.Repo
+  alias StepFlow.Step.Helpers
   alias StepFlow.Step.Launch
   alias StepFlow.Workflows
   alias StepFlow.Workflows.Workflow
@@ -118,9 +119,12 @@ defmodule StepFlow.Step do
   defp start_steps({:completed_workflow, _}, _workflow), do: [:completed_workflow]
 
   defp start_steps({:ok, steps}, workflow) do
+    dates = Helpers.get_dates()
+
     for step <- steps do
       step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
       step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
+      source_paths = Launch.get_source_paths(workflow, step, dates)
 
       Logger.warn(
         "#{__MODULE__}: start to process step #{step_name} (index #{step_id}) for workflow #{
@@ -128,9 +132,41 @@ defmodule StepFlow.Step do
         }"
       )
 
-      {result, status} = Launch.launch_step(workflow, step)
+      {result, status} =
+        StepFlow.Map.get_by_key_or_atom(step, :condition)
+        |> case do
+          condition when condition in [0, nil] ->
+            Launch.launch_step(workflow, step)
+
+          condition ->
+            Helpers.template_process(
+              "<%= " <> condition <> "%>",
+              workflow,
+              step,
+              dates,
+              source_paths
+            )
+            |> case do
+              "true" ->
+                Launch.launch_step(workflow, step)
+
+              "false" ->
+                skip_step(workflow, step)
+                {:ok, "skipped"}
+
+              _ ->
+                Logger.error(
+                  "#{__MODULE__}: cannot estimate condition for step #{step_name} (index #{
+                    step_id
+                  }) for workflow #{workflow.id}"
+                )
+
+                {:error, "bad step condition"}
+            end
+        end
 
       Logger.info("#{step_name}: #{inspect({result, status})}")
+
       topic = "update_workflow_" <> Integer.to_string(workflow.id)
 
       StepFlow.Notification.send(topic, %{workflow_id: workflow.id})
