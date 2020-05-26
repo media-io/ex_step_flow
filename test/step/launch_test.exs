@@ -6,6 +6,7 @@ defmodule StepFlow.LaunchTest do
   alias StepFlow.Repo
   alias StepFlow.Step.Helpers
   alias StepFlow.Step.Launch
+  alias StepFlow.Step.LaunchParams
   alias StepFlow.Workflows
 
   doctest StepFlow
