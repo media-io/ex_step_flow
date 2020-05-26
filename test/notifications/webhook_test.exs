@@ -81,6 +81,7 @@ defmodule StepFlow.Notifications.WebhookTest do
     assert :completed == status |> List.first() |> Map.get(:state)
   end
 
+  @tag capture_log: true
   test_with_server "notify HTTP endpoint in error" do
     route("/bad_endpoint", fn _ -> Response.ok!(~s({"status": "ok"})) end)
 

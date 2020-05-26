@@ -44,6 +44,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     assert body |> Jason.decode!() |> Map.get("total") == 1
   end
 
+  @tag capture_log: true
   test "POST /launch_workflow valid" do
     {status, _headers, body} =
       conn(:post, "/launch_workflow", %{
@@ -62,6 +63,7 @@ defmodule StepFlow.Api.WorkflowsTest do
            |> Map.get("reference") == "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
   end
 
+  @tag capture_log: true
   test "POST /launch_workflow valid missing parameters" do
     {status, _headers, _body} =
       conn(:post, "/launch_workflow", %{
@@ -74,6 +76,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     assert status == 201
   end
 
+  @tag capture_log: true
   test "POST /launch_workflow invalid missing reference" do
     {status, _headers, _body} =
       conn(:post, "/launch_workflow", %{
@@ -86,6 +89,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     assert status == 422
   end
 
+  @tag capture_log: true
   test "POST /launch_workflow invalid missing reference and parameters" do
     {status, _headers, _body} =
       conn(:post, "/launch_workflow", %{
@@ -97,6 +101,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     assert status == 422
   end
 
+  @tag capture_log: true
   test "POST /launch_workflow valid with valid parameters" do
     {status, _headers, body} =
       conn(:post, "/launch_workflow", %{
@@ -122,6 +127,7 @@ defmodule StepFlow.Api.WorkflowsTest do
            }
   end
 
+  @tag capture_log: true
   test "POST /launch_workflow valid with invalid parameter" do
     {status, _headers, body} =
       conn(:post, "/launch_workflow", %{

@@ -13,6 +13,7 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     :ok = Sandbox.checkout(StepFlow.Repo)
   end
 
+  @tag capture_log: true
   test "GET /definitions" do
     {status, _headers, body} =
       conn(:get, "/definitions")
@@ -24,6 +25,7 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     assert Map.get(response, "total") == 1
   end
 
+  @tag capture_log: true
   test "GET /definitions/simple_workflow" do
     {status, _headers, body} =
       conn(:get, "/definitions/simple_workflow")
@@ -40,6 +42,7 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     assert response["data"]["tags"] == ["speech_to_text"]
   end
 
+  @tag capture_log: true
   test "GET /definitions/empty_workflow.json" do
     {status, _headers, body} =
       conn(:get, "/definitions/empty_workflow.json")

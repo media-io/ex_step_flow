@@ -55,6 +55,7 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
     assert result == :ok
   end
 
+  @tag capture_log: true
   test "consume badly formed message", %{channel: channel} do
     tag = "acs"
 

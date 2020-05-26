@@ -6,7 +6,6 @@ defmodule StepFlow.LaunchTest do
   alias StepFlow.Repo
   alias StepFlow.Step.Helpers
   alias StepFlow.Step.Launch
-  alias StepFlow.Step.LaunchParams
   alias StepFlow.Workflows
 
   doctest StepFlow
@@ -118,6 +117,31 @@ defmodule StepFlow.LaunchTest do
       ]
     }
 
+    @workflow_definition_with_conditional_step %{
+      identifier: "id",
+      version_major: 6,
+      version_minor: 5,
+      version_micro: 4,
+      reference: "some id",
+      steps: [
+        %{
+          id: 0,
+          name: "my_first_step",
+          condition: "my_condition",
+          parameters: [
+            %{
+              id: "source_paths",
+              type: "array_of_strings",
+              value: [
+                "my_file_1.mov",
+                "my_file_2.mov"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+
     @workflow_definition_with_select_input_and_array_of_templates_parameter %{
       identifier: "id",
       version_major: 6,
@@ -214,6 +238,8 @@ defmodule StepFlow.LaunchTest do
       first_file = "my_file_1.mov"
       source_path = "my_file_2.mov"
       step = @workflow_definition.steps |> List.first()
+      step_name = step.name
+      step_id = step.id
       dates = Helpers.get_dates()
 
       source_paths = Launch.get_source_paths(workflow, step, dates)
@@ -227,18 +253,15 @@ defmodule StepFlow.LaunchTest do
         Timex.now()
         |> Timex.format!("%Y_%m_%d", :strftime)
 
-      launch_params =
-        LaunchParams.new(
-          workflow,
-          step,
-          %{date_time: current_date_time, date: current_date},
-          first_file
-        )
-
       message =
         Launch.generate_message_one_for_one(
           source_path,
-          launch_params
+          step,
+          step_name,
+          step_id,
+          %{date_time: current_date_time, date: current_date},
+          first_file,
+          workflow
         )
 
       assert message.parameters == [
@@ -276,6 +299,8 @@ defmodule StepFlow.LaunchTest do
       first_file = "my_file_2.ttml"
       source_path = "my_file_3.wav"
       step = @workflow_definition_with_input_filter.steps |> List.first()
+      step_name = step.name
+      step_id = step.id
       dates = Helpers.get_dates()
 
       source_paths = Launch.get_source_paths(workflow, step, dates)
@@ -284,12 +309,15 @@ defmodule StepFlow.LaunchTest do
 
       dates = Helpers.get_dates()
 
-      launch_params = LaunchParams.new(workflow, step, dates, first_file)
-
       message =
         Launch.generate_message_one_for_one(
           source_path,
-          launch_params
+          step,
+          step_name,
+          step_id,
+          dates,
+          first_file,
+          workflow
         )
 
       assert message.parameters == [
@@ -330,6 +358,8 @@ defmodule StepFlow.LaunchTest do
         |> Repo.preload([:artifacts, :jobs])
 
       step = @workflow_definition_with_select_input.steps |> List.first()
+      step_name = step.name
+      step_id = step.id
       dates = Helpers.get_dates()
 
       source_paths = Launch.get_source_paths(workflow, step, dates)
@@ -338,12 +368,14 @@ defmodule StepFlow.LaunchTest do
 
       dates = Helpers.get_dates()
 
-      launch_params = LaunchParams.new(workflow, step, dates)
-
       message =
         Launch.generate_message_one_for_many(
           source_paths,
-          launch_params
+          step,
+          step_name,
+          step_id,
+          dates,
+          workflow
         )
 
       assert message.parameters == [
@@ -374,6 +406,67 @@ defmodule StepFlow.LaunchTest do
       assert StepFlow.HelpersTest.validate_message_format(message)
     end
 
+    test "generate message with conditional step" do
+      workflow =
+        workflow_fixture(@workflow_definition_with_conditional_step)
+        |> Repo.preload([:artifacts, :jobs])
+
+      first_file = "my_file_1.mov"
+      source_path = "my_file_2.mov"
+      step = @workflow_definition_with_conditional_step.steps |> List.first()
+      step_name = step.name
+      step_id = step.id
+      dates = Helpers.get_dates()
+
+      source_paths = Launch.get_source_paths(workflow, step, dates)
+      assert source_paths == ["my_file_1.mov", "my_file_2.mov"]
+
+      current_date_time =
+        Timex.now()
+        |> Timex.format!("%Y_%m_%d__%H_%M_%S", :strftime)
+
+      current_date =
+        Timex.now()
+        |> Timex.format!("%Y_%m_%d", :strftime)
+
+      message =
+        Launch.generate_message_one_for_one(
+          source_path,
+          step,
+          step_name,
+          step_id,
+          %{date_time: current_date_time, date: current_date},
+          first_file,
+          workflow
+        )
+
+      assert message.parameters == [
+               %{
+                 id: "source_paths",
+                 type: "array_of_strings",
+                 value: ["my_file_1.mov", "my_file_2.mov"]
+               },
+               %{
+                 "id" => "destination_path",
+                 "type" => "string",
+                 "value" =>
+                   "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_2.mov"
+               },
+               %{"id" => "source_path", "type" => "string", "value" => "my_file_2.mov"},
+               %{
+                 "id" => "requirements",
+                 "type" => "requirements",
+                 "value" => %{
+                   paths: [
+                     "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file_1.mov"
+                   ]
+                 }
+               }
+             ]
+
+      assert StepFlow.HelpersTest.validate_message_format(message)
+    end
+
     test "generate message with select input and array of templates parameters" do
       workflow =
         workflow_fixture(@workflow_definition_with_select_input_and_array_of_templates_parameter)
@@ -383,6 +476,8 @@ defmodule StepFlow.LaunchTest do
         @workflow_definition_with_select_input_and_array_of_templates_parameter.steps
         |> List.first()
 
+      step_name = step.name
+      step_id = step.id
       dates = Helpers.get_dates()
 
       source_paths = Launch.get_source_paths(workflow, step, dates)
@@ -391,12 +486,14 @@ defmodule StepFlow.LaunchTest do
 
       dates = Helpers.get_dates()
 
-      launch_params = LaunchParams.new(workflow, step, dates)
-
       message =
         Launch.generate_message_one_for_many(
           source_paths,
-          launch_params
+          step,
+          step_name,
+          step_id,
+          dates,
+          workflow
         )
 
       assert message.parameters == [
