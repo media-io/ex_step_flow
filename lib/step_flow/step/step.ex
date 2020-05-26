@@ -135,12 +135,12 @@ defmodule StepFlow.Step do
       StepFlow.Map.get_by_key_or_atom(step, :condition)
       |> case do
         condition when condition in [0, nil] ->
-          Launch.launch_step(workflow, step_name, step)
+          Launch.launch_step(workflow, step)
         condition ->
         Helpers.template_process("<%= "<> condition <>"%>", workflow, step, dates, source_paths)
         |> case do
           "true" ->
-            Launch.launch_step(workflow, step_name, step)
+            Launch.launch_step(workflow, step)
           "false" ->
             skip_step(workflow, step)
             {:ok, "skipped"}
