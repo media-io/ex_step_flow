@@ -60,10 +60,10 @@ defmodule StepFlow.MixProject do
     [
       {:amqp, "~> 1.4"},
       {:blue_bird, "~> 0.4.1"},
-      {:cowboy, "~> 2.6"},
+      {:cowboy, "~> 2.7.0"},
       {:credo, "~> 1.3", only: [:dev, :test], runtime: false},
-      {:ecto, "~> 3.4"},
-      {:ecto_sql, "~> 3.4"},
+      {:ecto, "~> 3.4.4"},
+      {:ecto_sql, "~> 3.4.4"},
       {:ecto_enum, "~> 1.4"},
       {:excoveralls, "~> 0.10", only: :test},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
