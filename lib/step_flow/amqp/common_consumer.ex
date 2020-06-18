@@ -23,8 +23,8 @@ defmodule StepFlow.Amqp.CommonConsumer do
       use GenServer
       use AMQP
 
-      alias StepFlow.Amqp.Helpers
       alias StepFlow.Amqp.CommonEmitter
+      alias StepFlow.Amqp.Helpers
 
       @doc false
       def start_link do
@@ -63,7 +63,8 @@ defmodule StepFlow.Amqp.CommonConsumer do
 
         Logger.warn("#{__MODULE__}: receive message on queue: #{queue}")
 
-        max_retry_to_timeout = StepFlow.Configuration.get_var_value(StepFlow.Amqp, :max_retry_to_timeout, 50)
+        max_retry_to_timeout =
+          StepFlow.Configuration.get_var_value(StepFlow.Amqp, :max_retry_to_timeout, 50)
 
         if tag > max_retry_to_timeout do
           Logger.warn("#{__MODULE__}: timeout message sent to queue: #{queue}_timeout")
@@ -72,6 +73,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
         else
           spawn(fn -> unquote(opts).consumer.(channel, tag, redelivered, data) end)
         end
+
         {:noreply, channel}
       end
 
