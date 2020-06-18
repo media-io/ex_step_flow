@@ -1,7 +1,7 @@
 defmodule StepFlow.Amqp.CommonConsumer do
   @moduledoc """
-  Definition of a Common Consumer of RabbitMQ queue.  
-  To implement a consumer, 
+  Definition of a Common Consumer of RabbitMQ queue.
+  To implement a consumer,
   ```elixir
   defmodule MyModule do
     use StepFlow.Amqp.CommonConsumer, %{
@@ -24,6 +24,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
       use AMQP
 
       alias StepFlow.Amqp.Helpers
+      alias StepFlow.Amqp.CommonEmitter
 
       @doc false
       def start_link do
@@ -62,7 +63,15 @@ defmodule StepFlow.Amqp.CommonConsumer do
 
         Logger.warn("#{__MODULE__}: receive message on queue: #{queue}")
 
-        spawn(fn -> unquote(opts).consumer.(channel, tag, redelivered, data) end)
+        max_retry_to_timeout = StepFlow.Configuration.get_var_value(StepFlow.Amqp, :max_retry_to_timeout, 50)
+
+        if tag > max_retry_to_timeout do
+          Logger.warn("#{__MODULE__}: timeout message sent to queue: #{queue}_timeout")
+          CommonEmitter.publish(queue <> "_timeout", payload)
+          AMQP.Basic.ack(channel, tag)
+        else
+          spawn(fn -> unquote(opts).consumer.(channel, tag, redelivered, data) end)
+        end
         {:noreply, channel}
       end
 
@@ -71,8 +80,8 @@ defmodule StepFlow.Amqp.CommonConsumer do
         # {:noreply, :ok}
       end
 
-      def terminate(_reason, state) do
-        AMQP.Connection.close(state.connection)
+      def terminate(reason, state) do
+        AMQP.Connection.close(state.conn)
       end
 
       defp rabbitmq_connect do
@@ -104,6 +113,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
         end
 
         AMQP.Queue.declare(channel, "job_response_not_found", durable: true)
+        AMQP.Queue.declare(channel, queue <> "_timeout", durable: true)
 
         exchange =
           AMQP.Exchange.topic(channel, "job_response",
