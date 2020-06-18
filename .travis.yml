@@ -15,7 +15,6 @@ elixir:
 otp_release:
   - 21.0
   - 22.3
-  - 23
 
 env:
   - MIX_ENV=test
