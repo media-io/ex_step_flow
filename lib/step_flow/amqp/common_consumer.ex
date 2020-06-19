@@ -82,7 +82,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
         # {:noreply, :ok}
       end
 
-      def terminate(reason, state) do
+      def terminate(_reason, state) do
         AMQP.Connection.close(state.conn)
       end
 
