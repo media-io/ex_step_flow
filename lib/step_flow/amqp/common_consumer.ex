@@ -71,7 +71,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
           CommonEmitter.publish(queue <> "_timeout", payload)
           AMQP.Basic.ack(channel, tag)
         else
-          spawn(fn -> unquote(opts).consumer.(channel, tag, redelivered, data) end)
+          unquote(opts).consumer.(channel, tag, redelivered, data)
         end
 
         {:noreply, channel}
