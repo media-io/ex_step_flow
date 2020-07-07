@@ -65,8 +65,7 @@ defmodule StepFlow.WorkflowEventsController do
     step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
     step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
 
-    {:ok, _} =
-      Notification.process(workflow, dates, step_name, step, step_id, source_paths)
+    {:ok, _} = Notification.process(workflow, dates, step_name, step, step_id, source_paths)
 
     conn
     |> put_status(:ok)
@@ -75,6 +74,7 @@ defmodule StepFlow.WorkflowEventsController do
 
   defp internal_handle(conn, workflow, job, _job_name, :error) do
     Status.set_job_status(job.id, :retrying)
+
     params = %{
       job_id: job.id,
       parameters: job.parameters
