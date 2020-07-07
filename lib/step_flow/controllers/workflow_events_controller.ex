@@ -2,10 +2,15 @@ defmodule StepFlow.WorkflowEventsController do
   use StepFlow, :controller
   require Logger
 
-  alias StepFlow.Amqp.CommonEmitter
-  alias StepFlow.Jobs
-  alias StepFlow.Jobs.Status
-  alias StepFlow.Workflows
+  alias StepFlow.{
+    Amqp.CommonEmitter,
+    Jobs,
+    Jobs.Status,
+    Notifications.Notification,
+    Step.Helpers,
+    Step.Launch,
+    Workflows
+  }
 
   action_fallback(StepFlow.FallbackController)
 
@@ -31,30 +36,7 @@ defmodule StepFlow.WorkflowEventsController do
 
         last_status = Status.get_last_status(job.status)
 
-        if last_status.state == :error do
-          Status.set_job_status(job_id, :retrying)
-
-          params = %{
-            job_id: job.id,
-            parameters: job.parameters
-          }
-
-          case CommonEmitter.publish_json(job.name, job.step_id, params) do
-            :ok ->
-              StepFlow.Notification.send("retry_job", %{workflow_id: workflow.id, body: params})
-
-              conn
-              |> put_status(:ok)
-              |> json(%{status: "ok"})
-
-            _ ->
-              conn
-              |> put_status(:ok)
-              |> json(%{status: "error", message: "unable to publish message"})
-          end
-        else
-          send_resp(conn, :forbidden, "illegal operation")
-        end
+        internal_handle(conn, workflow, job, job.name, last_status.state)
 
       %{"event" => "delete"} ->
         for job <- workflow.jobs do
@@ -71,6 +53,50 @@ defmodule StepFlow.WorkflowEventsController do
       _ ->
         send_resp(conn, 422, "event is not supported")
     end
+  end
+
+  defp internal_handle(conn, _workflow, job, "job_notification", :error) do
+    Status.set_job_status(job.id, :retrying)
+
+    %{step: step, workflow: workflow} = Workflows.get_step_definition(job)
+    dates = Helpers.get_dates()
+    source_paths = Launch.get_source_paths(workflow, step, dates)
+
+    step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
+    step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
+
+    {:ok, _} = Notification.process(workflow, dates, step_name, step, step_id, source_paths)
+
+    conn
+    |> put_status(:ok)
+    |> json(%{status: "ok"})
+  end
+
+  defp internal_handle(conn, workflow, job, _job_name, :error) do
+    Status.set_job_status(job.id, :retrying)
+
+    params = %{
+      job_id: job.id,
+      parameters: job.parameters
+    }
+
+    case CommonEmitter.publish_json(job.name, job.step_id, params) do
+      :ok ->
+        StepFlow.Notification.send("retry_job", %{workflow_id: workflow.id, body: params})
+
+        conn
+        |> put_status(:ok)
+        |> json(%{status: "ok"})
+
+      _ ->
+        conn
+        |> put_status(:ok)
+        |> json(%{status: "error", message: "unable to publish message"})
+    end
+  end
+
+  defp internal_handle(conn, _workflow, _job, _job_name, _last_status_state) do
+    send_resp(conn, :forbidden, "illegal operation")
   end
 
   defp skip_remaining_steps([], _workflow), do: nil

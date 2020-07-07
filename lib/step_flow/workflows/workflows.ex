@@ -254,6 +254,18 @@ defmodule StepFlow.Workflows do
     get_step_status(steps, workflow_jobs, result)
   end
 
+  def get_step_definition(job) do
+    job = Repo.preload(job, workflow: [:jobs])
+
+    step =
+      Enum.filter(job.workflow.steps, fn step ->
+        Map.get(step, "id") == job.step_id
+      end)
+      |> List.first()
+
+    %{step: step, workflow: job.workflow}
+  end
+
   defp count_status(jobs, status, count \\ 0)
   defp count_status([], _status, count), do: count
 
