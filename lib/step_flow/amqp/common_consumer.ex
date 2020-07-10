@@ -52,7 +52,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
       end
 
       def handle_info(
-            {:basic_deliver, payload, %{delivery_tag: tag, redelivered: redelivered}},
+            {:basic_deliver, payload, %{delivery_tag: tag, redelivered: redelivered} = headers},
             channel
           ) do
         queue = unquote(opts).queue
@@ -64,9 +64,21 @@ defmodule StepFlow.Amqp.CommonConsumer do
         Logger.warn("#{__MODULE__}: receive message on queue: #{queue}")
 
         max_retry_to_timeout =
-          StepFlow.Configuration.get_var_value(StepFlow.Amqp, :max_retry_to_timeout, 50)
+          StepFlow.Configuration.get_var_value(StepFlow.Amqp, :max_retry_to_timeout, 10)
 
-        if tag > max_retry_to_timeout do
+        Logger.error("#{__MODULE__} #{inspect(headers)}")
+
+        max_retry_reached =
+          with headers <- Map.get(headers, :headers),
+               {"x-death", :array, death} <- List.keyfind(headers, "x-death", 0),
+               {:table, table} <- List.first(death),
+               {"count", :long, count} <- List.keyfind(table, "count", 0) do
+            count > max_retry_to_timeout
+          else
+            _ -> false
+          end
+
+        if max_retry_reached do
           Logger.warn("#{__MODULE__}: timeout message sent to queue: #{queue}_timeout")
           CommonEmitter.publish(queue <> "_timeout", payload)
           AMQP.Basic.ack(channel, tag)
