@@ -69,7 +69,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
         Logger.error("#{__MODULE__} #{inspect(headers)}")
 
         max_retry_reached =
-          with headers <- Map.get(headers, :headers),
+          with headers when headers != :undefined <- Map.get(headers, :headers),
                {"x-death", :array, death} <- List.keyfind(headers, "x-death", 0),
                {:table, table} <- List.first(death),
                {"count", :long, count} <- List.keyfind(table, "count", 0) do
