@@ -51,7 +51,7 @@ defmodule StepFlow.LaunchTest do
         %{
           id: 0,
           name: "my_first_step",
-	  keep_source_paths: false,
+          keep_source_paths: false,
           parameters: [
             %{
               id: "source_paths",
@@ -353,7 +353,7 @@ defmodule StepFlow.LaunchTest do
           launch_params
         )
 
-	assert message.parameters == [
+      assert message.parameters == [
                %{
                  "id" => "destination_path",
                  "type" => "string",
@@ -374,8 +374,6 @@ defmodule StepFlow.LaunchTest do
 
       assert StepFlow.HelpersTest.validate_message_format(message)
     end
-
-
 
     test "generate message with input filter" do
       workflow =
