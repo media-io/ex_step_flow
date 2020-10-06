@@ -550,6 +550,11 @@ defmodule StepFlow.Step.Launch do
         StepFlow.Map.get_by_key_or_atom(param, :type) != "select_input" &&
         StepFlow.Map.get_by_key_or_atom(param, :type) != "array_of_templates"
     end)
+    |> Enum.filter(fn param ->
+      StepFlow.Map.get_by_key_or_atom(param, :id) != "source_paths" ||
+        StepFlow.Map.get_by_key_or_atom(param, :type) != "array_of_strings" ||
+        StepFlow.Map.get_by_key_or_atom(launch_params.step, :keep_source_paths, true)
+    end)
   end
 
   defp filter_and_pre_compile_array_of_templates_parameter(param, workflow, step, dates) do
