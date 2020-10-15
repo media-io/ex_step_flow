@@ -23,7 +23,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
 
   defp get_schema do
     schema =
-      "https://media-cloud.ai/standard/1.6/workflow-definition.schema.json"
+      "https://media-cloud.ai/standard/1.7/workflow-definition.schema.json"
       |> load_content()
       |> Jason.decode!()
 
