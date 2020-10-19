@@ -3,6 +3,8 @@ defmodule StepFlow.WorkflowDefinitionController do
   use BlueBird.Controller
 
   alias StepFlow.WorkflowDefinitions
+  alias StepFlow.WorkflowDefinitions.WorkflowDefinition
+  require Logger
 
   action_fallback(StepFlow.FallbackController)
 
@@ -29,5 +31,12 @@ defmodule StepFlow.WorkflowDefinitionController do
         |> put_view(StepFlow.WorkflowDefinitionView)
         |> render("show.json", workflow_definition: workflow_definition)
     end
+  end
+
+  def create(conn, _) do
+    workflows = WorkflowDefinition.load_workflows()
+    Logger.info("#{inspect(workflows)}")
+
+    json(conn, %{})
   end
 end

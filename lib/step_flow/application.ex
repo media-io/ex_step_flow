@@ -45,6 +45,8 @@ defmodule StepFlow.Application do
     opts = [strategy: :one_for_one, name: StepFlow.Supervisor]
     supervisor = Supervisor.start_link(children, opts)
     Migration.All.apply_migrations()
+
+    StepFlow.WorkflowDefinitions.WorkflowDefinition.load_workflows_in_database()
     supervisor
   end
 end
