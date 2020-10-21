@@ -5,6 +5,7 @@ defmodule StepFlow.Application do
 
   use Application
   alias StepFlow.Migration
+  alias StepFlow.WorkflowDefinitions.WorkflowDefinition
   require Logger
 
   def start(_type, _args) do
@@ -46,7 +47,7 @@ defmodule StepFlow.Application do
     supervisor = Supervisor.start_link(children, opts)
     Migration.All.apply_migrations()
 
-    StepFlow.WorkflowDefinitions.WorkflowDefinition.load_workflows_in_database()
+    WorkflowDefinition.load_workflows_in_database()
     supervisor
   end
 end
