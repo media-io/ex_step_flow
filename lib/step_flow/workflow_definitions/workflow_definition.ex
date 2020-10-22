@@ -2,14 +2,53 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
   @moduledoc """
   The WorkflowDefinition context.
   """
+  use Ecto.Schema
+  import Ecto.Changeset
 
   require Logger
+  alias StepFlow.Repo
   alias StepFlow.WorkflowDefinitions.ExternalLoader
+  alias StepFlow.WorkflowDefinitions.WorkflowDefinition
 
-  defstruct(
-    identifier: "",
-    parameters: []
-  )
+  schema "step_flow_workflow_definition" do
+    field(:identifier, :string)
+    field(:label, :string, default: "")
+    field(:icon, :string, default: "")
+    field(:version_major, :integer)
+    field(:version_minor, :integer)
+    field(:version_micro, :integer)
+    field(:tags, {:array, :string}, default: [])
+    field(:steps, {:array, :map}, default: [])
+    field(:start_parameters, {:array, :map}, default: [])
+    field(:parameters, {:array, :map}, default: [])
+    timestamps()
+  end
+
+  @doc false
+  def changeset(%WorkflowDefinition{} = workflow_definition, attrs) do
+    workflow_definition
+    |> cast(attrs, [
+      :identifier,
+      :label,
+      :icon,
+      :version_major,
+      :version_minor,
+      :version_micro,
+      :tags,
+      :start_parameters,
+      :parameters
+    ])
+    |> validate_required([
+      :identifier,
+      :version_major,
+      :version_minor,
+      :version_micro
+    ])
+    |> unique_constraint(
+      :identifier,
+      name: :workflow_identifier_index
+    )
+  end
 
   def valid?(definition) do
     get_schema()
@@ -66,12 +105,25 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
     end
   end
 
-  def get_workflows do
+  def load_workflows do
     get_workflow_definition_directories()
     |> Enum.map(fn directory ->
       list_workflow_definitions_for_a_directory(directory)
     end)
     |> List.flatten()
+  end
+
+  def load_workflows_in_database do
+    get_workflow_definition_directories()
+    |> Enum.map(fn directory ->
+      list_workflow_definitions_for_a_directory(directory)
+    end)
+    |> List.flatten()
+    |> Enum.each(fn workflow_definition ->
+      %WorkflowDefinition{}
+      |> WorkflowDefinition.changeset(workflow_definition)
+      |> Repo.insert()
+    end)
   end
 
   defp get_separator do

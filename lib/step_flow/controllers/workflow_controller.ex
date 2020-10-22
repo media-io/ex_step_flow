@@ -52,14 +52,15 @@ defmodule StepFlow.WorkflowController do
       workflow_definition ->
         workflow_description =
           workflow_definition
-          |> Map.put("reference", Map.get(workflow_params, "reference"))
+          |> Map.put(:reference, Map.get(workflow_params, "reference"))
           |> Map.put(
-            "parameters",
+            :parameters,
             merge_parameters(
-              Map.get(workflow_definition, "parameters"),
+              StepFlow.Map.get_by_key_or_atom(workflow_definition, :parameters),
               Map.get(workflow_params, "parameters", %{})
             )
           )
+          |> Map.from_struct()
 
         create(conn, workflow_description)
     end
