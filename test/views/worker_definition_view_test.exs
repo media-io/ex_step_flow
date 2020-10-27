@@ -32,7 +32,7 @@ defmodule StepFlow.WorkerDefinitionViewTest do
                created_at: worker_definition.inserted_at,
                description: "long description",
                label: "My Worker",
-               parameters: [],
+               parameters: %{},
                queue_name: "my_queue",
                short_description: "short description",
                version: "1.2.3"
@@ -53,7 +53,7 @@ defmodule StepFlow.WorkerDefinitionViewTest do
                  created_at: worker_definition.inserted_at,
                  description: "long description",
                  label: "My Worker",
-                 parameters: [],
+                 parameters: %{},
                  queue_name: "my_queue",
                  short_description: "short description",
                  version: "1.2.3"

@@ -11,7 +11,7 @@ defmodule StepFlow.WorkerDefinitions.WorkerDefinition do
     field(:version, :string)
     field(:short_description, :string)
     field(:description, :string)
-    field(:parameters, {:array, :map}, default: [])
+    field(:parameters, :map, default: %{})
 
     timestamps()
   end
