@@ -22,7 +22,7 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
 
     assert status == 200
     response = body |> Jason.decode!()
-    assert Map.get(response, "total") == 1
+    assert Map.get(response, "total") == 2
   end
 
   @tag capture_log: true
@@ -37,8 +37,8 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
 
     assert response["data"]["identifier"] == "simple_workflow"
     assert response["data"]["version_major"] == 0
-    assert response["data"]["version_minor"] == 0
-    assert response["data"]["version_micro"] == 1
+    assert response["data"]["version_minor"] == 1
+    assert response["data"]["version_micro"] == 0
     assert response["data"]["tags"] == ["speech_to_text"]
   end
 

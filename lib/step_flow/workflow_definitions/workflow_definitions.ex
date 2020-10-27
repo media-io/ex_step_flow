@@ -66,6 +66,16 @@ defmodule StepFlow.WorkflowDefinitions do
   Raises `Ecto.NoResultsError` if the WorkflowDefinition does not exist.
   """
   def get_workflow_definition(identifier) do
-    Repo.get_by(WorkflowDefinition, identifier: identifier)
+    query =
+      from(workflow_definition in WorkflowDefinition,
+        where: workflow_definition.identifier == ^identifier,
+        order_by: [
+          desc: workflow_definition.version_major,
+          desc: workflow_definition.version_minor,
+          desc: workflow_definition.version_micro,
+        ],
+        limit: 1)
+
+    Repo.one(query)
   end
 end
