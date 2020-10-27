@@ -35,6 +35,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
       :version_minor,
       :version_micro,
       :tags,
+      :steps,
       :start_parameters,
       :parameters
     ])

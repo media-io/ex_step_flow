@@ -72,7 +72,7 @@ defmodule StepFlow.WorkerDefinitions do
       ...>   version: "1.2.3",
       ...>   short_description: "short description",
       ...>   description: "long description",
-      ...>   parameters: []
+      ...>   parameters: %{}
       ...> })
       ...> match?({:ok, %StepFlow.WorkerDefinitions.WorkerDefinition{}}, result)
       true

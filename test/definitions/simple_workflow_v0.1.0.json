@@ -1,0 +1,246 @@
+{
+  "identifier": "simple_workflow",
+  "label": "Transcription",
+  "icon": "subtitles",
+  "version_major": 0,
+  "version_minor": 1,
+  "version_micro": 0,
+  "tags": ["speech_to_text"],
+  "start_parameters": [
+    {
+      "id": "audio_source_filename",
+      "label": "Audio Source file",
+      "type": "file",
+      "accept": ".wav,.mp4"
+    },
+    {
+      "id": "language",
+      "label": "Langue audio",
+      "type": "choice",
+      "default": "fr",
+      "items": [
+        {
+          "id": "fr",
+          "label": "Français"
+        },
+        {
+          "id": "en",
+          "label": "Anglais"
+        }
+      ]
+    },
+    {
+      "id": "content_type",
+      "label": "Type du contenu",
+      "type": "choice",
+      "default": "news",
+      "items": [
+        {
+          "id": "documentary",
+          "label": "Documentaire"
+        },
+        {
+          "id": "fiction",
+          "label": "Fiction"
+        },
+        {
+          "id": "news",
+          "label": "News"
+        },
+        {
+          "id": "reportage",
+          "label": "Reportage"
+        }
+      ]
+    }
+  ],
+  "parameters": [
+    {
+      "id": "audio_source_filename",
+      "type": "string",
+      "value": "to_change.mp4"
+    }
+  ],
+  "steps": [
+    {
+      "id": 0,
+      "name": "job_transfer",
+      "label": "Download source elements",
+      "icon": "file_download",
+      "parameters": [
+        {
+          "id": "source_paths",
+          "type": "template",
+          "value": "{audio_source_filename}"
+        },
+        {
+          "id": "source_hostname",
+          "type": "credential",
+          "value": "S3_STORAGE_HOSTNAME"
+        },
+        {
+          "id": "source_access_key",
+          "type": "credential",
+          "value": "S3_STORAGE_ACCESS_KEY"
+        },
+        {
+          "id": "source_secret_key",
+          "type": "credential",
+          "value": "S3_STORAGE_SECRET_KEY"
+        },
+        {
+          "id": "source_prefix",
+          "type": "credential",
+          "value": "S3_STORAGE_BUCKET"
+        },
+        {
+          "id": "source_region",
+          "type": "credential",
+          "value": "S3_STORAGE_REGION"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "parent_ids": [0],
+      "required_to_start": [0],
+      "name": "job_ffmpeg",
+      "label": "Convert audio",
+      "icon": "queue_music",
+      "parameters": [
+        {
+          "id": "command_template",
+          "type": "string",
+          "value": "ffmpeg -i {source_path} -codec:a {output_codec_audio} -ar {audio_sampling_rate} -ac {audio_channels} -af {audio_filters} -vn -dn {destination_path}"
+        },
+        {
+          "id": "destination_filename",
+          "type": "template",
+          "value": "{source_path}.wav"
+        },
+        {
+          "id": "output_codec_audio",
+          "type": "string",
+          "value": "pcm_s16le"
+        },
+        {
+          "id": "audio_sampling_rate",
+          "type": "integer",
+          "value": 16000
+        },
+        {
+          "id": "audio_channels",
+          "type": "integer",
+          "value": 1
+        },
+        {
+          "id": "audio_filters",
+          "type": "string",
+          "value": "aresample=precision=28:dither_method=shibata"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "parent_ids": [1],
+      "required_to_start": [1],
+      "name": "job_speech_to_text",
+      "label": "Speech To Text",
+      "icon": "text_fields",
+      "parameters": [
+        {
+          "id": "provider",
+          "type": "string",
+          "value": "vocapia"
+        },
+        {
+          "id": "username",
+          "type": "credential",
+          "value": "VOCAPIA_USERNAME"
+        },
+        {
+          "id": "password",
+          "type": "credential",
+          "value": "VOCAPIA_PASSWORD"
+        },
+        {
+          "id": "language",
+          "type": "template",
+          "value": "{language}"
+        },
+        {
+          "id": "destination_filename",
+          "type": "template",
+          "value": "transcript.json"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "job_transfer",
+      "label": "Upload generated elements to S3",
+      "icon": "file_upload",
+      "parent_ids": [2],
+      "required_to_start": [2],
+      "parameters": [
+        {
+          "id": "destination_hostname",
+          "type": "credential",
+          "default": "S3_STORAGE_HOSTNAME",
+          "value": "S3_STORAGE_HOSTNAME"
+        },
+        {
+          "id": "destination_access_key",
+          "type": "credential",
+          "default": "S3_STORAGE_ACCESS_KEY",
+          "value": "S3_STORAGE_ACCESS_KEY"
+        },
+        {
+          "id": "destination_secret_key",
+          "type": "credential",
+          "default": "S3_STORAGE_SECRET_KEY",
+          "value": "S3_STORAGE_SECRET_KEY"
+        },
+        {
+          "id": "destination_prefix",
+          "type": "credential",
+          "default": "S3_STORAGE_BUCKET",
+          "value": "S3_STORAGE_BUCKET"
+        },
+        {
+          "id": "destination_region",
+          "type": "credential",
+          "default": "S3_STORAGE_REGION",
+          "value": "S3_STORAGE_REGION"
+        },
+        {
+          "id": "destination_path",
+          "type": "template",
+          "value": "{workflow_id}/transcript.json"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "parent_ids": [3],
+      "name": "job_file_system",
+      "label": "Clean workspace",
+      "icon": "delete_forever",
+      "mode": "one_for_many",
+      "parameters": [
+        {
+          "id": "action",
+          "type": "string",
+          "value": "remove"
+        },
+        {
+          "id": "source_paths",
+          "type": "array_of_templates",
+          "value": [
+            "{work_directory}/{workflow_id}"
+          ]
+        }
+      ]
+    }
+  ]
+}

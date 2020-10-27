@@ -32,7 +32,7 @@ defmodule StepFlow.Api.WorkerDefinitionsTest do
         version: "1.2.3",
         short_description: "short description",
         description: "long description",
-        parameters: []
+        parameters: %{}
       })
       |> Router.call(@opts)
       |> sent_resp

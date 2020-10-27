@@ -1,0 +1,192 @@
+{
+  "instance_id": "3d72d72cc23d",
+  "queue_name": "job_transfer",
+  "label": "Transfer",
+  "short_description": "Move file from any storage",
+  "description": "Move any file from a location to an another one else.\nIt support in input: Local, FTP, S3, HTTP.\nIt support in output: Local, FTP, S3.",
+  "version": "0.3.1",
+  "sdk_version": "0.11.8",
+  "parameters": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "TransferWorkerParameters",
+    "type": "object",
+    "required": [
+      "destination_path",
+      "source_path"
+    ],
+    "properties": {
+      "destination_path": {
+        "type": "string"
+      },
+      "destination_secret": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/Secret"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "source_path": {
+        "type": "string"
+      },
+      "source_secret": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/Secret"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "definitions": {
+      "Secret": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "hostname",
+              "type"
+            ],
+            "properties": {
+              "hostname": {
+                "type": "string"
+              },
+              "password": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "port": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint16",
+                "minimum": 0.0
+              },
+              "prefix": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "secure": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "ftp"
+                ]
+              },
+              "username": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "body": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "endpoint": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "headers": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "method": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "http"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "local"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "access_key_id",
+              "bucket",
+              "secret_access_key",
+              "type"
+            ],
+            "properties": {
+              "access_key_id": {
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "hostname": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "region": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "secret_access_key": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "s3"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
