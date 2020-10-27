@@ -1,7 +1,6 @@
 defmodule StepFlow.WorkflowDefinitions.ExternalLoader do
   @moduledoc """
-  Loader for referenced schema in json schema.
-  It implement the loader for Xema
+  Loader for referenced JSON schema implemented through Xema loader.
   """
 
   @behaviour Xema.Loader

@@ -1,6 +1,6 @@
 defmodule StepFlow.Amqp.WorkerDiscoveryConsumer do
   @moduledoc """
-  Consumer of worker descriptions.
+  Consumer of Worker Descriptions.
   """
   require Logger
   alias StepFlow.Amqp.WorkerDiscoveryConsumer

@@ -1,6 +1,6 @@
 defmodule StepFlow.Progressions do
   @moduledoc """
-  The Jobs context.
+  The Progressions context.
   """
 
   import Ecto.Query, warn: false

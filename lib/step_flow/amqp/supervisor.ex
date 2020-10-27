@@ -3,10 +3,10 @@ defmodule StepFlow.Amqp.Supervisor do
   use Supervisor
 
   @moduledoc """
-  Supervisor of Step Flow.  
+  Supervisor of Step Flow.
 
-  It manage AMQP connection to emir messages, consume too.  
-  It's also manage the StepManager to drive workflows.
+  It manages AMQP connection to emit and consume messages as well as
+  manages the StepManager to drive workflows.
   """
 
   @doc false

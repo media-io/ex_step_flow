@@ -14,20 +14,23 @@ defmodule StepFlow.Amqp.Helpers do
   - `virtual_host` Setup the virtual host of the RabbitMQ service
 
   Hardcoded example:
-  config :step_flow, StepFlow.Amqp,
-    hostname: "example.com",
-    port: "5678",
-    username: "mediacloudai",
-    password: "mediacloudai",
-    virtual_host: "media_cloud_ai_dev"
+
+      config :step_flow, StepFlow.Amqp,
+        hostname: "example.com",
+        port: "5678",
+        username: "mediacloudai",
+        password: "mediacloudai",
+        virtual_host: "media_cloud_ai_dev"
 
   Environment getter example:
-  config :step_flow, StepFlow.Amqp,
-    hostname: {:system, "AMQP_HOSTNAME"},
-    port: {:system, "AMQP_PORT"},
-    username: {:system, "AMQP_USERNAME"},
-    password: {:system, "AMQP_PASSWORD"},
-    virtual_host: {:system, "AMQP_VIRTUAL_HOST"},
+
+      config :step_flow, StepFlow.Amqp,
+        hostname: {:system, "AMQP_HOSTNAME"},
+        port: {:system, "AMQP_PORT"},
+        username: {:system, "AMQP_USERNAME"},
+        password: {:system, "AMQP_PASSWORD"},
+        virtual_host: {:system, "AMQP_VIRTUAL_HOST"},
+
   """
   def get_amqp_connection_url do
     hostname = StepFlow.Configuration.get_var_value(StepFlow.Amqp, :hostname)

@@ -1,6 +1,8 @@
 defmodule StepFlow.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/media-io/ex_step_flow"
+
   def project do
     [
       app: :step_flow,
@@ -23,16 +25,15 @@ defmodule StepFlow.MixProject do
 
       # Docs
       name: "StepFlow",
-      source_url: "https://github.com/media-io/ex_step_flow",
-      homepage_url: "https://github.com/media-io/ex_step_flow",
+      homepage_url: @source_url,
       docs: [
         main: "readme",
-        extras: ["README.md"]
+        extras: ["README.md"],
+        source_url: @source_url
       ]
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       mod: {StepFlow.Application, []},
@@ -51,11 +52,9 @@ defmodule StepFlow.MixProject do
     ]
   end
 
-  # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:amqp, "~> 1.4"},
@@ -94,7 +93,7 @@ defmodule StepFlow.MixProject do
         "Marc-Antoine Arnaud"
       ],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/media-io/ex_step_flow"}
+      links: %{"GitHub" => @source_url}
     ]
   end
 

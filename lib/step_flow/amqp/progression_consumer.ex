@@ -16,7 +16,7 @@ defmodule StepFlow.Amqp.ProgressionConsumer do
   }
 
   @doc """
-  Consumme message with job progression and save it in database
+  Consume message with job progression and save it in database.
   """
   def consume(
         channel,

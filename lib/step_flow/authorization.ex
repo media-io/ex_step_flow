@@ -1,6 +1,7 @@
 defmodule StepFlow.Authorization do
   @moduledoc """
-  StepFlow provide an entire system to manage workflows.  
+  StepFlow provide an entire system to manage workflows.
+
   It provides differents parts:
   - Connection with a database using Ecto to store Workflow status
   - a connection with a message broker to interact with workers
@@ -13,7 +14,9 @@ defmodule StepFlow.Authorization do
 
   @doc """
   Check authorization for the connection using the method and the path.
+
   It can be configured using:
+
   ```elixir
     config :step_flow,
       authorize: [
@@ -21,6 +24,7 @@ defmodule StepFlow.Authorization do
         get_jobs: [:user_check, :specific_right_check]
       ]
   ```
+
   """
   def check(conn) do
     key = String.to_atom(String.downcase(conn.method) <> "_" <> get_path(conn.path_info))

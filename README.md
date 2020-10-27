@@ -1,12 +1,13 @@
 # Step Flow
-Step flow manager for Elixir applications
 
-[![Build Status](https://travis-ci.org/media-io/ex_step_flow.svg?branch=master)](https://travis-ci.org/media-io/ex_step_flow)
-[![Hex](https://img.shields.io/badge/hex-step__flow-brightgreen)](https://hex.pm/packages/step_flow)
-[![Coverage Status](https://coveralls.io/repos/github/media-io/ex_step_flow/badge.svg?branch=master)](https://coveralls.io/github/media-io/ex_step_flow?branch=master)
+[![travis-ci.org](https://travis-ci.org/media-io/ex_step_flow.svg?branch=master)](https://travis-ci.org/media-io/ex_step_flow)
+[![hex.pm](https://img.shields.io/hexpm/v/step_flow.svg)](https://hex.pm/packages/step_flow)
+[![hexdocs.pm](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/ex_step_flow/)
+[![hex.pm](https://img.shields.io/hexpm/dt/step_flow.svg)](https://hex.pm/packages/step_flow)
+[![hex.pm](https://img.shields.io/hexpm/l/step_flow.svg)](https://hex.pm/packages/step_flow)
+[![coveralls.io](https://coveralls.io/repos/github/media-io/ex_step_flow/badge.svg?branch=master)](https://coveralls.io/github/media-io/ex_step_flow?branch=master)
 
-## Generated documentation
-[Step Flow Documentation](https://hexdocs.pm/step_flow/StepFlow.html)  
+Step flow manager for Elixir applications.
 
 ## Usage
 
@@ -20,7 +21,7 @@ def deps do
 end
 ```
 
-and add into extra applications:
+And add into extra applications:
 
 ```elixir
   def application do
@@ -35,9 +36,10 @@ and add into extra applications:
 
 ## Configurations to start
 
-### Postgres configuration
+### PostgreSQL configuration
 
 Add into configuration files:
+
 ```elixir
 config :step_flow, Ecto.Repo,
   hostname: "localhost",
@@ -47,7 +49,8 @@ config :step_flow, Ecto.Repo,
   runtime_pool_size: 10
 ```
 
-it can also be used with environment variables:
+It can also be used with environment variables:
+
 ```elixir
 config :step_flow, Ecto.Repo,
   hostname: {:system, "DATABASE_HOSTNAME"},
@@ -60,6 +63,7 @@ config :step_flow, Ecto.Repo,
 ### RabbitMQ configuration
 
 Add into configuration files:
+
 ```elixir
 config :step_flow, StepFlow.Amqp,
   hostname: "localhost",
@@ -69,7 +73,8 @@ config :step_flow, StepFlow.Amqp,
   virtual_host: ""
 ```
 
-it can also be used with environment variables:
+It can also be used with environment variables:
+
 ```elixir
 config :step_flow, StepFlow.Amqp,
   hostname: {:system, "RABBITMQ_HOSTNAME"},
@@ -94,14 +99,15 @@ config :step_flow, StepFlow,
   slack_api_channel: {:system, "SLACK_API_CHANNEL"}
 ```
 
-Remarks: the `slack_api_channel` configure the channel for error jobs notification.  
+Remarks: the `slack_api_channel` configure the channel for error jobs notification.
 The message contains also a link to the workflow, so `exposed_domain_name` configure the hostname of the hosted application.
 
-### Expose StepFlow Rest API
+### Expose StepFlow REST API
 
-Step Flow provides the Rest API to mamage Workflows and Jobs.
+Step Flow provides the REST API to manage Workflows and Jobs.
 
 Create a module with:
+
 ```elixir
 defmodule MyApplicationWeb.StepFlow.Plug do
   @moduledoc false
@@ -111,6 +117,7 @@ end
 ```
 
 Then in Phoenix router redirect the API part to the module:
+
 ```elixir
 defmodule MyApplicationWeb.Router do
   use MyApplicationWeb, :router
@@ -133,6 +140,7 @@ end
 ```
 
 To enable authentication checks over Step Flow API configure callbacks in configuration:
+
 ```elixir
 config :step_flow, StepFlow,
   authorize: [
@@ -154,6 +162,7 @@ config :step_flow, StepFlow,
 
 StepFlow can be configured to send messages on job updates (to enable refresh of UI via WebSocket for example).
 To broadcast messages, the application endpoint needs to be configured.
+
 ```elixir
 config :step_flow, StepFlow,
   endpoint: MyApplicationWeb.Endpoint
@@ -168,4 +177,3 @@ The default access point need to be configured using:
 config :step_flow, StepFlow,
   workers_work_directory: "/data/mount/point"
 ```
-

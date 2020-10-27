@@ -9,7 +9,7 @@ defmodule StepFlow.Artifacts do
   alias StepFlow.Artifacts.Artifact
 
   @doc """
-  Creates a artifact.
+  Creates an artifact.
 
   ## Examples
 

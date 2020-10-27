@@ -5,6 +5,7 @@ defmodule StepFlow.Map do
 
   @doc """
   Get a key matching on an atom or a string.
+
   Default value can be specified.
 
   ## Examples
