@@ -72,9 +72,10 @@ defmodule StepFlow.WorkflowDefinitions do
         order_by: [
           desc: workflow_definition.version_major,
           desc: workflow_definition.version_minor,
-          desc: workflow_definition.version_micro,
+          desc: workflow_definition.version_micro
         ],
-        limit: 1)
+        limit: 1
+      )
 
     Repo.one(query)
   end

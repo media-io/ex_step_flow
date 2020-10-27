@@ -20,14 +20,13 @@ defmodule StepFlow.WorkerDefinitionsTest do
       |> File.read!()
       |> Jason.decode!()
       |> WorkerDefinitions.create_worker_definition()
-      
-      assert %{
-          data: [_worker_description],
-          page: 0,
-          size: 10,
-          total: 1,
-        } = WorkerDefinitions.list_worker_definitions()
 
+      assert %{
+               data: [_worker_description],
+               page: 0,
+               size: 10,
+               total: 1
+             } = WorkerDefinitions.list_worker_definitions()
     end
   end
 end
