@@ -1,6 +1,7 @@
 defmodule StepFlow.Notifications.Notification do
   @moduledoc """
   Notification implementation with various services.
+
   - WebHook to make HTTP call to external APIs
   - Slack to post a message on a channel
   """

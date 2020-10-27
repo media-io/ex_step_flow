@@ -1,6 +1,7 @@
 defmodule StepFlow.SlackBot do
   @moduledoc """
   Bot connected to Slack if the token is provided.
+
   It allow to send notifications to channel.
   """
 

@@ -1,7 +1,8 @@
 defmodule StepFlow do
   @moduledoc """
-  StepFlow provide an entire system to manage workflows.  
-  It provides differents parts:
+  StepFlow provide an entire system to manage workflows.
+
+  It provides different parts:
   - Connection with a database using Ecto to store Workflow status
   - a connection with a message broker to interact with workers
   - a RESTful API to create, list and interact with workflows

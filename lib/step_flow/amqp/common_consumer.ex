@@ -1,7 +1,9 @@
 defmodule StepFlow.Amqp.CommonConsumer do
   @moduledoc """
   Definition of a Common Consumer of RabbitMQ queue.
+
   To implement a consumer,
+
   ```elixir
   defmodule MyModule do
     use StepFlow.Amqp.CommonConsumer, %{
@@ -15,6 +17,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
     end
   end
   ```
+
   """
 
   @doc false

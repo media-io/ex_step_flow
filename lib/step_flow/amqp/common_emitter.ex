@@ -6,24 +6,28 @@ defmodule StepFlow.Amqp.CommonEmitter do
   alias StepFlow.Amqp.Connection
 
   @doc """
-  Publish a message.  
+  Publish a message.
 
   Example:
+
   ```elixir
   StepFlow.Amqp.CommonEmitter.publish_json("my_rabbit_mq_queue", "{\\\"key\\\": \\\"value\\\"}")
   ```
+
   """
   def publish(queue, message, options \\ []) do
     Connection.publish(queue, message, options)
   end
 
   @doc """
-  Publish a message using JSON serialization before send it.  
+  Publish a message using JSON serialization before send it.
 
   Example:
+
   ```elixir
   StepFlow.Amqp.CommonEmitter.publish_json("my_rabbit_mq_queue", 0, %{key: "value"})
   ```
+
   """
   def publish_json(queue, priority, message) do
     message =

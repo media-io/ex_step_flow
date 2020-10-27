@@ -1,6 +1,6 @@
 defmodule StepFlow.Notifications.Slack do
   @moduledoc """
-  Notification step implementation to send messages on Slack channel
+  Notification step implementation to send messages on Slack channel.
   """
 
   alias StepFlow.Step.Helpers

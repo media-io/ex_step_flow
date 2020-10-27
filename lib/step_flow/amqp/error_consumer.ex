@@ -17,7 +17,7 @@ defmodule StepFlow.Amqp.ErrorConsumer do
   }
 
   @doc """
-  Consume message with error topic, update Job and send a notification
+  Consume message with error topic, update Job and send a notification.
   """
   def consume(channel, tag, _redelivered, %{"job_id" => job_id, "error" => description} = payload) do
     case Jobs.get_job(job_id) do

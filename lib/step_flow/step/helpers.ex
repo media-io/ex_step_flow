@@ -4,7 +4,7 @@ defmodule StepFlow.Step.Helpers do
   """
 
   @doc """
-  Retrieve a value on an Object, filtered by the key
+  Retrieves a value on an Objecta and filtered by the key.
   """
   def get_value_in_parameters(object, key) do
     StepFlow.Map.get_by_key_or_atom(object, :parameters, [])
@@ -21,7 +21,7 @@ defmodule StepFlow.Step.Helpers do
   end
 
   @doc """
-  Retrieve a value on an Object, filtered by the key and the type
+  Retrieves a value on an Object and filtered by the key and type.
   """
   def get_value_in_parameters_with_type(object, key, type) do
     StepFlow.Map.get_by_key_or_atom(object, :parameters, [])

@@ -197,7 +197,7 @@ defmodule StepFlow.Jobs do
   end
 
   @doc """
-  Creates a job with an completed status.
+  Creates a job with a completed status.
 
   ## Examples
 
