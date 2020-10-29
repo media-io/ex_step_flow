@@ -29,7 +29,7 @@ defmodule StepFlow.WorkflowController do
         conn
         |> put_status(:created)
         |> put_view(StepFlow.WorkflowView)
-        |> render("show.json", workflow: workflow)
+        |> render("created.json", workflow: workflow)
 
       {:error, changeset} ->
         conn

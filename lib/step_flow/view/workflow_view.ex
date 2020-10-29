@@ -13,6 +13,10 @@ defmodule StepFlow.WorkflowView do
     %{data: render_one(workflow, WorkflowView, "workflow.json")}
   end
 
+  def render("created.json", %{workflow: workflow}) do
+    %{data: render_one(workflow, WorkflowView, "workflow_created.json")}
+  end
+
   def render("workflow.json", %{workflow: workflow}) do
     result = %{
       id: workflow.id,
@@ -41,5 +45,19 @@ defmodule StepFlow.WorkflowView do
     else
       result
     end
+  end
+
+  def render("workflow_created.json", %{workflow: workflow}) do
+    result = %{
+      id: workflow.id,
+      identifier: workflow.identifier,
+      version_major: workflow.version_major,
+      version_minor: workflow.version_minor,
+      version_micro: workflow.version_micro,
+      tags: workflow.tags,
+      reference: workflow.reference,
+      parameters: workflow.parameters,
+      created_at: workflow.inserted_at
+    }
   end
 end
