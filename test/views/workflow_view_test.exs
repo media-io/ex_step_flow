@@ -68,4 +68,23 @@ defmodule StepFlow.WorkflowViewTest do
                total: 1
              }
   end
+
+  test "render a Launch of a Workflow" do
+    {:ok, workflow} = StepFlow.Workflows.create_workflow(@workflow)
+    workflow = StepFlow.Repo.preload(workflow, [:artifacts, :jobs])
+
+    assert render(StepFlow.WorkflowView, "created.json", %{workflow: workflow}) == %{
+             data: %{
+               id: workflow.id,
+               created_at: workflow.inserted_at,
+               tags: [],
+               identifier: "id",
+               version_major: 6,
+               version_minor: 5,
+               version_micro: 4,
+               reference: "some id",
+               parameters: []
+             }
+           }
+  end
 end

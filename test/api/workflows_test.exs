@@ -119,12 +119,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     assert body
            |> Jason.decode!()
            |> Map.get("data")
-           |> Map.get("parameters")
-           |> List.first() == %{
-             "id" => "audio_source_filename",
-             "type" => "string",
-             "value" => "awsome.mp4"
-           }
+           |> Map.get("identifier") == "simple_workflow"
   end
 
   @tag capture_log: true
@@ -145,13 +140,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     assert body
            |> Jason.decode!()
            |> Map.get("data")
-           |> Map.get("parameters") == [
-             %{
-               "id" => "audio_source_filename",
-               "type" => "string",
-               "value" => "to_change.mp4"
-             }
-           ]
+           |> Map.get("identifier") == "simple_workflow"
   end
 
   test "POST /workflows invalid" do
