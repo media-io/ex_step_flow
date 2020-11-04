@@ -34,7 +34,7 @@ defmodule StepFlow.WorkflowDefinitionController do
   end
 
   def create(conn, _) do
-    workflows = WorkflowDefinition.load_workflows()
+    workflows = WorkflowDefinition.load_workflows_in_database()
     Logger.info("#{inspect(workflows)}")
 
     json(conn, %{})
