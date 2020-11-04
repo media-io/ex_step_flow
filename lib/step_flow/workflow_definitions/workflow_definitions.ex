@@ -48,18 +48,6 @@ defmodule StepFlow.WorkflowDefinitions do
     }
   end
 
-  # workflow_definitions = WorkflowDefinition.load_workflows()
-  # total = length(workflow_definitions)
-
-  # @doc """
-  # Returns the Workflow Definition.
-  # """
-  # def get_workflow_definition(workflow_identifier) do
-  #   WorkflowDefinition.load_workflows()
-  #   |> Enum.filter(fn workflow -> Map.get(workflow, "identifier") == workflow_identifier end)
-  #   |> List.first()
-  # end
-
   @doc """
   Gets a single WorkflowDefinition.
 

@@ -16,6 +16,10 @@ defmodule StepFlow.Router do
     StepFlow.WorkflowDefinitionController.index(conn, conn.params)
   end
 
+  post "/definitions" do
+    StepFlow.WorkflowDefinitionController.create(conn, conn.params)
+  end
+
   get "/definitions/:identifier" do
     StepFlow.WorkflowDefinitionController.show(conn, conn.params)
   end
