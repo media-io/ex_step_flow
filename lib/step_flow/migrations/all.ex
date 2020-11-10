@@ -55,5 +55,11 @@ defmodule StepFlow.Migration.All do
       20_201_020_140_300,
       StepFlow.Migration.ModifyWorkerDefinitionsParametersType
     )
+
+    Ecto.Migrator.up(
+      StepFlow.Repo,
+      20_201_110_180_300,
+      StepFlow.Migration.CreateWorkfkowRights
+    )
   end
 end

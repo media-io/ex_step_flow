@@ -91,7 +91,14 @@ defmodule StepFlow.RunWorkflows.ParallelStepsWithNotificationTest do
           label: "Joined last step",
           parameters: []
         }
-      ]
+      ],
+      rights: %{
+        view: [],
+        create: [],
+        retry: [],
+        abort: [],
+        delete: []
+      }
     }
 
     test "run parallel steps on a same workflow" do

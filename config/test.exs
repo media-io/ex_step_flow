@@ -24,3 +24,6 @@ config :step_flow, StepFlow.Amqp,
   username: "guest",
   password: "guest",
   virtual_host: ""
+
+config :step_flow, StepFlow.WorkflowDefinitions.ExternalLoader,
+  specification_folder: "/home/mathia/work/media-cloud-ai.github.com"

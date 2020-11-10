@@ -64,7 +64,14 @@ defmodule StepFlow.RunWorkflows.SkippedStepsTest do
           label: "Joined last step",
           parameters: []
         }
-      ]
+      ],
+      rights: %{
+        view: [],
+        create: [],
+        retry: [],
+        abort: [],
+        delete: []
+      }
     }
 
     test "run parallel steps on a same workflow" do

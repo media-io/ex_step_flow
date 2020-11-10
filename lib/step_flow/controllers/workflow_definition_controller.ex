@@ -9,6 +9,8 @@ defmodule StepFlow.WorkflowDefinitionController do
   action_fallback(StepFlow.FallbackController)
 
   def index(conn, params) do
+    # Ajouter les droits à params
+
     workflow_definitions = WorkflowDefinitions.list_workflow_definitions(params)
 
     conn

@@ -9,6 +9,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
   alias StepFlow.Repo
   alias StepFlow.WorkflowDefinitions.ExternalLoader
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
+  alias StepFlow.WorkflowRights.WorkflowRight
 
   schema "step_flow_workflow_definition" do
     field(:identifier, :string)
@@ -63,7 +64,10 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
 
   defp get_schema do
     schema =
-      "https://media-cloud.ai/standard/1.7/workflow-definition.schema.json"
+      StepFlow.Configuration.get_var_value(
+        StepFlow.WorkflowDefinitions.WorkflowDefinition,
+        :workflow_schema_url
+      )
       |> load_content()
       |> Jason.decode!()
 
@@ -121,9 +125,18 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
     end)
     |> List.flatten()
     |> Enum.each(fn workflow_definition ->
-      %WorkflowDefinition{}
-      |> WorkflowDefinition.changeset(workflow_definition)
-      |> Repo.insert()
+      case %WorkflowDefinition{}
+           |> WorkflowDefinition.changeset(workflow_definition)
+           |> Repo.insert() do
+        {:ok, loaded_workflow_definition} ->
+          WorkflowRight.load_rights_in_database(
+            Map.get(workflow_definition, "rights"),
+            loaded_workflow_definition.id
+          )
+
+        {:error, reason} ->
+          {:error, reason}
+      end
     end)
   end
 

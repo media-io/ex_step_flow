@@ -44,7 +44,14 @@ defmodule StepFlow.RunWorkflows.SimpleWorkflowTest do
           ]
         }
       ],
-      parameters: []
+      parameters: [],
+      rights: %{
+        view: [],
+        create: [],
+        retry: [],
+        abort: [],
+        delete: []
+      }
     }
 
     test "run simple workflow with 1 step" do

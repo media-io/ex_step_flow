@@ -74,7 +74,14 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowSkippedAndVoidTest do
           label: "Joind last step",
           parameters: []
         }
-      ]
+      ],
+      rights: %{
+        view: [],
+        create: [],
+        retry: [],
+        abort: [],
+        delete: []
+      }
     }
 
     test "run conditional branched skipped and void branch workflow" do

@@ -66,7 +66,14 @@ defmodule StepFlow.RunWorkflows.MultipleJobsTest do
             }
           ]
         }
-      ]
+      ],
+      rights: %{
+        view: [],
+        create: [],
+        retry: [],
+        abort: [],
+        delete: []
+      }
     }
 
     test "run a workflow with one step that generate multiple jobs" do

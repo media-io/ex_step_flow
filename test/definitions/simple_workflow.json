@@ -6,6 +6,23 @@
   "version_minor": 0,
   "version_micro": 1,
   "tags": ["speech_to_text"],
+  "rights": {
+      "view": [
+          "group"
+      ],
+      "create": [
+          "group"
+      ],
+      "retry": [
+          "group"
+      ],
+      "abort": [
+          "group"
+      ],
+      "delete": [
+          "group"
+      ]
+  },
   "start_parameters": [
     {
       "id": "audio_source_filename",

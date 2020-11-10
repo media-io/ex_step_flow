@@ -75,7 +75,14 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowTest do
           label: "Joind last step",
           parameters: []
         }
-      ]
+      ],
+      rights: %{
+        view: [],
+        create: [],
+        retry: [],
+        abort: [],
+        delete: []
+      }
     }
 
     test "run conditional branched workflow" do

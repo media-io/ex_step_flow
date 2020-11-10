@@ -82,7 +82,14 @@ defmodule StepFlow.RunWorkflows.ParallelSequentialStepsTest do
           label: "Joind last step",
           parameters: []
         }
-      ]
+      ],
+      rights: %{
+        view: [],
+        create: [],
+        retry: [],
+        abort: [],
+        delete: []
+      }
     }
 
     test "run parallel and sequential steps on a same workflow" do
