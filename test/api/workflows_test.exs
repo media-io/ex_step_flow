@@ -3,7 +3,10 @@ defmodule StepFlow.Api.WorkflowsTest do
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox
+  alias StepFlow.Repo
   alias StepFlow.Router
+  alias StepFlow.WorkflowDefinitions.WorkflowDefinition
+  alias StepFlow.Workflows
   doctest StepFlow
 
   @opts Router.init([])
@@ -13,291 +16,386 @@ defmodule StepFlow.Api.WorkflowsTest do
     :ok = Sandbox.checkout(StepFlow.Repo)
   end
 
-  test "GET /workflows" do
-    {status, _headers, body} =
-      conn(:get, "/workflows")
-      |> Router.call(@opts)
-      |> sent_resp
+  describe "workflow" do
+    @authorized_user %{
+      rights: [
+        "administrator",
+        "user"
+      ]
+    }
 
-    assert status == 200
-    assert body |> Jason.decode!() == %{"data" => [], "total" => 0}
+    @unauthorized_user %{
+      rights: []
+    }
 
-    {status, _headers, _body} =
-      conn(:post, "/workflows", %{
+    def workflow_fixture(workflow, attrs \\ %{}) do
+      {:ok, workflow} =
+        attrs
+        |> Enum.into(workflow)
+        |> Workflows.create_workflow()
+
+      workflow
+    end
+
+    def workflow_definition_fixture(workflow_definition) do
+      %WorkflowDefinition{}
+      |> WorkflowDefinition.changeset(workflow_definition)
+      |> Repo.insert()
+    end
+
+    test "GET /workflows with authorized user" do
+      {status, _headers, body} =
+        conn(:get, "/workflows")
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 200
+      assert body |> Jason.decode!() == %{"data" => [], "total" => 0}
+
+      workflow_fixture(%{
         identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         version_major: 1,
         version_minor: 2,
-        version_micro: 3
+        version_micro: 3,
+        rights: [
+          %{
+            action: "view",
+            groups: ["administrator"]
+          }
+        ]
       })
-      |> Router.call(@opts)
-      |> sent_resp
 
-    assert status == 201
+      {status, _headers, body} =
+        conn(:get, "/workflows")
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-    {status, _headers, body} =
-      conn(:get, "/workflows")
-      |> Router.call(@opts)
-      |> sent_resp
+      assert status == 200
+      assert body |> Jason.decode!() |> Map.get("total") == 1
+    end
 
-    assert status == 200
-    assert body |> Jason.decode!() |> Map.get("total") == 1
-  end
+    test "GET /workflows with unauthorized user" do
+      {status, _headers, body} =
+        conn(:get, "/workflows")
+        |> assign(:current_user, @unauthorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-  @tag capture_log: true
-  test "POST /launch_workflow valid" do
-    {status, _headers, body} =
-      conn(:post, "/launch_workflow", %{
-        workflow_identifier: "simple_workflow",
+      assert status == 200
+      assert body |> Jason.decode!() == %{"data" => [], "total" => 0}
+
+      workflow_fixture(%{
+        identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-        parameters: %{}
+        version_major: 1,
+        version_minor: 2,
+        version_micro: 3,
+        rights: [
+          %{
+            action: "view",
+            groups: ["administrator"]
+          }
+        ]
       })
-      |> Router.call(@opts)
-      |> sent_resp
 
-    assert status == 201
+      {status, _headers, body} =
+        conn(:get, "/workflows")
+        |> assign(:current_user, @unauthorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-    assert body
-           |> Jason.decode!()
-           |> Map.get("data")
-           |> Map.get("reference") == "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
-  end
+      assert status == 200
+      assert body |> Jason.decode!() == %{"data" => [], "total" => 0}
+    end
 
-  @tag capture_log: true
-  test "POST /launch_workflow valid missing parameters" do
-    {status, _headers, _body} =
-      conn(:post, "/launch_workflow", %{
-        workflow_identifier: "simple_workflow",
-        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
-      })
-      |> Router.call(@opts)
-      |> sent_resp
+    @tag capture_log: true
+    test "POST /workflows valid with authorized user" do
+      {status, _headers, body} =
+        conn(:post, "/workflows", %{
+          workflow_identifier: "simple_workflow",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          parameters: %{}
+        })
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-    assert status == 201
-  end
+      assert status == 201
 
-  @tag capture_log: true
-  test "POST /launch_workflow invalid missing reference" do
-    {status, _headers, _body} =
-      conn(:post, "/launch_workflow", %{
-        workflow_identifier: "simple_workflow",
-        parameters: %{}
-      })
-      |> Router.call(@opts)
-      |> sent_resp
+      assert body
+             |> Jason.decode!()
+             |> Map.get("data")
+             |> Map.get("reference") == "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
+    end
 
-    assert status == 422
-  end
+    @tag capture_log: true
+    test "POST /workflows valid with unauthorized user" do
+      {status, _headers, _body} =
+        conn(:post, "/workflows", %{
+          workflow_identifier: "simple_workflow",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          parameters: %{}
+        })
+        |> assign(:current_user, @unauthorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-  @tag capture_log: true
-  test "POST /launch_workflow invalid missing reference and parameters" do
-    {status, _headers, _body} =
-      conn(:post, "/launch_workflow", %{
-        workflow_identifier: "simple_workflow"
-      })
-      |> Router.call(@opts)
-      |> sent_resp
+      assert status == 403
+    end
 
-    assert status == 422
-  end
+    @tag capture_log: true
+    test "POST /workflows valid missing parameters" do
+      {status, _headers, _body} =
+        conn(:post, "/workflows", %{
+          workflow_identifier: "simple_workflow",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
+        })
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-  @tag capture_log: true
-  test "POST /launch_workflow valid with valid parameters" do
-    {status, _headers, body} =
-      conn(:post, "/launch_workflow", %{
-        workflow_identifier: "simple_workflow",
-        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-        parameters: %{
-          "audio_source_filename" => "awsome.mp4"
-        }
-      })
-      |> Router.call(@opts)
-      |> sent_resp
+      assert status == 201
+    end
 
-    assert status == 201
+    @tag capture_log: true
+    test "POST /workflows invalid missing reference" do
+      {status, _headers, _body} =
+        conn(:post, "/workflows", %{
+          workflow_identifier: "simple_workflow",
+          parameters: %{}
+        })
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-    assert body
-           |> Jason.decode!()
-           |> Map.get("data")
-           |> Map.get("identifier") == "simple_workflow"
-  end
+      assert status == 422
+    end
 
-  @tag capture_log: true
-  test "POST /launch_workflow valid with invalid parameter" do
-    {status, _headers, body} =
-      conn(:post, "/launch_workflow", %{
-        workflow_identifier: "simple_workflow",
-        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-        parameters: %{
-          "invalid" => "parameter"
-        }
-      })
-      |> Router.call(@opts)
-      |> sent_resp
+    @tag capture_log: true
+    test "POST /workflows invalid missing reference and parameters" do
+      {status, _headers, _body} =
+        conn(:post, "/workflows", %{
+          workflow_identifier: "simple_workflow"
+        })
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-    assert status == 201
+      assert status == 422
+    end
 
-    assert body
-           |> Jason.decode!()
-           |> Map.get("data")
-           |> Map.get("identifier") == "simple_workflow"
-  end
+    @tag capture_log: true
+    test "POST /workflows valid with valid parameters" do
+      {status, _headers, body} =
+        conn(:post, "/workflows", %{
+          workflow_identifier: "simple_workflow",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          parameters: %{
+            "audio_source_filename" => "awsome.mp4"
+          }
+        })
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-  test "POST /workflows invalid" do
-    {status, _headers, body} =
-      conn(:post, "/workflows", %{})
-      |> Router.call(@opts)
-      |> sent_resp
+      assert status == 201
 
-    assert status == 422
+      assert body
+             |> Jason.decode!()
+             |> Map.get("data")
+             |> Map.get("parameters")
+             |> Enum.find(fn param -> param["id"] == "audio_source_filename" end)
+             |> Map.get("value") == "awsome.mp4"
+    end
 
-    assert body |> Jason.decode!() == %{
-             "errors" => %{
-               "identifier" => ["can't be blank"],
-               "reference" => ["can't be blank"],
-               "version_major" => ["can't be blank"],
-               "version_micro" => ["can't be blank"],
-               "version_minor" => ["can't be blank"]
+    @tag capture_log: true
+    test "POST /workflows valid with invalid parameter" do
+      {status, _headers, body} =
+        conn(:post, "/workflows", %{
+          workflow_identifier: "simple_workflow",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          parameters: %{
+            "invalid" => "parameter"
+          }
+        })
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 201
+
+      assert body
+             |> Jason.decode!()
+             |> Map.get("data")
+             |> Map.get("identifier") == "simple_workflow"
+    end
+
+    test "[deprecated] POST /workflow invalid" do
+      {status, _headers, body} =
+        conn(:post, "/launch_workflow", %{})
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 422
+
+      assert body |> Jason.decode!() == %{
+               "errors" => [
+                 %{
+                   "message" => "Incorrect parameters",
+                   "reason" => "Missing Workflow identifier parameter"
+                 }
+               ]
              }
-           }
-  end
+    end
 
-  test "POST /workflows valid" do
-    {status, _headers, _body} =
-      conn(:post, "/workflows", %{
+    test "[deprecated] POST /launch_workflow valid" do
+      workflow_definition_fixture(%{
         identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         version_major: 1,
         version_minor: 2,
-        version_micro: 3
+        version_micro: 3,
+        rights: [
+          %{
+            action: "create",
+            groups: ["administrator"]
+          }
+        ]
       })
-      |> Router.call(@opts)
-      |> sent_resp
 
-    assert status == 201
-  end
+      {status, _headers, _body} =
+        conn(:post, "/launch_workflow", %{
+          workflow_identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
+        })
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-  test "SHOW /workflows/:id" do
-    {status, _headers, body} =
-      conn(:post, "/workflows", %{
-        identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-        version_major: 1,
-        version_minor: 2,
-        version_micro: 3
-      })
-      |> Router.call(@opts)
-      |> sent_resp
+      assert status == 201
+    end
 
-    assert status == 201
+    test "SHOW /workflows/:id" do
+      workflow_id =
+        workflow_fixture(%{
+          identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          version_major: 1,
+          version_minor: 2,
+          version_micro: 3,
+          rights: [
+            %{
+              action: "view",
+              groups: ["administrator"]
+            }
+          ]
+        })
+        |> Map.get(:id)
+        |> Integer.to_string()
 
-    workflow_id =
-      body
-      |> Jason.decode!()
-      |> Map.get("data")
-      |> Map.get("id")
-      |> Integer.to_string()
+      {status, _headers, body} =
+        conn(:get, "/workflows/" <> workflow_id)
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-    {status, _headers, body} =
-      conn(:get, "/workflows/" <> workflow_id)
-      |> Router.call(@opts)
-      |> sent_resp
+      assert status == 200
 
-    assert status == 200
+      data =
+        body
+        |> Jason.decode!()
+        |> Map.get("data")
 
-    data =
-      body
-      |> Jason.decode!()
-      |> Map.get("data")
+      identifier =
+        data
+        |> Map.get("identifier")
 
-    identifier =
-      data
-      |> Map.get("identifier")
+      assert identifier == "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
 
-    assert identifier == "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
+      reference =
+        data
+        |> Map.get("reference")
 
-    reference =
-      data
-      |> Map.get("reference")
+      assert reference == "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
+    end
 
-    assert reference == "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
-  end
+    test "UPDATE /workflows/:id" do
+      workflow_id =
+        workflow_fixture(%{
+          identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          version_major: 1,
+          version_minor: 2,
+          version_micro: 3,
+          rights: [
+            %{
+              action: "update",
+              groups: ["administrator"]
+            }
+          ]
+        })
+        |> Map.get(:id)
+        |> Integer.to_string()
 
-  test "UPDATE /workflows/:id" do
-    {status, _headers, body} =
-      conn(:post, "/workflows", %{
-        identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-        version_major: 1,
-        version_minor: 2,
-        version_micro: 3
-      })
-      |> Router.call(@opts)
-      |> sent_resp
+      {status, _headers, body} =
+        conn(:put, "/workflows/" <> workflow_id, %{workflow: %{reference: "updated reference"}})
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-    assert status == 201
+      assert status == 200
 
-    workflow_id =
-      body
-      |> Jason.decode!()
-      |> Map.get("data")
-      |> Map.get("id")
-      |> Integer.to_string()
+      reference =
+        body
+        |> Jason.decode!()
+        |> Map.get("data")
+        |> Map.get("reference")
 
-    {status, _headers, body} =
-      conn(:put, "/workflows/" <> workflow_id, %{workflow: %{reference: "updated reference"}})
-      |> Router.call(@opts)
-      |> sent_resp
+      assert reference == "updated reference"
+    end
 
-    assert status == 200
+    test "DELETE /workflows/:id" do
+      workflow_id =
+        workflow_fixture(%{
+          identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          version_major: 1,
+          version_minor: 2,
+          version_micro: 3,
+          rights: [
+            %{
+              action: "delete",
+              groups: ["administrator"]
+            }
+          ]
+        })
+        |> Map.get(:id)
+        |> Integer.to_string()
 
-    reference =
-      body
-      |> Jason.decode!()
-      |> Map.get("data")
-      |> Map.get("reference")
+      {status, _headers, body} =
+        conn(:delete, "/workflows/" <> workflow_id)
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-    assert reference == "updated reference"
-  end
+      assert status == 204
+      assert body == ""
+    end
 
-  test "DELETE /workflows/:id" do
-    {status, _headers, body} =
-      conn(:post, "/workflows", %{
-        identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-        reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-        version_major: 1,
-        version_minor: 2,
-        version_micro: 3
-      })
-      |> Router.call(@opts)
-      |> sent_resp
+    test "GET /workflows_statistics" do
+      {status, _headers, body} =
+        conn(:get, "/workflows_statistics")
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-    assert status == 201
+      assert status == 200
 
-    workflow_id =
-      body
-      |> Jason.decode!()
-      |> Map.get("data")
-      |> Map.get("id")
-      |> Integer.to_string()
-
-    {status, _headers, body} =
-      conn(:delete, "/workflows/" <> workflow_id)
-      |> Router.call(@opts)
-      |> sent_resp
-
-    assert status == 204
-    assert body == ""
-  end
-
-  test "GET /workflows_statistics" do
-    {status, _headers, body} =
-      conn(:get, "/workflows_statistics")
-      |> Router.call(@opts)
-      |> sent_resp
-
-    assert status == 200
-
-    assert body |> Jason.decode!() |> Map.get("data") |> length == 50
+      assert body |> Jason.decode!() |> Map.get("data") |> length == 50
+    end
   end
 end

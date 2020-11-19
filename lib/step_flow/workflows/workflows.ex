@@ -19,7 +19,7 @@ defmodule StepFlow.Workflows do
       [%Workflow{}, ...]
 
   """
-  def list_workflows(params \\ %{}) do
+  def list_workflows(%{"rights" => user_rights} = params) do
     page =
       Map.get(params, "page", 0)
       |> StepFlow.Integer.force()
@@ -31,7 +31,12 @@ defmodule StepFlow.Workflows do
     offset = page * size
 
     query =
-      from(workflow in Workflow)
+      from(
+        workflow in Workflow,
+        join: rights in assoc(workflow, :rights),
+        where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights),
+        where: rights.action == "view"
+      )
       |> filter_query(params, :video_id)
       |> filter_query(params, :identifier)
       |> filter_query(params, :version_major)
@@ -127,7 +132,7 @@ defmodule StepFlow.Workflows do
 
     workflows =
       Repo.all(query)
-      |> Repo.preload([:jobs, :artifacts])
+      |> Repo.preload([:jobs, :artifacts, :rights])
       |> preload_workflows
 
     %{
@@ -186,7 +191,7 @@ defmodule StepFlow.Workflows do
   """
   def get_workflow!(id) do
     Repo.get!(Workflow, id)
-    |> Repo.preload([:jobs, :artifacts])
+    |> Repo.preload([:jobs, :artifacts, :rights])
     |> preload_workflow
   end
 

@@ -54,13 +54,12 @@ defmodule StepFlow.RunWorkflows.TwoStepsWorkflowTest do
         }
       ],
       parameters: [],
-      rights: %{
-        view: ["id"],
-        create: [],
-        retry: [],
-        abort: [],
-        delete: []
-      }
+      rights: [
+        %{
+          action: "view",
+          groups: []
+        }
+      ]
     }
 
     test "run simple workflow with 2 steps" do

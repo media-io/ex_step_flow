@@ -74,13 +74,12 @@ defmodule StepFlow.RunWorkflows.ParallelStepsTest do
           parameters: []
         }
       ],
-      rights: %{
-        view: [],
-        create: [],
-        retry: [],
-        abort: [],
-        delete: []
-      }
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
+      ]
     }
 
     test "run parallel steps on a same workflow" do

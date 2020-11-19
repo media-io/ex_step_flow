@@ -7,9 +7,9 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
 
   require Logger
   alias StepFlow.Repo
+  alias StepFlow.Rights.Right
   alias StepFlow.WorkflowDefinitions.ExternalLoader
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
-  alias StepFlow.WorkflowRights.WorkflowRight
 
   schema "step_flow_workflow_definition" do
     field(:identifier, :string)
@@ -22,6 +22,9 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
     field(:steps, {:array, :map}, default: [])
     field(:start_parameters, {:array, :map}, default: [])
     field(:parameters, {:array, :map}, default: [])
+
+    many_to_many(:rights, Right, join_through: "step_flow_workflow_definition_right")
+
     timestamps()
   end
 
@@ -40,6 +43,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
       :start_parameters,
       :parameters
     ])
+    |> cast_assoc(:rights, required: true)
     |> validate_required([
       :identifier,
       :version_major,
@@ -66,7 +70,8 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
     schema =
       StepFlow.Configuration.get_var_value(
         StepFlow.WorkflowDefinitions.WorkflowDefinition,
-        :workflow_schema_url
+        :workflow_schema_url,
+        "https://media-cloud.ai/standard/1.8/workflow-definition.schema.json"
       )
       |> load_content()
       |> Jason.decode!()
@@ -125,18 +130,9 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
     end)
     |> List.flatten()
     |> Enum.each(fn workflow_definition ->
-      case %WorkflowDefinition{}
-           |> WorkflowDefinition.changeset(workflow_definition)
-           |> Repo.insert() do
-        {:ok, loaded_workflow_definition} ->
-          WorkflowRight.load_rights_in_database(
-            Map.get(workflow_definition, "rights"),
-            loaded_workflow_definition.id
-          )
-
-        {:error, reason} ->
-          {:error, reason}
-      end
+      %WorkflowDefinition{}
+      |> WorkflowDefinition.changeset(workflow_definition)
+      |> Repo.insert()
     end)
   end
 

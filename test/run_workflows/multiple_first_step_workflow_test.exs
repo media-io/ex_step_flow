@@ -63,13 +63,12 @@ defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
           ]
         }
       ],
-      rights: %{
-        view: [],
-        create: [],
-        retry: [],
-        abort: [],
-        delete: []
-      }
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
+      ]
     }
 
     test "run workflow with 2 starting steps" do

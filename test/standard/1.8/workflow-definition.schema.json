@@ -1,0 +1,272 @@
+{
+    "$id": "https://media-cloud.ai/standard/1.8/workflow-definition.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "start_parameter": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "pattern": "^(.*)$",
+                    "title": "Identifier of the parameter",
+                    "type": "string"
+                },
+                "label": {
+                    "pattern": "^(.*)$",
+                    "title": "Label of the parameter",
+                    "type": "string"
+                },
+                "type": {
+                    "pattern": "^(.*)$",
+                    "title": "Type of the data value for this parameter",
+                    "type": "string",
+                    "enum": [
+                        "file",
+                        "choice",
+                        "string",
+                        "number"
+                    ]
+                },
+                "accept": {
+                    "title": "A list of acceptable file type",
+                    "type": "string"
+                },
+                "default": {
+                    "pattern": "^(.*)$",
+                    "title": "Default value of the parameter",
+                    "type": [
+                        "integer",
+                        "number",
+                        "string",
+                        "array"
+                    ]
+                },
+                "value": {
+                    "pattern": "^(.*)$",
+                    "title": "Value of the parameter",
+                    "type": [
+                        "integer",
+                        "number",
+                        "string",
+                        "array"
+                    ]
+                },
+                "required": {
+                    "default": false,
+                    "title": "Set the parameter required",
+                    "type": "boolean"
+                },
+                "icon": {
+                    "title": "Set the icon for this parameter",
+                    "type": "string"
+                },
+                "step": {
+                    "title": "Step for float input",
+                    "type": "number"
+                },
+                "work_dir": {
+                    "title": "Overwrite de default workers work directory",
+                    "type": "string"
+                },
+                "items": {
+                    "title": "List of choice identifier and value",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string"},
+                            "label": {"type": "string"}
+                        }
+                    }
+                }
+            },
+            "required": [
+                "id",
+                "label",
+                "type"
+            ],
+            "additionalProperties": false
+        },
+        "step": {
+            "type": "object",
+            "properties": {
+                "icon": {
+                    "examples": [
+                        "file_download"
+                    ],
+                    "pattern": "^(.*)$",
+                    "title": "The Icon Schema",
+                    "type": "string"
+                },
+                "id": {
+                    "default": 0,
+                    "examples": [
+                        0
+                    ],
+                    "title": "The Id Schema",
+                    "type": "integer"
+                },
+                "label": {
+                    "examples": [
+                        "Download source elements"
+                    ],
+                    "pattern": "^(.*)$",
+                    "title": "The Label Schema",
+                    "type": "string"
+                },
+                "mode": {
+                    "pattern": "^(.*)$",
+                    "title": "Mode for this step",
+                    "type": "string",
+                    "default": "one_for_one",
+                    "enum": [
+                        "one_for_many",
+                        "one_for_one",
+                        "notification"
+                    ]
+                },
+                "multiple_jobs": {
+                    "examples": [
+                        "segments"
+                    ],
+                    "pattern": "^(.*)$",
+                    "title": "The data ranges parameter to process in different jobs",
+                    "type": "string"
+                },
+                "name": {
+                    "examples": [
+                        "job_transfer"
+                    ],
+                    "pattern": "^([a-z_]+)$",
+                    "title": "Name of the parameter",
+                    "type": "string"
+                },
+                "condition": {
+                    "title": "Expression which requires to return a boolean. On false condition, the step will be skipped.",
+                    "type": "string"
+                },
+                "skip_destination_path": {
+                    "title": "Skip generation of a destination path parameter, it requires to add it in parameters.",
+                    "type": "boolean"
+                },
+                "parameters": {
+                    "type": "array",
+                    "items":{ "$ref": "parameter.schema.json#" }
+                },
+                "parent_ids":
+                {
+                    "title": "Reference(s) of parent steps",
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "required_to_start": {
+                    "title": "Reference(s) of required steps to run that step",
+                    "type": "array",
+                    "items": { "type": "integer" }
+                },
+                "work_dir": {
+                    "title": "Overwrite the default workdir for this step",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id",
+                "name",
+                "label",
+                "icon",
+                "parameters"
+            ],
+            "additionalProperties": false,
+            "title": "Step definition"
+        },
+        "tag": {
+            "type": "string",
+            "examples": [
+                "speech_to_text"
+            ],
+            "pattern": "^(.*)$",
+            "title": "The Items Schema"
+        }
+    },
+    "properties": {
+        "identifier": {
+            "examples": [
+                "speech_to_text"
+            ],
+            "pattern": "^([a-z_]+)$",
+            "title": "The Identifier of the workflow, used to reference it",
+            "type": "string"
+        },
+        "reference": {
+            "title": "External reference identifier for this workflow, can be UUID, string etc.",
+            "type": "string"
+        },
+        "label": {
+            "$id": "#/properties/label",
+            "examples": [
+                "speech_to_text"
+            ],
+            "pattern": "^(.*)$",
+            "title": "The label of the workflow, used as displayed name",
+            "type": "string"
+        },
+        "icon": {
+            "examples": [
+                "subtitles"
+            ],
+            "pattern": "^([a-z_]+)$",
+            "title": "The icon used with the label. One of https://material.io/resources/icons/",
+            "type": "string"
+        },
+        "start_parameters": {
+            "items": { "$ref": "#/definitions/start_parameter" },
+            "title": "Definition of available parameters to start the workflow definition",
+            "type": "array"
+        },
+        "parameters": {
+            "items": { "$ref": "parameter.schema.json#" },
+            "title": "Storage of dynamic parameters during process of the workflow instance",
+            "type": "array"
+        },
+        "steps": {
+            "items": { "$ref": "#/definitions/step" },
+            "title": "Steps to represent the complete process",
+            "type": "array"
+        },
+        "tags": {
+            "items": {"$ref": "#/definitions/tag" },
+            "title": "List of tags to classify the worklow",
+            "type": "array"
+        },
+        "version_major": {
+            "title": "Major version of this Workflow definition",
+            "type": "integer"
+        },
+        "version_minor": {
+            "title": "Minor version of this Workflow definition",
+            "type": "integer"
+        },
+        "version_micro": {
+            "title": "Micro version of this Workflow definition",
+            "type": "integer"
+        },
+        "rights": {
+            "title":"User rights to manipulate the workflow",
+            "$ref": "rights.schema.json#"
+        }
+    },
+    "required": [
+        "identifier",
+        "label",
+        "icon",
+        "version_major",
+        "version_minor",
+        "version_micro",
+        "tags",
+        "parameters",
+        "steps",
+        "rights"
+    ],
+    "additionalProperties": false,
+    "title": "Schema of Workflow Definition for Media Cloud AI",
+    "type": "object"
+}

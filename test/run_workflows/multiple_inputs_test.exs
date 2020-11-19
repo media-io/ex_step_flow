@@ -48,13 +48,12 @@ defmodule StepFlow.RunWorkflows.MultipleInputsTest do
           ]
         }
       ],
-      rights: %{
-        view: [],
-        create: [],
-        retry: [],
-        abort: [],
-        delete: []
-      }
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
+      ]
     }
 
     test "run simple workflow with 1 step" do

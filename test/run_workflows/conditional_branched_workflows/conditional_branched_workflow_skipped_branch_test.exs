@@ -85,13 +85,12 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowSkippedBranchTest do
           parameters: []
         }
       ],
-      rights: %{
-        view: [],
-        create: [],
-        retry: [],
-        abort: [],
-        delete: []
-      }
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
+      ]
     }
 
     test "run conditional branched skipped branch workflow" do

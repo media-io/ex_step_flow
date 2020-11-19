@@ -58,7 +58,7 @@ defmodule StepFlow.Migration.All do
 
     Ecto.Migrator.up(
       StepFlow.Repo,
-      20_201_110_180_300,
+      20_201_119_140_300,
       StepFlow.Migration.CreateWorkfkowRights
     )
   end

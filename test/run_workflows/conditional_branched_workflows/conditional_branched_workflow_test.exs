@@ -76,13 +76,12 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowTest do
           parameters: []
         }
       ],
-      rights: %{
-        view: [],
-        create: [],
-        retry: [],
-        abort: [],
-        delete: []
-      }
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
+      ]
     }
 
     test "run conditional branched workflow" do

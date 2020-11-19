@@ -4,6 +4,7 @@ defmodule StepFlow.WorkflowController do
 
   require Logger
 
+  alias StepFlow.Controller.Helpers
   alias StepFlow.Repo
   alias StepFlow.Step
   alias StepFlow.Workflows
@@ -11,15 +12,18 @@ defmodule StepFlow.WorkflowController do
 
   action_fallback(StepFlow.FallbackController)
 
-  def index(conn, params) do
-    workflows = Workflows.list_workflows(params)
+  def index(%Plug.Conn{assigns: %{current_user: user}} = conn, params) do
+    workflows =
+      params
+      |> Map.put("rights", user.rights)
+      |> Workflows.list_workflows()
 
     conn
     |> put_view(StepFlow.WorkflowView)
     |> render("index.json", workflows: workflows)
   end
 
-  def create(conn, workflow_params) do
+  def create_workflow(%Plug.Conn{assigns: %{current_user: user}} = conn, workflow_params) do
     case Workflows.create_workflow(workflow_params) do
       {:ok, %Workflow{} = workflow} ->
         Step.start_next(workflow)
@@ -39,39 +43,57 @@ defmodule StepFlow.WorkflowController do
     end
   end
 
-  def create_workflow(conn, %{"workflow_identifier" => identifier} = workflow_params) do
+  def create(
+        %Plug.Conn{assigns: %{current_user: user}} = conn,
+        %{"workflow_identifier" => identifier} = workflow_params
+      ) do
     case StepFlow.WorkflowDefinitions.get_workflow_definition(identifier) do
       nil ->
         conn
         |> put_status(:unprocessable_entity)
         |> put_view(StepFlow.WorkflowDefinitionView)
         |> render("error.json",
-          errors: %{workflow_identifier: "Unable to locate workflow with this identifier"}
+          errors: %{reason: "Unable to locate workflow with this identifier"}
         )
 
       workflow_definition ->
-        workflow_description =
-          workflow_definition
-          |> Map.put(:reference, Map.get(workflow_params, "reference"))
-          |> Map.put(
-            :parameters,
-            merge_parameters(
-              StepFlow.Map.get_by_key_or_atom(workflow_definition, :parameters),
-              Map.get(workflow_params, "parameters", %{})
+        if Helpers.check_right(workflow_definition, user, "create") do
+          workflow_description =
+            workflow_definition
+            |> Map.put(:reference, Map.get(workflow_params, "reference"))
+            |> Map.put(
+              :parameters,
+              merge_parameters(
+                StepFlow.Map.get_by_key_or_atom(workflow_definition, :parameters),
+                Map.get(workflow_params, "parameters", %{})
+              )
             )
-          )
-          |> Map.from_struct()
+            |> Map.put(
+              :rights,
+              workflow_definition
+              |> Map.get(:rights)
+              |> Enum.map(fn right -> Map.from_struct(right) end)
+            )
+            |> Map.from_struct()
 
-        create(conn, workflow_description)
+          create_workflow(conn, workflow_description)
+        else
+          conn
+          |> put_status(:forbidden)
+          |> put_view(StepFlow.WorkflowDefinitionView)
+          |> render("error.json",
+            errors: %{reason: "Forbidden to create workflow with this identifier"}
+          )
+        end
     end
   end
 
-  def create_workflow(conn, _workflow_params) do
+  def create(conn, _workflow_params) do
     conn
     |> put_status(:unprocessable_entity)
     |> put_view(StepFlow.WorkflowDefinitionView)
     |> render("error.json",
-      errors: %{workflow_identifier: "Missing Workflow identifier parameter"}
+      errors: %{reason: "Missing Workflow identifier parameter"}
     )
   end
 
@@ -91,17 +113,29 @@ defmodule StepFlow.WorkflowController do
     merge_parameters(tail, request_parameters, result)
   end
 
-  def show(conn, %{"id" => id}) do
+  def show(%Plug.Conn{assigns: %{current_user: user}} = conn, %{"id" => id}) do
     workflow =
       Workflows.get_workflow!(id)
       |> Repo.preload(:jobs)
 
-    conn
-    |> put_view(StepFlow.WorkflowView)
-    |> render("show.json", workflow: workflow)
+    if Helpers.check_right(workflow, user, "view") do
+      conn
+      |> put_view(StepFlow.WorkflowView)
+      |> render("show.json", workflow: workflow)
+    else
+      conn
+      |> put_status(:forbidden)
+      |> put_view(StepFlow.WorkflowDefinitionView)
+      |> render("error.json",
+        errors: %{reason: "Forbidden to view workflow with this identifier"}
+      )
+    end
   end
 
-  def get(conn, %{"identifier" => workflow_identifier} = _params) do
+  def get(
+        %Plug.Conn{assigns: %{current_user: user}} = conn,
+        %{"identifier" => workflow_identifier} = _params
+      ) do
     workflow =
       case workflow_identifier do
         _ -> %{}
@@ -116,7 +150,7 @@ defmodule StepFlow.WorkflowController do
     |> json(%{})
   end
 
-  def statistics(conn, params) do
+  def statistics(%Plug.Conn{assigns: %{current_user: user}} = conn, params) do
     scale = Map.get(params, "scale", "hour")
     stats = Workflows.get_workflow_history(%{scale: scale})
 
@@ -126,21 +160,42 @@ defmodule StepFlow.WorkflowController do
     })
   end
 
-  def update(conn, %{"id" => id, "workflow" => workflow_params}) do
+  def update(%Plug.Conn{assigns: %{current_user: user}} = conn, %{
+        "id" => id,
+        "workflow" => workflow_params
+      }) do
     workflow = Workflows.get_workflow!(id)
 
-    with {:ok, %Workflow{} = workflow} <- Workflows.update_workflow(workflow, workflow_params) do
+    if Helpers.check_right(workflow, user, "update") do
+      with {:ok, %Workflow{} = workflow} <- Workflows.update_workflow(workflow, workflow_params) do
+        conn
+        |> put_view(StepFlow.WorkflowView)
+        |> render("show.json", workflow: workflow)
+      end
+    else
       conn
-      |> put_view(StepFlow.WorkflowView)
-      |> render("show.json", workflow: workflow)
+      |> put_status(:forbidden)
+      |> put_view(StepFlow.WorkflowDefinitionView)
+      |> render("error.json",
+        errors: %{reason: "Forbidden to update workflow with this identifier"}
+      )
     end
   end
 
-  def delete(conn, %{"id" => id}) do
+  def delete(%Plug.Conn{assigns: %{current_user: user}} = conn, %{"id" => id}) do
     workflow = Workflows.get_workflow!(id)
 
-    with {:ok, %Workflow{}} <- Workflows.delete_workflow(workflow) do
-      send_resp(conn, :no_content, "")
+    if Helpers.check_right(workflow, user, "delete") do
+      with {:ok, %Workflow{}} <- Workflows.delete_workflow(workflow) do
+        send_resp(conn, :no_content, "")
+      end
+    else
+      conn
+      |> put_status(:forbidden)
+      |> put_view(StepFlow.WorkflowDefinitionView)
+      |> render("error.json",
+        errors: %{reason: "Forbidden to update workflow with this identifier"}
+      )
     end
   end
 end

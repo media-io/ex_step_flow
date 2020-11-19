@@ -18,7 +18,13 @@ defmodule StepFlow.ProgressionsViewTest do
     version_minor: 5,
     version_micro: 4,
     reference: "some id",
-    steps: []
+    steps: [],
+    rights: [
+      %{
+        action: "create",
+        groups: ["administrator"]
+      }
+    ]
   }
 
   test "render a Worker Definition" do

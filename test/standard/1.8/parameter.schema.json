@@ -1,0 +1,284 @@
+{
+    "$id": "https://media-cloud.ai/standard/1.8/parameter.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "properties": {
+        "id": {
+            "examples": [
+                "mode"
+            ],
+            "pattern": "^([a-z_]+)$",
+            "title": "The Identifier of the parameter, used to identify it",
+            "type": "string"
+        },
+        "type": {
+            "pattern": "^(.*)$",
+            "title": "Type of the data value for this parameter",
+            "type": "string",
+            "enum": [
+                "array_of_media_segments",
+                "array_of_strings",
+                "array_of_templates",
+                "boolean",
+                "credential",
+                "extended",
+                "filter",
+                "integer",
+                "requirements",
+                "select_input",
+                "string",
+                "template"
+            ]
+        },
+        "store": {
+            "examples": [
+                "BACKEND"
+            ],
+            "pattern": "^([A-Z0-9_]+)$",
+            "title": "The Identifier of the store from which the parameter value can be resolved (as a credential)",
+            "type": "string"
+        },
+        "default": {},
+        "value": {}
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": { "type": { "const": "array_of_media_segments" } }
+        },
+        "then": {
+          "properties": {
+            "default": {
+              "type": "array",
+              "items": {
+                "properties": {
+                  "start": { "type": "integer" },
+                  "end": { "type": "integer" }
+                }
+              }
+            },
+            "value": {
+              "type": "array",
+              "items": {
+                "properties": {
+                  "start": { "type": "integer" },
+                  "end": { "type": "integer" }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "array_of_strings" } }
+        },
+        "then": {
+          "properties": {
+            "default": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "value": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "array_of_templates" } }
+        },
+        "then": {
+          "properties": {
+            "default": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "value": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "boolean" } }
+        },
+        "then": {
+          "properties": {
+            "default": {
+              "type": "boolean"
+            },
+            "value": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "credential" } }
+        },
+        "then": {
+          "properties": {
+            "default": {
+              "type": "string",
+              "pattern": "^([A-Z0-9_]+)$"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^([A-Z0-9_]+)$"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "extended" } }
+        },
+        "then": {
+          "properties": {
+            "default": {
+              "type": [
+                "object",
+                "array"
+              ]
+            },
+            "value": {
+              "type": [
+                "object",
+                "array"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "filter" } }
+        },
+        "then": {
+          "properties": {
+            "default": {
+              "type": "object",
+              "properties": {
+                "ends_with": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+              }
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "ends_with": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "integer" } }
+        },
+        "then": {
+          "properties": {
+            "default": {
+              "type": "integer"
+            },
+            "value": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "requirements" } }
+        },
+        "then": {
+          "properties": {
+            "default": {
+              "type": "object",
+              "properties": {
+                "paths": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+              }
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "paths": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "select_input" } }
+        },
+        "then": {
+          "properties": {
+            "default": {
+              "type": "object",
+              "properties": {
+                "ends_with": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+              }
+            },
+            "value": {
+              "type": "object",
+              "properties": {
+                "ends_with": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "string" } }
+        },
+        "then": {
+          "properties": {
+            "default": { "type": "string" },
+            "value": { "type": "string" }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "template" } }
+        },
+        "then": {
+          "properties": {
+            "default": { "type": "string" },
+            "value": { "type": "string" }
+          }
+        }
+      }
+    ],
+    "required": [
+        "id",
+        "type"
+    ],
+    "additionalProperties": false,
+    "title": "Generic parameter definition",
+    "type": "object"
+}

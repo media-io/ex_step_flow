@@ -18,6 +18,12 @@ defmodule StepFlow.Notifications.SlackTest do
       version_minor: 0,
       version_micro: 2,
       reference: "some id",
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
+      ],
       steps: [
         %{
           id: 0,

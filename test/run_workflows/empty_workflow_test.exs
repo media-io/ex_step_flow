@@ -20,7 +20,13 @@ defmodule StepFlow.RunWorkflows.EmptyWorkflowTest do
       version_minor: 5,
       version_micro: 4,
       reference: "some id",
-      steps: []
+      steps: [],
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
+      ]
     }
 
     def workflow_fixture(workflow, attrs \\ %{}) do

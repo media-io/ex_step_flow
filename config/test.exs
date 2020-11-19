@@ -25,5 +25,7 @@ config :step_flow, StepFlow.Amqp,
   password: "guest",
   virtual_host: ""
 
-config :step_flow, StepFlow.WorkflowDefinitions.ExternalLoader,
-  specification_folder: "/home/mathia/work/media-cloud-ai.github.com"
+config :step_flow, StepFlow.WorkflowDefinitions.ExternalLoader, specification_folder: "./test/"
+
+config :step_flow, StepFlow.WorkflowDefinitions.WorkflowDefinition,
+  workflow_schema_url: "./test/standard/1.8/workflow-definition.schema.json"

@@ -6,23 +6,28 @@
   "version_minor": 1,
   "version_micro": 0,
   "tags": ["speech_to_text"],
-  "rights": {
-      "view": [
-          "group"
-      ],
-      "create": [
-          "group"
-      ],
-      "retry": [
-          "group"
-      ],
-      "abort": [
-          "group"
-      ],
-      "delete": [
-          "group"
-      ]
-  },
+  "rights": [
+    {
+      "action": "view",
+      "groups": ["user"]
+    },
+    {
+      "action": "create",
+      "groups": ["user"]
+    },
+    {
+      "action": "retry",
+      "groups": ["user"]
+    },
+    {
+      "action": "abort",
+      "groups": ["user"]
+    },
+    {
+      "action": "delete",
+      "groups": ["user"]
+    }
+  ],
   "start_parameters": [
     {
       "id": "audio_source_filename",

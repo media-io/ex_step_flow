@@ -21,7 +21,21 @@ defmodule StepFlow.WorkflowsTest do
       version_minor: 5,
       version_micro: 4,
       reference: "some id",
-      steps: []
+      steps: [],
+      rights: [
+        %{
+          action: "create",
+          groups: ["administrator"]
+        },
+        %{
+          action: "view",
+          groups: ["administrator"]
+        },
+        %{
+          action: "delete",
+          groups: ["administrator"]
+        }
+      ]
     }
     @update_attrs %{reference: "some updated id", steps: [%{action: "something"}]}
     @invalid_attrs %{reference: nil, flow: nil}
@@ -40,7 +54,12 @@ defmodule StepFlow.WorkflowsTest do
         workflow_fixture()
         |> Repo.preload([:artifacts, :jobs])
 
-      assert Workflows.list_workflows() == %{data: [workflow], page: 0, size: 10, total: 1}
+      assert Workflows.list_workflows(%{"rights" => ["administrator", "user"]}) == %{
+               data: [workflow],
+               page: 0,
+               size: 10,
+               total: 1
+             }
     end
 
     test "get_workflow!/1 returns the workflow with given id" do

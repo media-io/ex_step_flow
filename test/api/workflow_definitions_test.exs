@@ -13,52 +13,102 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     :ok = Sandbox.checkout(StepFlow.Repo)
   end
 
-  @tag capture_log: true
-  test "GET /definitions" do
-    {status, _headers, body} =
-      conn(:get, "/definitions")
-      |> Router.call(@opts)
-      |> sent_resp
+  describe "workflow_definition" do
+    @authorized_user %{
+      rights: [
+        "administrator",
+        "user"
+      ]
+    }
 
-    assert status == 200
-    response = body |> Jason.decode!()
-    assert Map.get(response, "total") == 2
-  end
+    @unauthorized_user %{
+      rights: []
+    }
 
-  @tag capture_log: true
-  test "GET /definitions/simple_workflow" do
-    {status, _headers, body} =
-      conn(:get, "/definitions/simple_workflow")
-      |> Router.call(@opts)
-      |> sent_resp
+    @tag capture_log: true
+    test "GET /definitions with authorized user" do
+      {status, _headers, body} =
+        conn(:get, "/definitions")
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-    assert status == 200
-    response = body |> Jason.decode!()
+      assert status == 200
+      response = body |> Jason.decode!()
+      assert Map.get(response, "total") == 2
+    end
 
-    assert response["data"]["identifier"] == "simple_workflow"
-    assert response["data"]["version_major"] == 0
-    assert response["data"]["version_minor"] == 1
-    assert response["data"]["version_micro"] == 0
-    assert response["data"]["tags"] == ["speech_to_text"]
-  end
+    @tag capture_log: true
+    test "GET /definitions with unauthorized user" do
+      {status, _headers, body} =
+        conn(:get, "/definitions")
+        |> assign(:current_user, @unauthorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-  @tag capture_log: true
-  test "GET /definitions/empty_workflow.json" do
-    {status, _headers, body} =
-      conn(:get, "/definitions/empty_workflow.json")
-      |> Router.call(@opts)
-      |> sent_resp
+      assert status == 200
+      response = body |> Jason.decode!()
+      assert Map.get(response, "total") == 0
+    end
 
-    assert status == 422
-    response = body |> Jason.decode!()
+    @tag capture_log: true
+    test "GET /definitions/simple_workflow with authorized user" do
+      {status, _headers, body} =
+        conn(:get, "/definitions/simple_workflow")
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
 
-    assert response == %{
-             "errors" => [
-               %{
-                 "message" => "Incorrect parameters",
-                 "reason" => "Unable to locate workflow with this identifier"
-               }
-             ]
-           }
+      assert status == 200
+      response = body |> Jason.decode!()
+
+      assert response["data"]["identifier"] == "simple_workflow"
+      assert response["data"]["version_major"] == 0
+      assert response["data"]["version_minor"] == 1
+      assert response["data"]["version_micro"] == 0
+      assert response["data"]["tags"] == ["speech_to_text"]
+    end
+
+    @tag capture_log: true
+    test "GET /definitions/simple_workflow with unauthorized user" do
+      {status, _headers, body} =
+        conn(:get, "/definitions/simple_workflow")
+        |> assign(:current_user, @unauthorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 403
+      response = body |> Jason.decode!()
+
+      assert response == %{
+               "errors" => [
+                 %{
+                   "message" => "Incorrect parameters",
+                   "reason" => "Forbidden to access workflow definition with this identifier"
+                 }
+               ]
+             }
+    end
+
+    @tag capture_log: true
+    test "GET /definitions/empty_workflow.json" do
+      {status, _headers, body} =
+        conn(:get, "/definitions/empty_workflow.json")
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 422
+      response = body |> Jason.decode!()
+
+      assert response == %{
+               "errors" => [
+                 %{
+                   "message" => "Incorrect parameters",
+                   "reason" => "Unable to locate workflow with this identifier"
+                 }
+               ]
+             }
+    end
   end
 end
