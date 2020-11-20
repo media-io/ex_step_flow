@@ -34,8 +34,8 @@ defmodule StepFlow.Workflows do
       from(
         workflow in Workflow,
         join: rights in assoc(workflow, :rights),
-        where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights),
-        where: rights.action == "view"
+        where: rights.action == "view",
+        where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
       )
       |> filter_query(params, :video_id)
       |> filter_query(params, :identifier)

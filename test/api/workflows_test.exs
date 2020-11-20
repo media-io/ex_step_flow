@@ -25,7 +25,9 @@ defmodule StepFlow.Api.WorkflowsTest do
     }
 
     @unauthorized_user %{
-      rights: []
+      rights: [
+        "unauthorized"
+      ]
     }
 
     def workflow_fixture(workflow, attrs \\ %{}) do
@@ -279,7 +281,7 @@ defmodule StepFlow.Api.WorkflowsTest do
       assert status == 201
     end
 
-    test "SHOW /workflows/:id" do
+    test "SHOW /workflows/:id with authorized user" do
       workflow_id =
         workflow_fixture(%{
           identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
@@ -323,7 +325,34 @@ defmodule StepFlow.Api.WorkflowsTest do
       assert reference == "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
     end
 
-    test "UPDATE /workflows/:id" do
+    test "SHOW /workflows/:id with unauthorized user" do
+      workflow_id =
+        workflow_fixture(%{
+          identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          version_major: 1,
+          version_minor: 2,
+          version_micro: 3,
+          rights: [
+            %{
+              action: "view",
+              groups: ["administrator"]
+            }
+          ]
+        })
+        |> Map.get(:id)
+        |> Integer.to_string()
+
+      {status, _headers, _body} =
+        conn(:get, "/workflows/" <> workflow_id)
+        |> assign(:current_user, @unauthorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 403
+    end
+
+    test "UPDATE /workflows/:id with authorized user" do
       workflow_id =
         workflow_fixture(%{
           identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
@@ -356,6 +385,89 @@ defmodule StepFlow.Api.WorkflowsTest do
         |> Map.get("reference")
 
       assert reference == "updated reference"
+    end
+
+    test "UPDATE /workflows/:id with unauthorized" do
+      workflow_id =
+        workflow_fixture(%{
+          identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          version_major: 1,
+          version_minor: 2,
+          version_micro: 3,
+          rights: [
+            %{
+              action: "update",
+              groups: ["administrator"]
+            }
+          ]
+        })
+        |> Map.get(:id)
+        |> Integer.to_string()
+
+      {status, _headers, _body} =
+        conn(:put, "/workflows/" <> workflow_id, %{workflow: %{reference: "updated reference"}})
+        |> assign(:current_user, @unauthorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 403
+    end
+
+    test "UPDATE /workflows/:id grants unauthorized user to view workflow" do
+      workflow_id =
+        workflow_fixture(%{
+          identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          version_major: 1,
+          version_minor: 2,
+          version_micro: 3,
+          rights: [
+            %{
+              action: "update",
+              groups: ["administrator"]
+            }
+          ]
+        })
+        |> Map.get(:id)
+        |> Integer.to_string()
+
+      upgrade = %{
+        rights: [
+          %{
+            action: "update",
+            groups: ["administrator"]
+          },
+          %{
+            action: "view",
+            groups: ["unauthorized"]
+          }
+        ]
+      }
+
+      {status, _headers, _body} =
+        conn(:put, "/workflows/" <> workflow_id, %{workflow: upgrade})
+        |> assign(:current_user, @authorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 200
+
+      {status, _headers, _body} =
+        conn(:get, "/workflows/" <> workflow_id)
+        |> assign(:current_user, @unauthorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 200
+
+      {status, _headers, _body} =
+        conn(:put, "/workflows/" <> workflow_id, %{workflow: %{reference: "updated reference"}})
+        |> assign(:current_user, @unauthorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 403
     end
 
     test "DELETE /workflows/:id" do

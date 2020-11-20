@@ -21,7 +21,11 @@ defmodule StepFlow.Workflows.Workflow do
     has_many(:jobs, Job, on_delete: :delete_all)
     has_many(:artifacts, Artifact, on_delete: :delete_all)
 
-    many_to_many(:rights, Right, join_through: "step_flow_workflow_right", on_delete: :delete_all)
+    many_to_many(:rights, Right,
+      join_through: "step_flow_workflow_right",
+      on_delete: :delete_all,
+      on_replace: :delete
+    )
 
     timestamps()
   end

@@ -26,8 +26,8 @@ defmodule StepFlow.WorkflowDefinitions do
       from(
         workflow_definition in WorkflowDefinition,
         join: rights in assoc(workflow_definition, :rights),
-        where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights),
-        where: rights.action == "view"
+        where: rights.action == "view",
+        where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
       )
 
     total_query = from(item in subquery(query), select: count(item.id))

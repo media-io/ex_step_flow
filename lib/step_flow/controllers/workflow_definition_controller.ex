@@ -45,7 +45,7 @@ defmodule StepFlow.WorkflowDefinitionController do
         )
 
       workflow_definition ->
-        if Helpers.check_right(workflow_definition, user, "view") do
+        if Helpers.has_right(workflow_definition, user, "view") do
           conn
           |> put_view(StepFlow.WorkflowDefinitionView)
           |> render("show.json", workflow_definition: workflow_definition)

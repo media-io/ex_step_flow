@@ -21,7 +21,7 @@ defmodule StepFlow.WorkflowEventsController do
 
     case params do
       %{"event" => "abort"} ->
-        if check_right(workflow, user, "abort") do
+        if has_right(workflow, user, "abort") do
           workflow.steps
           |> skip_remaining_steps(workflow)
 
@@ -38,7 +38,7 @@ defmodule StepFlow.WorkflowEventsController do
         end
 
       %{"event" => "retry", "job_id" => job_id} ->
-        if check_right(workflow, user, "retry") do
+        if has_right(workflow, user, "retry") do
           Logger.warn("retry job #{job_id}")
 
           job = Jobs.get_job_with_status!(job_id)
@@ -53,7 +53,7 @@ defmodule StepFlow.WorkflowEventsController do
         end
 
       %{"event" => "delete"} ->
-        if check_right(workflow, user, "delete") do
+        if has_right(workflow, user, "delete") do
           for job <- workflow.jobs do
             Jobs.delete_job(job)
           end

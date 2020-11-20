@@ -23,7 +23,7 @@ defmodule StepFlow.WorkflowController do
     |> render("index.json", workflows: workflows)
   end
 
-  def create_workflow(%Plug.Conn{assigns: %{current_user: user}} = conn, workflow_params) do
+  def create_workflow(conn, workflow_params) do
     case Workflows.create_workflow(workflow_params) do
       {:ok, %Workflow{} = workflow} ->
         Step.start_next(workflow)
@@ -57,7 +57,7 @@ defmodule StepFlow.WorkflowController do
         )
 
       workflow_definition ->
-        if Helpers.check_right(workflow_definition, user, "create") do
+        if Helpers.has_right(workflow_definition, user, "create") do
           workflow_description =
             workflow_definition
             |> Map.put(:reference, Map.get(workflow_params, "reference"))
@@ -118,7 +118,7 @@ defmodule StepFlow.WorkflowController do
       Workflows.get_workflow!(id)
       |> Repo.preload(:jobs)
 
-    if Helpers.check_right(workflow, user, "view") do
+    if Helpers.has_right(workflow, user, "view") do
       conn
       |> put_view(StepFlow.WorkflowView)
       |> render("show.json", workflow: workflow)
@@ -132,10 +132,7 @@ defmodule StepFlow.WorkflowController do
     end
   end
 
-  def get(
-        %Plug.Conn{assigns: %{current_user: user}} = conn,
-        %{"identifier" => workflow_identifier} = _params
-      ) do
+  def get(conn, %{"identifier" => workflow_identifier} = _params) do
     workflow =
       case workflow_identifier do
         _ -> %{}
@@ -150,7 +147,7 @@ defmodule StepFlow.WorkflowController do
     |> json(%{})
   end
 
-  def statistics(%Plug.Conn{assigns: %{current_user: user}} = conn, params) do
+  def statistics(conn, params) do
     scale = Map.get(params, "scale", "hour")
     stats = Workflows.get_workflow_history(%{scale: scale})
 
@@ -166,7 +163,7 @@ defmodule StepFlow.WorkflowController do
       }) do
     workflow = Workflows.get_workflow!(id)
 
-    if Helpers.check_right(workflow, user, "update") do
+    if Helpers.has_right(workflow, user, "update") do
       with {:ok, %Workflow{} = workflow} <- Workflows.update_workflow(workflow, workflow_params) do
         conn
         |> put_view(StepFlow.WorkflowView)
@@ -185,7 +182,7 @@ defmodule StepFlow.WorkflowController do
   def delete(%Plug.Conn{assigns: %{current_user: user}} = conn, %{"id" => id}) do
     workflow = Workflows.get_workflow!(id)
 
-    if Helpers.check_right(workflow, user, "delete") do
+    if Helpers.has_right(workflow, user, "delete") do
       with {:ok, %Workflow{}} <- Workflows.delete_workflow(workflow) do
         send_resp(conn, :no_content, "")
       end

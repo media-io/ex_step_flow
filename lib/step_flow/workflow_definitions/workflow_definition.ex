@@ -68,7 +68,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
 
   defp get_schema do
     schema =
-      StepFlow.Configuration.get_var_value(
+      Application.get_env(
         StepFlow.WorkflowDefinitions.WorkflowDefinition,
         :workflow_schema_url,
         "https://media-cloud.ai/standard/1.8/workflow-definition.schema.json"
