@@ -1,0 +1,34 @@
+{
+  "identifier": "missing_rights",
+  "label": "Transcription",
+  "icon": "subtitles",
+  "version_major": 0,
+  "version_minor": 0,
+  "version_micro": 1,
+  "tags": ["speech_to_text"],
+  "rights": [
+    {
+      "action": "view",
+      "groups": []
+    },
+    {
+      "action": "create",
+      "groups": []
+    },
+    {
+      "action": "retry",
+      "groups": []
+    },
+    {
+      "action": "abort",
+      "groups": []
+    },
+    {
+      "action": "delete",
+      "groups": []
+    }
+  ],
+  "start_parameters": [],
+  "parameters": [],
+  "steps": []
+}

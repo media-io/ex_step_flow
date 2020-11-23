@@ -12,11 +12,9 @@ defmodule StepFlow.WorkflowDefinitionController do
   action_fallback(StepFlow.FallbackController)
 
   def index(%Plug.Conn{assigns: %{current_user: user}} = conn, params) do
-    # Ajouter les droits à params
-
     params =
       params
-      |> Map.put("rights", user.rights)
+      |> Map.put("rights", StepFlow.Map.get_by_key_or_atom(user, :rights, []))
 
     workflow_definitions = WorkflowDefinitions.list_workflow_definitions(params)
 

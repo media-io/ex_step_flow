@@ -11,7 +11,7 @@ defmodule StepFlow.WorkflowDefinitions do
   @doc """
   Returns the list of Workflow Definitions.
   """
-  def list_workflow_definitions(%{"rights" => user_rights} = params) do
+  def list_workflow_definitions(params) do
     page =
       Map.get(params, "page", 0)
       |> StepFlow.Integer.force()
@@ -23,12 +23,18 @@ defmodule StepFlow.WorkflowDefinitions do
     offset = page * size
 
     query =
-      from(
-        workflow_definition in WorkflowDefinition,
-        join: rights in assoc(workflow_definition, :rights),
-        where: rights.action == "view",
-        where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
-      )
+      case Map.get(params, "rights") do
+        nil ->
+          from(workflow_definition in WorkflowDefinition)
+
+        user_rights ->
+          from(
+            workflow_definition in WorkflowDefinition,
+            join: rights in assoc(workflow_definition, :rights),
+            where: rights.action == "view",
+            where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
+          )
+      end
 
     total_query = from(item in subquery(query), select: count(item.id))
 

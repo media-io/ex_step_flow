@@ -17,13 +17,6 @@ defmodule StepFlow.Api.WorkflowsTest do
   end
 
   describe "workflow" do
-    @authorized_user %{
-      rights: [
-        "administrator",
-        "user"
-      ]
-    }
-
     @unauthorized_user %{
       rights: [
         "unauthorized"
@@ -48,7 +41,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     test "GET /workflows with authorized user" do
       {status, _headers, body} =
         conn(:get, "/workflows")
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_view"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -64,19 +57,28 @@ defmodule StepFlow.Api.WorkflowsTest do
         rights: [
           %{
             action: "view",
-            groups: ["administrator"]
+            groups: ["user_view"]
           }
         ]
       })
 
       {status, _headers, body} =
         conn(:get, "/workflows")
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_view"]})
         |> Router.call(@opts)
         |> sent_resp
 
       assert status == 200
       assert body |> Jason.decode!() |> Map.get("total") == 1
+
+      {status, _headers, body} =
+        conn(:get, "/workflows")
+        |> assign(:current_user, %{rights: ["user_update"]})
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 200
+      assert body |> Jason.decode!() |> Map.get("total") == 0
     end
 
     test "GET /workflows with unauthorized user" do
@@ -98,7 +100,7 @@ defmodule StepFlow.Api.WorkflowsTest do
         rights: [
           %{
             action: "view",
-            groups: ["administrator"]
+            groups: ["user_view"]
           }
         ]
       })
@@ -121,7 +123,7 @@ defmodule StepFlow.Api.WorkflowsTest do
           reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           parameters: %{}
         })
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_create"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -155,7 +157,7 @@ defmodule StepFlow.Api.WorkflowsTest do
           workflow_identifier: "simple_workflow",
           reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
         })
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_create"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -169,7 +171,7 @@ defmodule StepFlow.Api.WorkflowsTest do
           workflow_identifier: "simple_workflow",
           parameters: %{}
         })
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_create"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -182,7 +184,7 @@ defmodule StepFlow.Api.WorkflowsTest do
         conn(:post, "/workflows", %{
           workflow_identifier: "simple_workflow"
         })
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_create"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -199,7 +201,7 @@ defmodule StepFlow.Api.WorkflowsTest do
             "audio_source_filename" => "awsome.mp4"
           }
         })
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_create"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -223,7 +225,7 @@ defmodule StepFlow.Api.WorkflowsTest do
             "invalid" => "parameter"
           }
         })
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_create"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -238,7 +240,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     test "[deprecated] POST /workflow invalid" do
       {status, _headers, body} =
         conn(:post, "/launch_workflow", %{})
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_create"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -264,7 +266,7 @@ defmodule StepFlow.Api.WorkflowsTest do
         rights: [
           %{
             action: "create",
-            groups: ["administrator"]
+            groups: ["user_create"]
           }
         ]
       })
@@ -274,7 +276,7 @@ defmodule StepFlow.Api.WorkflowsTest do
           workflow_identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14"
         })
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_create"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -292,7 +294,7 @@ defmodule StepFlow.Api.WorkflowsTest do
           rights: [
             %{
               action: "view",
-              groups: ["administrator"]
+              groups: ["user_view"]
             }
           ]
         })
@@ -301,7 +303,7 @@ defmodule StepFlow.Api.WorkflowsTest do
 
       {status, _headers, body} =
         conn(:get, "/workflows/" <> workflow_id)
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_view"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -363,42 +365,7 @@ defmodule StepFlow.Api.WorkflowsTest do
           rights: [
             %{
               action: "update",
-              groups: ["administrator"]
-            }
-          ]
-        })
-        |> Map.get(:id)
-        |> Integer.to_string()
-
-      {status, _headers, body} =
-        conn(:put, "/workflows/" <> workflow_id, %{workflow: %{reference: "updated reference"}})
-        |> assign(:current_user, @authorized_user)
-        |> Router.call(@opts)
-        |> sent_resp
-
-      assert status == 200
-
-      reference =
-        body
-        |> Jason.decode!()
-        |> Map.get("data")
-        |> Map.get("reference")
-
-      assert reference == "updated reference"
-    end
-
-    test "UPDATE /workflows/:id with unauthorized" do
-      workflow_id =
-        workflow_fixture(%{
-          identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-          version_major: 1,
-          version_minor: 2,
-          version_micro: 3,
-          rights: [
-            %{
-              action: "update",
-              groups: ["administrator"]
+              groups: ["user_update"]
             }
           ]
         })
@@ -407,63 +374,7 @@ defmodule StepFlow.Api.WorkflowsTest do
 
       {status, _headers, _body} =
         conn(:put, "/workflows/" <> workflow_id, %{workflow: %{reference: "updated reference"}})
-        |> assign(:current_user, @unauthorized_user)
-        |> Router.call(@opts)
-        |> sent_resp
-
-      assert status == 403
-    end
-
-    test "UPDATE /workflows/:id grants unauthorized user to view workflow" do
-      workflow_id =
-        workflow_fixture(%{
-          identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
-          version_major: 1,
-          version_minor: 2,
-          version_micro: 3,
-          rights: [
-            %{
-              action: "update",
-              groups: ["administrator"]
-            }
-          ]
-        })
-        |> Map.get(:id)
-        |> Integer.to_string()
-
-      upgrade = %{
-        rights: [
-          %{
-            action: "update",
-            groups: ["administrator"]
-          },
-          %{
-            action: "view",
-            groups: ["unauthorized"]
-          }
-        ]
-      }
-
-      {status, _headers, _body} =
-        conn(:put, "/workflows/" <> workflow_id, %{workflow: upgrade})
-        |> assign(:current_user, @authorized_user)
-        |> Router.call(@opts)
-        |> sent_resp
-
-      assert status == 200
-
-      {status, _headers, _body} =
-        conn(:get, "/workflows/" <> workflow_id)
-        |> assign(:current_user, @unauthorized_user)
-        |> Router.call(@opts)
-        |> sent_resp
-
-      assert status == 200
-
-      {status, _headers, _body} =
-        conn(:put, "/workflows/" <> workflow_id, %{workflow: %{reference: "updated reference"}})
-        |> assign(:current_user, @unauthorized_user)
+        |> assign(:current_user, %{rights: ["user_update"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -481,7 +392,7 @@ defmodule StepFlow.Api.WorkflowsTest do
           rights: [
             %{
               action: "delete",
-              groups: ["administrator"]
+              groups: ["user_delete"]
             }
           ]
         })
@@ -490,7 +401,15 @@ defmodule StepFlow.Api.WorkflowsTest do
 
       {status, _headers, body} =
         conn(:delete, "/workflows/" <> workflow_id)
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_update"]})
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 403
+
+      {status, _headers, body} =
+        conn(:delete, "/workflows/" <> workflow_id)
+        |> assign(:current_user, %{rights: ["user_delete"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -501,7 +420,6 @@ defmodule StepFlow.Api.WorkflowsTest do
     test "GET /workflows_statistics" do
       {status, _headers, body} =
         conn(:get, "/workflows_statistics")
-        |> assign(:current_user, @authorized_user)
         |> Router.call(@opts)
         |> sent_resp
 

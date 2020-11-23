@@ -9,23 +9,23 @@
   "rights": [
     {
       "action": "view",
-      "groups": ["user"]
+      "groups": ["administrator_view"]
     },
     {
       "action": "create",
-      "groups": ["user"]
+      "groups": ["administrator_create"]
     },
     {
       "action": "retry",
-      "groups": ["user"]
+      "groups": ["administrator_retry"]
     },
     {
       "action": "abort",
-      "groups": ["user"]
+      "groups": ["administrator_abort"]
     },
     {
       "action": "delete",
-      "groups": ["user"]
+      "groups": ["administrator_delete"]
     }
   ],
   "start_parameters": [

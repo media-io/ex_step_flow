@@ -157,26 +157,13 @@ defmodule StepFlow.WorkflowController do
     })
   end
 
-  def update(%Plug.Conn{assigns: %{current_user: user}} = conn, %{
-        "id" => id,
-        "workflow" => workflow_params
-      }) do
-    workflow = Workflows.get_workflow!(id)
-
-    if Helpers.has_right(workflow, user, "update") do
-      with {:ok, %Workflow{} = workflow} <- Workflows.update_workflow(workflow, workflow_params) do
-        conn
-        |> put_view(StepFlow.WorkflowView)
-        |> render("show.json", workflow: workflow)
-      end
-    else
-      conn
-      |> put_status(:forbidden)
-      |> put_view(StepFlow.WorkflowDefinitionView)
-      |> render("error.json",
-        errors: %{reason: "Forbidden to update workflow with this identifier"}
-      )
-    end
+  def update(conn, _params) do
+    conn
+    |> put_status(:forbidden)
+    |> put_view(StepFlow.WorkflowDefinitionView)
+    |> render("error.json",
+      errors: %{reason: "Forbidden to update workflow with this identifier"}
+    )
   end
 
   def delete(%Plug.Conn{assigns: %{current_user: user}} = conn, %{"id" => id}) do

@@ -17,13 +17,6 @@ defmodule StepFlow.Api.WorkflowEventsTest do
   end
 
   describe "workflow_events" do
-    @authorized_user %{
-      rights: [
-        "administrator",
-        "user"
-      ]
-    }
-
     @unauthorized_user %{
       rights: []
     }
@@ -39,15 +32,15 @@ defmodule StepFlow.Api.WorkflowEventsTest do
           rights: [
             %{
               action: "abort",
-              groups: ["administrator"]
+              groups: ["user_abort"]
             },
             %{
               action: "delete",
-              groups: ["administrator"]
+              groups: ["user_delete"]
             },
             %{
               action: "retry",
-              groups: ["administrator"]
+              groups: ["user_retry"]
             }
           ]
         })
@@ -62,7 +55,7 @@ defmodule StepFlow.Api.WorkflowEventsTest do
         conn(:post, "/workflows/#{workflow.id}/events", %{
           event: "event_that_does_not_exists"
         })
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: [""]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -74,7 +67,7 @@ defmodule StepFlow.Api.WorkflowEventsTest do
 
       {status, _headers, _body} =
         conn(:post, "/workflows/#{workflow.id}/events", %{event: "abort"})
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_abort"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -83,6 +76,14 @@ defmodule StepFlow.Api.WorkflowEventsTest do
 
     test "POST /workflows/:id/events abort valid with unauthorized user" do
       workflow = workflow_fixture()
+
+      {status, _headers, _body} =
+        conn(:post, "/workflows/#{workflow.id}/events", %{event: "abort"})
+        |> assign(:current_user, @unauthorized_user)
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 403
 
       {status, _headers, _body} =
         conn(:post, "/workflows/#{workflow.id}/events", %{event: "abort"})
@@ -117,7 +118,7 @@ defmodule StepFlow.Api.WorkflowEventsTest do
 
       {status, _headers, _body} =
         conn(:post, "/workflows/#{workflow.id}/events", %{event: "retry", job_id: job.id})
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_retry"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -183,7 +184,7 @@ defmodule StepFlow.Api.WorkflowEventsTest do
       # Retry workflow job
       {status, _headers, body} =
         conn(:post, "/workflows/#{workflow.id}/events", %{event: "retry", job_id: job.id})
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_retry"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -211,7 +212,7 @@ defmodule StepFlow.Api.WorkflowEventsTest do
       # Abort workflow
       {status, _headers, _body} =
         conn(:post, "/workflows/#{workflow.id}/events", %{event: "delete"})
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_delete"]})
         |> Router.call(@opts)
         |> sent_resp
 

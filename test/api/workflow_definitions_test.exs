@@ -29,13 +29,13 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     test "GET /definitions with authorized user" do
       {status, _headers, body} =
         conn(:get, "/definitions")
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_view"]})
         |> Router.call(@opts)
         |> sent_resp
 
       assert status == 200
       response = body |> Jason.decode!()
-      assert Map.get(response, "total") == 2
+      assert Map.get(response, "total") == 1
     end
 
     @tag capture_log: true
@@ -55,7 +55,7 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     test "GET /definitions/simple_workflow with authorized user" do
       {status, _headers, body} =
         conn(:get, "/definitions/simple_workflow")
-        |> assign(:current_user, @authorized_user)
+        |> assign(:current_user, %{rights: ["user_view"]})
         |> Router.call(@opts)
         |> sent_resp
 
@@ -67,6 +67,17 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
       assert response["data"]["version_minor"] == 1
       assert response["data"]["version_micro"] == 0
       assert response["data"]["tags"] == ["speech_to_text"]
+    end
+
+    @tag capture_log: true
+    test "GET /definitions/missing_rights with authorized user" do
+      {status, _headers, body} =
+        conn(:get, "/definitions/missing_rights")
+        |> assign(:current_user, %{rights: ["user_view"]})
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 403
     end
 
     @tag capture_log: true
