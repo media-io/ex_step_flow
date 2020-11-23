@@ -70,17 +70,6 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     end
 
     @tag capture_log: true
-    test "GET /definitions/missing_rights with authorized user" do
-      {status, _headers, body} =
-        conn(:get, "/definitions/missing_rights")
-        |> assign(:current_user, %{rights: ["user_view"]})
-        |> Router.call(@opts)
-        |> sent_resp
-
-      assert status == 403
-    end
-
-    @tag capture_log: true
     test "GET /definitions/simple_workflow with unauthorized user" do
       {status, _headers, body} =
         conn(:get, "/definitions/simple_workflow")
