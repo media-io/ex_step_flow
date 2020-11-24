@@ -399,7 +399,7 @@ defmodule StepFlow.Api.WorkflowsTest do
         |> Map.get(:id)
         |> Integer.to_string()
 
-      {status, _headers, body} =
+      {status, _headers, _body} =
         conn(:delete, "/workflows/" <> workflow_id)
         |> assign(:current_user, %{rights: ["user_update"]})
         |> Router.call(@opts)

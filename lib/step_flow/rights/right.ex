@@ -6,7 +6,6 @@ defmodule StepFlow.Rights.Right do
   import Ecto.Changeset
 
   require Logger
-  alias StepFlow.Repo
   alias StepFlow.Rights.Right
 
   schema "step_flow_right" do

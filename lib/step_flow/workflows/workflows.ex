@@ -19,7 +19,7 @@ defmodule StepFlow.Workflows do
       [%Workflow{}, ...]
 
   """
-  def list_workflows(%{"rights" => user_rights} = params) do
+  def list_workflows(params \\ %{}) do
     page =
       Map.get(params, "page", 0)
       |> StepFlow.Integer.force()
@@ -31,12 +31,21 @@ defmodule StepFlow.Workflows do
     offset = page * size
 
     query =
-      from(
-        workflow in Workflow,
-        join: rights in assoc(workflow, :rights),
-        where: rights.action == "view",
-        where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
-      )
+      case Map.get(params, "rights") do
+        nil ->
+          from(workflow in Workflow)
+
+        user_rights ->
+          from(
+            workflow in Workflow,
+            join: rights in assoc(workflow, :rights),
+            where: rights.action == "view",
+            where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
+          )
+      end
+
+    query =
+      from(workflow in subquery(query))
       |> filter_query(params, :video_id)
       |> filter_query(params, :identifier)
       |> filter_query(params, :version_major)

@@ -23,6 +23,15 @@ defmodule StepFlow.WorkflowController do
     |> render("index.json", workflows: workflows)
   end
 
+  def index(conn, _) do
+    conn
+    |> put_status(:forbidden)
+    |> put_view(StepFlow.WorkflowDefinitionView)
+    |> render("error.json",
+      errors: %{reason: "Forbidden to view workflows."}
+    )
+  end
+
   def create_workflow(conn, workflow_params) do
     case Workflows.create_workflow(workflow_params) do
       {:ok, %Workflow{} = workflow} ->
@@ -132,6 +141,15 @@ defmodule StepFlow.WorkflowController do
     end
   end
 
+  def show(conn, _) do
+    conn
+    |> put_status(:forbidden)
+    |> put_view(StepFlow.WorkflowDefinitionView)
+    |> render("error.json",
+      errors: %{reason: "Forbidden to show workflow with this identifier"}
+    )
+  end
+
   def get(conn, %{"identifier" => workflow_identifier} = _params) do
     workflow =
       case workflow_identifier do
@@ -181,5 +199,14 @@ defmodule StepFlow.WorkflowController do
         errors: %{reason: "Forbidden to update workflow with this identifier"}
       )
     end
+  end
+
+  def delete(conn, _) do
+    conn
+    |> put_status(:forbidden)
+    |> put_view(StepFlow.WorkflowDefinitionView)
+    |> render("error.json",
+      errors: %{reason: "Forbidden to delete workflow with this identifier"}
+    )
   end
 end

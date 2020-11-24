@@ -24,16 +24,8 @@ defmodule StepFlow.WorkflowsTest do
       steps: [],
       rights: [
         %{
-          action: "create",
-          groups: ["administrator"]
-        },
-        %{
           action: "view",
-          groups: ["administrator"]
-        },
-        %{
-          action: "delete",
-          groups: ["administrator"]
+          groups: ["user_view"]
         }
       ]
     }
@@ -54,11 +46,35 @@ defmodule StepFlow.WorkflowsTest do
         workflow_fixture()
         |> Repo.preload([:artifacts, :jobs])
 
-      assert Workflows.list_workflows(%{"rights" => ["administrator", "user"]}) == %{
+      assert Workflows.list_workflows() == %{
                data: [workflow],
                page: 0,
                size: 10,
                total: 1
+             }
+    end
+
+    test "list_workflows/0 returns workflows with valid rights" do
+      workflow =
+        workflow_fixture()
+        |> Repo.preload([:artifacts, :jobs])
+
+      assert Workflows.list_workflows(%{"rights" => ["user_view"]}) == %{
+               data: [workflow],
+               page: 0,
+               size: 10,
+               total: 1
+             }
+    end
+
+    test "list_workflows/0 returns workflows with invalid rights" do
+      workflow_fixture()
+
+      assert Workflows.list_workflows(%{"rights" => ["user_create"]}) == %{
+               data: [],
+               page: 0,
+               size: 10,
+               total: 0
              }
     end
 

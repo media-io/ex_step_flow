@@ -75,6 +75,12 @@ defmodule StepFlow.WorkflowEventsController do
     end
   end
 
+  def handle(conn, _) do
+    conn
+    |> put_status(:forbidden)
+    |> json(%{status: "error", message: "orbidden to handle workflow with this identifier"})
+  end
+
   defp internal_handle(conn, _workflow, job, "job_notification", :error) do
     Status.set_job_status(job.id, :retrying)
 

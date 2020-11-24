@@ -58,6 +58,15 @@ defmodule StepFlow.WorkflowDefinitionController do
     end
   end
 
+  def show(conn, _) do
+    conn
+    |> put_status(403)
+    |> put_view(StepFlow.WorkflowDefinitionView)
+    |> render("error.json",
+      errors: %{reason: "Forbidden to view workflow with this identifier"}
+    )
+  end
+
   def create(conn, _) do
     workflows = WorkflowDefinition.load_workflows_in_database()
     Logger.info("#{inspect(workflows)}")

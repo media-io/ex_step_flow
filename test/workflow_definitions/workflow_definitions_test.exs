@@ -17,7 +17,7 @@ defmodule StepFlow.WorkflowDefinitionsTest do
                page: 0,
                size: 10,
                total: 2
-             } = WorkflowDefinitions.list_workflow_definitions(%{})
+             } = WorkflowDefinitions.list_workflow_definitions()
 
       assert 5 == length(workflow.steps)
       assert 3 == length(workflow.start_parameters)

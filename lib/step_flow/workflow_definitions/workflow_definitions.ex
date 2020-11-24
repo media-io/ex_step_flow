@@ -11,7 +11,7 @@ defmodule StepFlow.WorkflowDefinitions do
   @doc """
   Returns the list of Workflow Definitions.
   """
-  def list_workflow_definitions(params) do
+  def list_workflow_definitions(params \\ %{}) do
     page =
       Map.get(params, "page", 0)
       |> StepFlow.Integer.force()
