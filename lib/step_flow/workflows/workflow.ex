@@ -4,6 +4,7 @@ defmodule StepFlow.Workflows.Workflow do
 
   alias StepFlow.Artifacts.Artifact
   alias StepFlow.Jobs.Job
+  alias StepFlow.Rights.Right
   alias StepFlow.Workflows.Workflow
 
   @moduledoc false
@@ -19,6 +20,12 @@ defmodule StepFlow.Workflows.Workflow do
     field(:parameters, {:array, :map}, default: [])
     has_many(:jobs, Job, on_delete: :delete_all)
     has_many(:artifacts, Artifact, on_delete: :delete_all)
+
+    many_to_many(:rights, Right,
+      join_through: "step_flow_workflow_right",
+      on_delete: :delete_all,
+      on_replace: :delete
+    )
 
     timestamps()
   end
@@ -36,6 +43,7 @@ defmodule StepFlow.Workflows.Workflow do
       :reference,
       :steps
     ])
+    |> cast_assoc(:rights, required: true)
     |> validate_required([
       :identifier,
       :version_major,

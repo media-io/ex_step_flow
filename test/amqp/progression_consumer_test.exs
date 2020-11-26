@@ -23,7 +23,13 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
     version_minor: 5,
     version_micro: 4,
     reference: "some id",
-    steps: []
+    steps: [],
+    rights: [
+      %{
+        action: "create",
+        groups: ["adminitstrator"]
+      }
+    ]
   }
 
   test "consume well formed message", %{channel: channel} do

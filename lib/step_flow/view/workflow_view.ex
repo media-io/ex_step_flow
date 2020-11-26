@@ -48,7 +48,7 @@ defmodule StepFlow.WorkflowView do
   end
 
   def render("workflow_created.json", %{workflow: workflow}) do
-    result = %{
+    _result = %{
       id: workflow.id,
       identifier: workflow.identifier,
       version_major: workflow.version_major,

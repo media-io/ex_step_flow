@@ -7,6 +7,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
 
   require Logger
   alias StepFlow.Repo
+  alias StepFlow.Rights.Right
   alias StepFlow.WorkflowDefinitions.ExternalLoader
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
 
@@ -21,6 +22,9 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
     field(:steps, {:array, :map}, default: [])
     field(:start_parameters, {:array, :map}, default: [])
     field(:parameters, {:array, :map}, default: [])
+
+    many_to_many(:rights, Right, join_through: "step_flow_workflow_definition_right")
+
     timestamps()
   end
 
@@ -39,6 +43,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
       :start_parameters,
       :parameters
     ])
+    |> cast_assoc(:rights, required: true)
     |> validate_required([
       :identifier,
       :version_major,
@@ -63,7 +68,11 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
 
   defp get_schema do
     schema =
-      "https://media-cloud.ai/standard/1.7/workflow-definition.schema.json"
+      Application.get_env(
+        StepFlow.WorkflowDefinitions.WorkflowDefinition,
+        :workflow_schema_url,
+        "https://media-cloud.ai/standard/1.8/workflow-definition.schema.json"
+      )
       |> load_content()
       |> Jason.decode!()
 

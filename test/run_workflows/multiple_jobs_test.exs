@@ -66,6 +66,12 @@ defmodule StepFlow.RunWorkflows.MultipleJobsTest do
             }
           ]
         }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
       ]
     }
 

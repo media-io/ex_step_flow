@@ -82,6 +82,12 @@ defmodule StepFlow.RunWorkflows.ParallelSequentialStepsTest do
           label: "Joind last step",
           parameters: []
         }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
       ]
     }
 

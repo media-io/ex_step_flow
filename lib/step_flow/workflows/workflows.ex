@@ -31,7 +31,21 @@ defmodule StepFlow.Workflows do
     offset = page * size
 
     query =
-      from(workflow in Workflow)
+      case Map.get(params, "rights") do
+        nil ->
+          from(workflow in Workflow)
+
+        user_rights ->
+          from(
+            workflow in Workflow,
+            join: rights in assoc(workflow, :rights),
+            where: rights.action == "view",
+            where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
+          )
+      end
+
+    query =
+      from(workflow in subquery(query))
       |> filter_query(params, :video_id)
       |> filter_query(params, :identifier)
       |> filter_query(params, :version_major)
@@ -40,55 +54,7 @@ defmodule StepFlow.Workflows do
       |> date_before_filter_query(params, :before_date)
       |> date_after_filter_query(params, :after_date)
 
-    status = Map.get(params, "state")
-
-    completed_status = [
-      Status.state_enum_label(:completed)
-    ]
-
-    query =
-      if status != nil do
-        if Status.state_enum_label(:completed) in status do
-          if status == completed_status do
-            from(
-              workflow in query,
-              left_join: artifact in assoc(workflow, :artifacts),
-              where: not is_nil(artifact.id)
-            )
-          else
-            query
-          end
-        else
-          if Status.state_enum_label(:error) in status do
-            completed_jobs_to_exclude =
-              from(
-                workflow in query,
-                join: job in assoc(workflow, :jobs),
-                join: status in assoc(job, :status),
-                where: status.state in ^completed_status,
-                group_by: workflow.id
-              )
-
-            from(
-              workflow in query,
-              join: job in assoc(workflow, :jobs),
-              join: status in assoc(job, :status),
-              where: status.state in ^status,
-              group_by: workflow.id,
-              except: ^completed_jobs_to_exclude
-            )
-          else
-            from(
-              workflow in query,
-              join: jobs in assoc(workflow, :jobs),
-              join: status in assoc(jobs, :status),
-              where: status.state in ^status
-            )
-          end
-        end
-      else
-        query
-      end
+    query = filter_status(query, params)
 
     query =
       case StepFlow.Map.get_by_key_or_atom(params, :ids) do
@@ -127,7 +93,7 @@ defmodule StepFlow.Workflows do
 
     workflows =
       Repo.all(query)
-      |> Repo.preload([:jobs, :artifacts])
+      |> Repo.preload([:jobs, :artifacts, :rights])
       |> preload_workflows
 
     %{
@@ -136,6 +102,73 @@ defmodule StepFlow.Workflows do
       page: page,
       size: size
     }
+  end
+
+  defp get_status(status, completed_status) do
+    if status != nil do
+      if Status.state_enum_label(:completed) in status do
+        if status == completed_status do
+          :completed
+        else
+          nil
+        end
+      else
+        if Status.state_enum_label(:error) in status do
+          :error
+        else
+          :processing
+        end
+      end
+    else
+      nil
+    end
+  end
+
+  defp filter_status(query, params) do
+    status = Map.get(params, "state")
+
+    completed_status = [
+      Status.state_enum_label(:completed)
+    ]
+
+    case get_status(status, completed_status) do
+      nil ->
+        query
+
+      :completed ->
+        from(
+          workflow in query,
+          left_join: artifact in assoc(workflow, :artifacts),
+          where: not is_nil(artifact.id)
+        )
+
+      :error ->
+        completed_jobs_to_exclude =
+          from(
+            workflow in query,
+            join: job in assoc(workflow, :jobs),
+            join: status in assoc(job, :status),
+            where: status.state in ^completed_status,
+            group_by: workflow.id
+          )
+
+        from(
+          workflow in query,
+          join: job in assoc(workflow, :jobs),
+          join: status in assoc(job, :status),
+          where: status.state in ^status,
+          group_by: workflow.id,
+          except: ^completed_jobs_to_exclude
+        )
+
+      :processing ->
+        from(
+          workflow in query,
+          join: jobs in assoc(workflow, :jobs),
+          join: status in assoc(jobs, :status),
+          where: status.state in ^status
+        )
+    end
   end
 
   defp filter_query(query, params, key) do
@@ -186,7 +219,7 @@ defmodule StepFlow.Workflows do
   """
   def get_workflow!(id) do
     Repo.get!(Workflow, id)
-    |> Repo.preload([:jobs, :artifacts])
+    |> Repo.preload([:jobs, :artifacts, :rights])
     |> preload_workflow
   end
 

@@ -169,3 +169,14 @@ config :step_flow, StepFlow,
   workers_work_directory: "/data/mount/point"
 ```
 
+### Configuration of the default stepflow schema
+
+A workflow follows a schema definition, this definition can be overloaded with:
+
+```elixir
+config :step_flow, StepFlow.WorkflowDefinitions.ExternalLoader, specification_folder: "./mediacloudai/"
+
+config :step_flow, StepFlow.WorkflowDefinitions.WorkflowDefinition,
+  workflow_schema_url: "./mediacloudai/standard/1.8/workflow-definition.schema.json"
+```
+

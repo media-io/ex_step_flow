@@ -91,6 +91,12 @@ defmodule StepFlow.RunWorkflows.ParallelStepsWithNotificationTest do
           label: "Joined last step",
           parameters: []
         }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
       ]
     }
 

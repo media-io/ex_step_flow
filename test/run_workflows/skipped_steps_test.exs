@@ -64,6 +64,12 @@ defmodule StepFlow.RunWorkflows.SkippedStepsTest do
           label: "Joined last step",
           parameters: []
         }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
       ]
     }
 

@@ -22,7 +22,19 @@ defmodule StepFlow.WorkflowDefinitions do
 
     offset = page * size
 
-    query = from(workflow_definition in WorkflowDefinition)
+    query =
+      case Map.get(params, "rights") do
+        nil ->
+          from(workflow_definition in WorkflowDefinition)
+
+        user_rights ->
+          from(
+            workflow_definition in WorkflowDefinition,
+            join: rights in assoc(workflow_definition, :rights),
+            where: rights.action == "view",
+            where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
+          )
+      end
 
     total_query = from(item in subquery(query), select: count(item.id))
 
@@ -56,6 +68,7 @@ defmodule StepFlow.WorkflowDefinitions do
   def get_workflow_definition(identifier) do
     query =
       from(workflow_definition in WorkflowDefinition,
+        preload: [:rights],
         where: workflow_definition.identifier == ^identifier,
         order_by: [
           desc: workflow_definition.version_major,

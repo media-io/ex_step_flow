@@ -74,6 +74,12 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowSkippedAndVoidTest do
           label: "Joind last step",
           parameters: []
         }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
       ]
     }
 

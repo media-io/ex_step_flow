@@ -2,13 +2,20 @@ defmodule StepFlow.WorkflowDefinitionController do
   use StepFlow, :controller
   use BlueBird.Controller
 
+  import Plug.Conn
+
+  alias StepFlow.Controller.Helpers
   alias StepFlow.WorkflowDefinitions
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
   require Logger
 
   action_fallback(StepFlow.FallbackController)
 
-  def index(conn, params) do
+  def index(%Plug.Conn{assigns: %{current_user: user}} = conn, params) do
+    params =
+      params
+      |> Map.put("rights", StepFlow.Map.get_by_key_or_atom(user, :rights, []))
+
     workflow_definitions = WorkflowDefinitions.list_workflow_definitions(params)
 
     conn
@@ -16,7 +23,16 @@ defmodule StepFlow.WorkflowDefinitionController do
     |> render("index.json", workflow_definitions: workflow_definitions)
   end
 
-  def show(conn, %{"identifier" => identifier}) do
+  def index(conn, _) do
+    conn
+    |> put_status(403)
+    |> put_view(StepFlow.WorkflowDefinitionView)
+    |> render("error.json",
+      errors: %{reason: "Forbidden to view workflows"}
+    )
+  end
+
+  def show(%Plug.Conn{assigns: %{current_user: user}} = conn, %{"identifier" => identifier}) do
     case WorkflowDefinitions.get_workflow_definition(identifier) do
       nil ->
         conn
@@ -27,10 +43,28 @@ defmodule StepFlow.WorkflowDefinitionController do
         )
 
       workflow_definition ->
-        conn
-        |> put_view(StepFlow.WorkflowDefinitionView)
-        |> render("show.json", workflow_definition: workflow_definition)
+        if Helpers.has_right(workflow_definition, user, "view") do
+          conn
+          |> put_view(StepFlow.WorkflowDefinitionView)
+          |> render("show.json", workflow_definition: workflow_definition)
+        else
+          conn
+          |> put_status(:forbidden)
+          |> put_view(StepFlow.WorkflowDefinitionView)
+          |> render("error.json",
+            errors: %{reason: "Forbidden to access workflow definition with this identifier"}
+          )
+        end
     end
+  end
+
+  def show(conn, _) do
+    conn
+    |> put_status(403)
+    |> put_view(StepFlow.WorkflowDefinitionView)
+    |> render("error.json",
+      errors: %{reason: "Forbidden to view workflow with this identifier"}
+    )
   end
 
   def create(conn, _) do

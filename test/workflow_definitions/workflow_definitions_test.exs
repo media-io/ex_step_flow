@@ -23,5 +23,39 @@ defmodule StepFlow.WorkflowDefinitionsTest do
       assert 3 == length(workflow.start_parameters)
       assert 1 == length(workflow.parameters)
     end
+
+    test "list_workflow_definitions/0 returns workflow_definitions with rights" do
+      assert %{
+               data: [workflow],
+               page: 0,
+               size: 10,
+               total: 1
+             } =
+               WorkflowDefinitions.list_workflow_definitions(%{"rights" => ["administrator_view"]})
+
+      assert 0 == workflow.version_major
+      assert 0 == workflow.version_minor
+      assert 1 == workflow.version_micro
+
+      assert %{
+               data: [workflow],
+               page: 0,
+               size: 10,
+               total: 1
+             } = WorkflowDefinitions.list_workflow_definitions(%{"rights" => ["user_view"]})
+
+      assert 0 == workflow.version_major
+      assert 1 == workflow.version_minor
+      assert 0 == workflow.version_micro
+    end
+
+    test "list_workflow_definitions/0 returns workflow_definitions with group unauthorized" do
+      assert %{
+               data: [],
+               page: 0,
+               size: 10,
+               total: 0
+             } = WorkflowDefinitions.list_workflow_definitions(%{"rights" => []})
+    end
   end
 end

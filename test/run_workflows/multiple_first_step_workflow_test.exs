@@ -62,6 +62,12 @@ defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
             }
           ]
         }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
       ]
     }
 

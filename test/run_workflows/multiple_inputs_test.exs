@@ -47,6 +47,12 @@ defmodule StepFlow.RunWorkflows.MultipleInputsTest do
             }
           ]
         }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
       ]
     }
 

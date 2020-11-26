@@ -6,6 +6,28 @@
   "version_minor": 0,
   "version_micro": 1,
   "tags": ["speech_to_text"],
+  "rights": [
+    {
+      "action": "view",
+      "groups": ["administrator_view"]
+    },
+    {
+      "action": "create",
+      "groups": ["administrator_create"]
+    },
+    {
+      "action": "retry",
+      "groups": ["administrator_retry"]
+    },
+    {
+      "action": "abort",
+      "groups": ["administrator_abort"]
+    },
+    {
+      "action": "delete",
+      "groups": ["administrator_delete"]
+    }
+  ],
   "start_parameters": [
     {
       "id": "audio_source_filename",

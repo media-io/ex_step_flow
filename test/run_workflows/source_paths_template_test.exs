@@ -48,7 +48,13 @@ defmodule StepFlow.RunWorkflows.SourcePathsTemplateTest do
           ]
         }
       ],
-      parameters: []
+      parameters: [],
+      rights: [
+        %{
+          action: "create",
+          groups: ["adminitstrator"]
+        }
+      ]
     }
 
     test "run destination path with template" do

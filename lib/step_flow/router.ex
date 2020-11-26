@@ -25,7 +25,7 @@ defmodule StepFlow.Router do
   end
 
   post "/launch_workflow" do
-    StepFlow.WorkflowController.create_workflow(conn, conn.params)
+    StepFlow.WorkflowController.create(conn, conn.params)
   end
 
   post "/workflows" do

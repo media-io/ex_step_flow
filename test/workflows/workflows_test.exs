@@ -21,7 +21,13 @@ defmodule StepFlow.WorkflowsTest do
       version_minor: 5,
       version_micro: 4,
       reference: "some id",
-      steps: []
+      steps: [],
+      rights: [
+        %{
+          action: "view",
+          groups: ["user_view"]
+        }
+      ]
     }
     @update_attrs %{reference: "some updated id", steps: [%{action: "something"}]}
     @invalid_attrs %{reference: nil, flow: nil}
@@ -40,7 +46,36 @@ defmodule StepFlow.WorkflowsTest do
         workflow_fixture()
         |> Repo.preload([:artifacts, :jobs])
 
-      assert Workflows.list_workflows() == %{data: [workflow], page: 0, size: 10, total: 1}
+      assert Workflows.list_workflows() == %{
+               data: [workflow],
+               page: 0,
+               size: 10,
+               total: 1
+             }
+    end
+
+    test "list_workflows/0 returns workflows with valid rights" do
+      workflow =
+        workflow_fixture()
+        |> Repo.preload([:artifacts, :jobs])
+
+      assert Workflows.list_workflows(%{"rights" => ["user_view"]}) == %{
+               data: [workflow],
+               page: 0,
+               size: 10,
+               total: 1
+             }
+    end
+
+    test "list_workflows/0 returns workflows with invalid rights" do
+      workflow_fixture()
+
+      assert Workflows.list_workflows(%{"rights" => ["user_create"]}) == %{
+               data: [],
+               page: 0,
+               size: 10,
+               total: 0
+             }
     end
 
     test "get_workflow!/1 returns the workflow with given id" do

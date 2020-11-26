@@ -38,6 +38,12 @@ defmodule StepFlow.LaunchTest do
             }
           ]
         }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["administrator"]
+        }
       ]
     }
 
@@ -62,6 +68,12 @@ defmodule StepFlow.LaunchTest do
               ]
             }
           ]
+        }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["administrator"]
         }
       ]
     }
@@ -94,6 +106,12 @@ defmodule StepFlow.LaunchTest do
               value: %{ends_with: [".ttml", ".wav"]}
             }
           ]
+        }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["administrator"]
         }
       ]
     }
@@ -140,6 +158,12 @@ defmodule StepFlow.LaunchTest do
             }
           ]
         }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["administrator"]
+        }
       ]
     }
 
@@ -164,6 +188,12 @@ defmodule StepFlow.LaunchTest do
               ]
             }
           ]
+        }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["administrator"]
         }
       ]
     }
@@ -243,6 +273,12 @@ defmodule StepFlow.LaunchTest do
               ]
             }
           ]
+        }
+      ],
+      rights: [
+        %{
+          action: "create",
+          groups: ["administrator"]
         }
       ]
     }
