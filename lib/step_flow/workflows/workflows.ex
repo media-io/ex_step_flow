@@ -104,6 +104,26 @@ defmodule StepFlow.Workflows do
     }
   end
 
+  defp get_status(status, completed_status) do
+    if status != nil do
+      if Status.state_enum_label(:completed) in status do
+        if status == completed_status do
+          :completed
+        else
+          nil
+        end
+      else
+        if Status.state_enum_label(:error) in status do
+          :error
+        else
+          :processing
+        end
+      end
+    else
+      nil
+    end
+  end
+
   defp filter_status(query, params) do
     status = Map.get(params, "state")
 
@@ -111,47 +131,43 @@ defmodule StepFlow.Workflows do
       Status.state_enum_label(:completed)
     ]
 
-    if status != nil do
-      if Status.state_enum_label(:completed) in status do
-        if status == completed_status do
-          from(
-            workflow in query,
-            left_join: artifact in assoc(workflow, :artifacts),
-            where: not is_nil(artifact.id)
-          )
-        else
-          query
-        end
-      else
-        if Status.state_enum_label(:error) in status do
-          completed_jobs_to_exclude =
-            from(
-              workflow in query,
-              join: job in assoc(workflow, :jobs),
-              join: status in assoc(job, :status),
-              where: status.state in ^completed_status,
-              group_by: workflow.id
-            )
+    case get_status(status, completed_status) do
+      nil ->
+        query
 
+      :completed ->
+        from(
+          workflow in query,
+          left_join: artifact in assoc(workflow, :artifacts),
+          where: not is_nil(artifact.id)
+        )
+
+      :error ->
+        completed_jobs_to_exclude =
           from(
             workflow in query,
             join: job in assoc(workflow, :jobs),
             join: status in assoc(job, :status),
-            where: status.state in ^status,
-            group_by: workflow.id,
-            except: ^completed_jobs_to_exclude
+            where: status.state in ^completed_status,
+            group_by: workflow.id
           )
-        else
-          from(
-            workflow in query,
-            join: jobs in assoc(workflow, :jobs),
-            join: status in assoc(jobs, :status),
-            where: status.state in ^status
-          )
-        end
-      end
-    else
-      query
+
+        from(
+          workflow in query,
+          join: job in assoc(workflow, :jobs),
+          join: status in assoc(job, :status),
+          where: status.state in ^status,
+          group_by: workflow.id,
+          except: ^completed_jobs_to_exclude
+        )
+
+      :processing ->
+        from(
+          workflow in query,
+          join: jobs in assoc(workflow, :jobs),
+          join: status in assoc(jobs, :status),
+          where: status.state in ^status
+        )
     end
   end
 
