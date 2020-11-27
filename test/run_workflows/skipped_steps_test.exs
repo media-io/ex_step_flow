@@ -14,6 +14,7 @@ defmodule StepFlow.RunWorkflows.SkippedStepsTest do
 
   describe "workflows" do
     @workflow_definition %{
+      schema_version: "1.8",
       identifier: "skipped_steps",
       version_major: 6,
       version_minor: 5,

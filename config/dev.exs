@@ -9,3 +9,6 @@ config :step_flow, Ecto.Repo,
 
 config :logger, :console, format: "[$level] $message\n"
 config :logger, level: :debug
+
+config :step_flow, StepFlow.WorkflowDefinitions.ExternalLoader,
+  specification_folder: "/Users/marco/dev/mcai/media-cloud-ai.github.com"

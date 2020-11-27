@@ -15,6 +15,7 @@ defmodule StepFlow.RunWorkflows.EmptyWorkflowTest do
 
   describe "workflows" do
     @workflow_definition %{
+      schema_version: "1.8",
       identifier: "empty_workflow",
       version_major: 6,
       version_minor: 5,

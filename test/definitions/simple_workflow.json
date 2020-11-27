@@ -1,4 +1,5 @@
 {
+  "schema_version": "1.8",
   "identifier": "simple_workflow",
   "label": "Transcription",
   "icon": "subtitles",

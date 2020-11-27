@@ -21,6 +21,7 @@ defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
 
   describe "workflows" do
     @workflow_definition %{
+      schema_version: "1.8",
       identifier: "multiple_first_step",
       version_major: 6,
       version_minor: 5,

@@ -21,6 +21,7 @@ defmodule StepFlow.RunWorkflows.DestinationFilenameTemplateTest do
 
   describe "workflows" do
     @workflow_definition %{
+      schema_version: "1.8",
       identifier: "destination_filename",
       label: "Check destination filemane template",
       tags: ["test"],
