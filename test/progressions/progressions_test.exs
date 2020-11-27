@@ -14,6 +14,7 @@ defmodule StepFlow.ProgressionsTest do
   end
 
   @workflow %{
+    schema_version: "1.8",
     identifier: "id",
     version_major: 6,
     version_minor: 5,

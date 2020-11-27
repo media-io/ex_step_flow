@@ -19,6 +19,7 @@ defmodule StepFlow.WorkflowView do
 
   def render("workflow.json", %{workflow: workflow}) do
     result = %{
+      schema_version: workflow.schema_version,
       id: workflow.id,
       identifier: workflow.identifier,
       version_major: workflow.version_major,
@@ -48,7 +49,8 @@ defmodule StepFlow.WorkflowView do
   end
 
   def render("workflow_created.json", %{workflow: workflow}) do
-    _result = %{
+    %{
+      schema_version: workflow.schema_version,
       id: workflow.id,
       identifier: workflow.identifier,
       version_major: workflow.version_major,

@@ -18,6 +18,7 @@ defmodule StepFlow.LaunchTest do
 
   describe "launch_test" do
     @workflow_definition %{
+      schema_version: "1.8",
       identifier: "id",
       version_major: 6,
       version_minor: 5,
@@ -48,6 +49,7 @@ defmodule StepFlow.LaunchTest do
     }
 
     @workflow_definition_no_source_paths %{
+      schema_version: "1.8",
       identifier: "id",
       version_major: 6,
       version_minor: 5,
@@ -79,6 +81,7 @@ defmodule StepFlow.LaunchTest do
     }
 
     @workflow_definition_with_input_filter %{
+      schema_version: "1.8",
       identifier: "id",
       version_major: 6,
       version_minor: 5,
@@ -117,6 +120,7 @@ defmodule StepFlow.LaunchTest do
     }
 
     @workflow_definition_with_select_input %{
+      schema_version: "1.8",
       identifier: "id",
       version_major: 6,
       version_minor: 5,
@@ -168,6 +172,7 @@ defmodule StepFlow.LaunchTest do
     }
 
     @workflow_definition_with_conditional_step %{
+      schema_version: "1.8",
       identifier: "id",
       version_major: 6,
       version_minor: 5,
@@ -199,6 +204,7 @@ defmodule StepFlow.LaunchTest do
     }
 
     @workflow_definition_with_select_input_and_array_of_templates_parameter %{
+      schema_version: "1.8",
       identifier: "id",
       version_major: 6,
       version_minor: 5,

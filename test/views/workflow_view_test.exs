@@ -13,6 +13,7 @@ defmodule StepFlow.WorkflowViewTest do
   end
 
   @workflow %{
+    schema_version: "1.8",
     identifier: "id",
     version_major: 6,
     version_minor: 5,
@@ -33,6 +34,7 @@ defmodule StepFlow.WorkflowViewTest do
 
     assert render(StepFlow.WorkflowView, "show.json", %{workflow: workflow}) == %{
              data: %{
+               schema_version: "1.8",
                id: workflow.id,
                artifacts: [],
                created_at: workflow.inserted_at,
@@ -57,6 +59,7 @@ defmodule StepFlow.WorkflowViewTest do
              %{
                data: [
                  %{
+                   schema_version: "1.8",
                    id: workflow.id,
                    artifacts: [],
                    created_at: workflow.inserted_at,
@@ -81,6 +84,7 @@ defmodule StepFlow.WorkflowViewTest do
 
     assert render(StepFlow.WorkflowView, "created.json", %{workflow: workflow}) == %{
              data: %{
+               schema_version: "1.8",
                id: workflow.id,
                created_at: workflow.inserted_at,
                tags: [],

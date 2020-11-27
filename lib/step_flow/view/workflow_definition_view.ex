@@ -22,6 +22,7 @@ defmodule StepFlow.WorkflowDefinitionView do
 
   def render("workflow_definition.json", %{workflow_definition: workflow_definition}) do
     %{
+      schema_version: workflow_definition.schema_version,
       id: workflow_definition.id,
       identifier: workflow_definition.identifier,
       label: workflow_definition.label,

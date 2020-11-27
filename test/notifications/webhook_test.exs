@@ -24,6 +24,7 @@ defmodule StepFlow.Notifications.WebhookTest do
     end)
 
     workflow_definition = %{
+      schema_version: "1.8",
       identifier: "notification",
       version_major: 1,
       version_minor: 0,
@@ -92,6 +93,7 @@ defmodule StepFlow.Notifications.WebhookTest do
     route("/bad_endpoint", fn _ -> Response.ok!(~s({"status": "ok"})) end)
 
     workflow_definition = %{
+      schema_version: "1.8",
       identifier: "notification",
       version_major: 1,
       version_minor: 0,
