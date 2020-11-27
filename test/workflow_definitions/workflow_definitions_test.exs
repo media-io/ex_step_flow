@@ -37,12 +37,14 @@ defmodule StepFlow.WorkflowDefinitionsTest do
       assert 0 == workflow.version_minor
       assert 1 == workflow.version_micro
 
+      result = WorkflowDefinitions.list_workflow_definitions(%{"rights" => ["user_view"]})
+
       assert %{
                data: [workflow],
                page: 0,
                size: 10,
                total: 1
-             } = WorkflowDefinitions.list_workflow_definitions(%{"rights" => ["user_view"]})
+             } = result
 
       assert 0 == workflow.version_major
       assert 1 == workflow.version_minor
@@ -50,12 +52,14 @@ defmodule StepFlow.WorkflowDefinitionsTest do
     end
 
     test "list_workflow_definitions/0 returns workflow_definitions with group unauthorized" do
+      result = WorkflowDefinitions.list_workflow_definitions(%{"rights" => []})
+
       assert %{
                data: [],
                page: 0,
                size: 10,
                total: 0
-             } = WorkflowDefinitions.list_workflow_definitions(%{"rights" => []})
+             } = result
     end
   end
 end

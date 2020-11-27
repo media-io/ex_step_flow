@@ -16,6 +16,7 @@ defmodule StepFlow.WorkflowsTest do
 
   describe "workflows" do
     @valid_attrs %{
+      schema_version: "1.8",
       identifier: "id",
       version_major: 6,
       version_minor: 5,

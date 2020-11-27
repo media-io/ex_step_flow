@@ -49,6 +49,7 @@ defmodule StepFlow.Api.WorkflowsTest do
       assert body |> Jason.decode!() == %{"data" => [], "total" => 0}
 
       workflow_fixture(%{
+        schema_version: "1.8",
         identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         version_major: 1,
@@ -92,6 +93,7 @@ defmodule StepFlow.Api.WorkflowsTest do
       assert body |> Jason.decode!() == %{"data" => [], "total" => 0}
 
       workflow_fixture(%{
+        schema_version: "1.8",
         identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         version_major: 1,
@@ -258,6 +260,7 @@ defmodule StepFlow.Api.WorkflowsTest do
 
     test "[deprecated] POST /launch_workflow valid" do
       workflow_definition_fixture(%{
+        schema_version: "1.8",
         identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
         version_major: 1,
@@ -286,6 +289,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     test "SHOW /workflows/:id with authorized user" do
       workflow_id =
         workflow_fixture(%{
+          schema_version: "1.8",
           identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           version_major: 1,
@@ -330,6 +334,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     test "SHOW /workflows/:id with unauthorized user" do
       workflow_id =
         workflow_fixture(%{
+          schema_version: "1.8",
           identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           version_major: 1,
@@ -357,6 +362,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     test "UPDATE /workflows/:id with authorized user" do
       workflow_id =
         workflow_fixture(%{
+          schema_version: "1.8",
           identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           version_major: 1,
@@ -384,6 +390,7 @@ defmodule StepFlow.Api.WorkflowsTest do
     test "DELETE /workflows/:id" do
       workflow_id =
         workflow_fixture(%{
+          schema_version: "1.8",
           identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           version_major: 1,

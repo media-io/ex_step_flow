@@ -24,6 +24,7 @@ defmodule StepFlow.Api.WorkflowEventsTest do
     def workflow_fixture do
       {:ok, workflow} =
         Workflows.create_workflow(%{
+          schema_version: "1.8",
           identifier: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
           version_major: 1,

@@ -12,6 +12,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
 
   schema "step_flow_workflow_definition" do
+    field(:schema_version, :string)
     field(:identifier, :string)
     field(:label, :string, default: "")
     field(:icon, :string, default: "")
@@ -32,6 +33,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
   def changeset(%WorkflowDefinition{} = workflow_definition, attrs) do
     workflow_definition
     |> cast(attrs, [
+      :schema_version,
       :identifier,
       :label,
       :icon,
@@ -45,6 +47,7 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
     ])
     |> cast_assoc(:rights, required: true)
     |> validate_required([
+      :schema_version,
       :identifier,
       :version_major,
       :version_minor,

@@ -57,25 +57,25 @@ defmodule StepFlow.MixProject do
 
   defp deps do
     [
-      {:amqp, "~> 1.4"},
+      {:amqp, "~> 1.6"},
       {:blue_bird, "~> 0.4.1"},
-      {:cowboy, "~> 2.7.0"},
+      {:cowboy, "~> 2.8.0"},
       {:credo, "~> 1.3", only: [:dev, :test], runtime: false},
-      {:ecto, "~> 3.4.4"},
-      {:ecto_sql, "~> 3.4.4"},
+      {:ecto, "~> 3.5.5"},
+      {:ecto_sql, "~> 3.5.3"},
       {:ecto_enum, "~> 1.4"},
-      {:excoveralls, "~> 0.10", only: :test},
-      {:ex_doc, "~> 0.19", only: :dev, runtime: false},
-      {:json_xema, "~> 0.4"},
+      {:excoveralls, "~> 0.13", only: :test},
+      {:ex_doc, "~> 0.23", only: :dev, runtime: false},
+      {:json_xema, "~> 0.6"},
       {:fake_server, "~> 2.1", only: :test},
-      {:gettext, "~> 0.14"},
+      {:gettext, "~> 0.18"},
       {:httpoison, "~> 1.6"},
       {:jason, "~> 1.1"},
-      {:phoenix, "~> 1.4"},
+      {:phoenix, "~> 1.5.7"},
       {:phoenix_html, "~> 2.10"},
-      {:plug, "~> 1.8"},
+      {:plug, "~> 1.11"},
       {:postgrex, "~> 0.15.0"},
-      {:slack, "~> 0.20.0"},
+      {:slack, "~> 0.23.5"},
       {:timex, "~> 3.2"}
     ]
   end

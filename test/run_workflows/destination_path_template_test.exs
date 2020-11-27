@@ -21,6 +21,7 @@ defmodule StepFlow.RunWorkflows.DestinationPathTemplateTest do
 
   describe "workflows" do
     @workflow_definition %{
+      schema_version: "1.8",
       identifier: "destination_path",
       version_major: 6,
       version_minor: 5,

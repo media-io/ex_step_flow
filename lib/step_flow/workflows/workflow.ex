@@ -10,6 +10,7 @@ defmodule StepFlow.Workflows.Workflow do
   @moduledoc false
 
   schema "step_flow_workflow" do
+    field(:schema_version, :string)
     field(:identifier, :string)
     field(:version_major, :integer)
     field(:version_minor, :integer)
@@ -34,6 +35,7 @@ defmodule StepFlow.Workflows.Workflow do
   def changeset(%Workflow{} = workflow, attrs) do
     workflow
     |> cast(attrs, [
+      :schema_version,
       :identifier,
       :version_major,
       :version_minor,
@@ -45,6 +47,7 @@ defmodule StepFlow.Workflows.Workflow do
     ])
     |> cast_assoc(:rights, required: true)
     |> validate_required([
+      :schema_version,
       :identifier,
       :version_major,
       :version_minor,

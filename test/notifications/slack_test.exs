@@ -13,6 +13,7 @@ defmodule StepFlow.Notifications.SlackTest do
 
   test "notify Slack channel" do
     workflow_definition = %{
+      schema_version: "1.8",
       identifier: "notification",
       version_major: 1,
       version_minor: 0,

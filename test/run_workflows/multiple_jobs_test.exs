@@ -21,6 +21,7 @@ defmodule StepFlow.RunWorkflows.MultipleJobsTest do
 
   describe "workflows" do
     @workflow_definition %{
+      schema_version: "1.8",
       identifier: "multiple_jobs_workflow",
       version_major: 0,
       version_minor: 1,
