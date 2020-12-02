@@ -36,9 +36,19 @@ defmodule StepFlow.Jobs.StatusTest do
     assert "completed" == Status.state_enum_label(5)
   end
 
+  test "get ready_to_init state enum label" do
+    assert "ready_to_init" == Status.state_enum_label(:ready_to_init)
+    assert "ready_to_init" == Status.state_enum_label(6)
+  end
+
+  test "get ready_to_start state enum label" do
+    assert "ready_to_start" == Status.state_enum_label(:ready_to_start)
+    assert "ready_to_start" == Status.state_enum_label(7)
+  end
+
   test "get unknown state enum label" do
     assert "unknown" == Status.state_enum_label(:other)
-    assert "unknown" == Status.state_enum_label(6)
+    assert "unknown" == Status.state_enum_label(8)
     assert "unknown" == Status.state_enum_label(nil)
   end
 
@@ -73,5 +83,172 @@ defmodule StepFlow.Jobs.StatusTest do
     last_status = Status.get_last_status(status_list)
 
     assert "skipped" == last_status.state
+  end
+
+  test "get create action" do
+    status_list = [
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:17:00],
+        job_id: 123,
+        state: "queued",
+        updated_at: ~N[2020-01-14 15:17:00]
+      },
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:16:03],
+        job_id: 123,
+        state: "processing",
+        updated_at: ~N[2020-01-14 15:16:03]
+      }
+    ]
+
+    action =
+      Status.get_last_status(status_list)
+      |> Status.get_action()
+
+    assert "create" == action
+  end
+
+  test "get init action" do
+    status_list = [
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:15:00],
+        job_id: 123,
+        state: "queued",
+        updated_at: ~N[2020-01-14 15:15:00]
+      },
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:17:32],
+        job_id: 123,
+        state: "ready_to_init",
+        updated_at: ~N[2020-01-14 15:17:32]
+      },
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:16:03],
+        job_id: 123,
+        state: "processing",
+        updated_at: ~N[2020-01-14 15:16:03]
+      }
+    ]
+
+    action =
+      Status.get_last_status(status_list)
+      |> Status.get_action()
+
+    assert "init" == action
+  end
+
+  test "get start action" do
+    status_list = [
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:15:00],
+        job_id: 123,
+        state: "queued",
+        updated_at: ~N[2020-01-14 15:15:00]
+      },
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:17:32],
+        job_id: 123,
+        state: "ready_to_start",
+        updated_at: ~N[2020-01-14 15:17:32]
+      },
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:16:03],
+        job_id: 123,
+        state: "processing",
+        updated_at: ~N[2020-01-14 15:16:03]
+      }
+    ]
+
+    action =
+      Status.get_last_status(status_list)
+      |> Status.get_action()
+
+    assert "start" == action
+  end
+
+  test "get delete action" do
+    status_list = [
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:15:00],
+        job_id: 123,
+        state: "queued",
+        updated_at: ~N[2020-01-14 15:15:00]
+      },
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:17:32],
+        job_id: 123,
+        state: "completed",
+        updated_at: ~N[2020-01-14 15:17:32]
+      },
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:16:03],
+        job_id: 123,
+        state: "processing",
+        updated_at: ~N[2020-01-14 15:16:03]
+      }
+    ]
+
+    action =
+      Status.get_last_status(status_list)
+      |> Status.get_action()
+
+    assert "delete" == action
+  end
+
+  test "get action parameter" do
+    status_list = [
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:15:00],
+        job_id: 123,
+        state: "queued",
+        updated_at: ~N[2020-01-14 15:15:00]
+      },
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:17:32],
+        job_id: 123,
+        state: "completed",
+        updated_at: ~N[2020-01-14 15:17:32]
+      },
+      %{
+        description: %{},
+        id: 456,
+        inserted_at: ~N[2020-01-14 15:16:03],
+        job_id: 123,
+        state: "processing",
+        updated_at: ~N[2020-01-14 15:16:03]
+      }
+    ]
+
+    action =
+      Status.get_last_status(status_list)
+      |> Status.get_action_parameter()
+
+    assert [%{id: "action", type: "string", value: "delete"}] == action
   end
 end
