@@ -15,6 +15,7 @@ defmodule StepFlow.Step do
 
   def start_next(%Workflow{id: workflow_id} = workflow) do
     workflow = Repo.preload(workflow, :jobs, force: true)
+    is_live = workflow.is_live
 
     jobs = Repo.preload(workflow.jobs, :status)
 
@@ -22,7 +23,7 @@ defmodule StepFlow.Step do
       StepFlow.Map.get_by_key_or_atom(workflow, :steps)
       |> Workflows.get_step_status(jobs)
 
-    {is_completed_workflow, steps_to_start} = get_steps_to_start(steps)
+    {is_completed_workflow, steps_to_start} = get_steps_to_start(steps, is_live)
 
     steps_to_start =
       case {steps_to_start, jobs} do
@@ -75,12 +76,20 @@ defmodule StepFlow.Step do
     Artifacts.create_artifact(params)
   end
 
-  defp get_steps_to_start(steps), do: iter_get_steps_to_start(steps, steps)
+  defp get_steps_to_start(steps, is_live), do: iter_get_steps_to_start(steps, steps, is_live)
 
-  defp iter_get_steps_to_start(steps, all_steps, completed \\ true, result \\ [])
-  defp iter_get_steps_to_start([], _all_steps, completed, result), do: {completed, result}
+  defp iter_get_steps_to_start(steps, all_steps, is_live, completed \\ true, result \\ [])
 
-  defp iter_get_steps_to_start([step | steps], all_steps, completed, result) do
+  defp iter_get_steps_to_start([], _all_steps, is_live, completed, result),
+    do: {completed, result}
+
+  defp iter_get_steps_to_start([step | steps], all_steps, true, completed, result) do
+    result = List.insert_at(result, -1, step)
+
+    iter_get_steps_to_start(steps, all_steps, true, completed, result)
+  end
+
+  defp iter_get_steps_to_start([step | steps], all_steps, false, completed, result) do
     completed =
       if step.status in [:completed, :skipped] do
         completed
@@ -113,7 +122,7 @@ defmodule StepFlow.Step do
         result
       end
 
-    iter_get_steps_to_start(steps, all_steps, completed, result)
+    iter_get_steps_to_start(steps, all_steps, false, completed, result)
   end
 
   defp start_steps({:completed_workflow, _}, _workflow), do: [:completed_workflow]
@@ -124,6 +133,7 @@ defmodule StepFlow.Step do
     for step <- steps do
       step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
       step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
+      # see if smtg has to be done for live
       source_paths = Launch.get_source_paths(workflow, step, dates)
 
       Logger.warn(
