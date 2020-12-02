@@ -67,5 +67,11 @@ defmodule StepFlow.Migration.All do
       20_201_127_120_000,
       StepFlow.Migration.AddSchemaVersionForWorkflow
     )
+
+    Ecto.Migrator.up(
+      StepFlow.Repo,
+      20_201_201_163_300,
+      StepFlow.Migration.AddLiveParameter
+    )
   end
 end
