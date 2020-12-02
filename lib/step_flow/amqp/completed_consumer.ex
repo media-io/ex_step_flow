@@ -49,16 +49,6 @@ defmodule StepFlow.Amqp.CompletedConsumer do
     end
   end
 
-  # def consume(channel, tag, _redelivered, payload) do
-  # Message from init
-  # queue récupérée via la DB
-  # end
-
-  # def consume(channel, tag, _redelivered, payload) do
-  # Message from start
-  # queue récupérée via la DB
-  # end
-
   def consume(channel, tag, _redelivered, payload) do
     Logger.error("Job completed #{inspect(payload)}")
     Basic.reject(channel, tag, requeue: false)

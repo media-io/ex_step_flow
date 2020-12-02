@@ -133,7 +133,6 @@ defmodule StepFlow.Step do
     for step <- steps do
       step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
       step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
-      # see if smtg has to be done for live
       source_paths = Launch.get_source_paths(workflow, step, dates)
 
       Logger.warn(
