@@ -16,6 +16,7 @@ defmodule StepFlow.Workflows.Workflow do
     field(:version_minor, :integer)
     field(:version_micro, :integer)
     field(:tags, {:array, :string}, default: [])
+    field(:is_live, :boolean, default: false)
     field(:reference, :string)
     field(:steps, {:array, :map}, default: [])
     field(:parameters, {:array, :map}, default: [])
@@ -41,6 +42,7 @@ defmodule StepFlow.Workflows.Workflow do
       :version_minor,
       :version_micro,
       :tags,
+      :is_live,
       :parameters,
       :reference,
       :steps
