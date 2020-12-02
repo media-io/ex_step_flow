@@ -23,4 +23,12 @@ defmodule StepFlow.Step.LaunchParams do
   def get_step_name(params) do
     StepFlow.Map.get_by_key_or_atom(params.step, :name)
   end
+
+  def get_step_parameter(params, key) do
+    StepFlow.Map.get_by_key_or_atom(params.step, :parameters)
+    |> Enum.filter(fn param ->
+      StepFlow.Map.get_by_key_or_atom(param, :id) == key
+    end)
+    |> List.first()
+  end
 end
