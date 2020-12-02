@@ -116,6 +116,38 @@ defmodule StepFlow.Jobs do
   def get_job(id), do: Repo.get(Job, id)
 
   @doc """
+  Gets a single job by workflow ID and step ID
+
+  ## Examples
+
+      iex> get_job(123)
+      %Job{}
+
+      iex> get_job(456)
+      nil
+
+  """
+  def get_by!(%{"workflow_id" => workflow_id, "step_id" => step_id}) do
+    Repo.get_by!(Job, workflow_id: workflow_id, step_id: step_id)
+  end
+
+  @doc """
+  Gets a single job by workflow ID and step ID
+
+  ## Examples
+
+      iex> get_job(123)
+      %Job{}
+
+      iex> get_job(456)
+      nil
+
+  """
+  def get_by(%{"workflow_id" => workflow_id, "step_id" => step_id}) do
+    Repo.get_by(Job, workflow_id: workflow_id, step_id: step_id)
+  end
+
+  @doc """
   Gets a single job with its related status.
 
   Raises `Ecto.NoResultsError` if the Job does not exist.
@@ -233,6 +265,8 @@ defmodule StepFlow.Jobs do
       step_id: step_id,
       workflow_id: workflow.id
     })
+
+    # Create dedicated method
     |> Map.get(:data)
     |> Enum.filter(fn job ->
       case job.status do
