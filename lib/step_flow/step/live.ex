@@ -18,11 +18,6 @@ defmodule StepFlow.Step.Live do
     workflow_id = workflow.id
     step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
 
-    Jobs.list_jobs(%{
-      step_id: step_id,
-      workflow_id: workflow_id
-    })
-
     case Jobs.get_by(%{"workflow_id" => workflow_id, "step_id" => step_id}) do
       nil ->
         create_live_worker(source_path, launch_params)
