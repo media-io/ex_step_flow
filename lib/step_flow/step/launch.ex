@@ -9,6 +9,7 @@ defmodule StepFlow.Step.Launch do
   alias StepFlow.Notifications.Notification
   alias StepFlow.Step.Helpers
   alias StepFlow.Step.LaunchParams
+  alias StepFlow.Step.Live
   alias StepFlow.Workflows
 
   def launch_step(workflow, step) do
@@ -20,9 +21,21 @@ defmodule StepFlow.Step.Launch do
     step_name = StepFlow.Map.get_by_key_or_atom(step, :name)
     step_mode = StepFlow.Map.get_by_key_or_atom(step, :mode, "one_for_one")
     source_paths = get_source_paths(workflow, step, dates)
+    is_live = workflow.is_live
 
-    case {source_paths, step_mode} do
-      {_, "notification"} ->
+    case {source_paths, step_mode, is_live} do
+      {source_paths, _, true} when is_list(source_paths) ->
+        Logger.debug("Live Step")
+
+        first_file =
+          source_paths
+          |> Enum.sort()
+          |> List.first()
+
+        launch_params = LaunchParams.new(workflow, step, dates, first_file)
+        Live.update_job_live(source_paths, launch_params, workflow, step)
+
+      {_, "notification", false} ->
         Logger.debug("Notification step")
 
         Notification.process(
@@ -34,11 +47,11 @@ defmodule StepFlow.Step.Launch do
           source_paths
         )
 
-      {[], _} ->
+      {[], _, false} ->
         Logger.debug("job one for one path")
         Jobs.create_skipped_job(workflow, step_id, step_name)
 
-      {source_paths, "one_for_one"} when is_list(source_paths) ->
+      {source_paths, "one_for_one", false} when is_list(source_paths) ->
         first_file =
           source_paths
           |> Enum.sort()
@@ -57,12 +70,12 @@ defmodule StepFlow.Step.Launch do
             start_multiple_jobs_one_for_one(source_paths, multiple_jobs_parameter, launch_params)
         end
 
-      {source_paths, "one_for_many"} when is_list(source_paths) ->
+      {source_paths, "one_for_many", false} when is_list(source_paths) ->
         Logger.debug("job one for many paths")
         launch_params = LaunchParams.new(workflow, step, dates)
         start_job_one_for_many(source_paths, launch_params)
 
-      {_, _} ->
+      {_, _, false} ->
         Jobs.create_skipped_job(workflow, step_id, step_name)
     end
   end
