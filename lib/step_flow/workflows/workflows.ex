@@ -51,6 +51,7 @@ defmodule StepFlow.Workflows do
       |> filter_query(params, :version_major)
       |> filter_query(params, :version_minor)
       |> filter_query(params, :version_micro)
+      |> filter_query(params, :is_live)
       |> date_before_filter_query(params, :before_date)
       |> date_after_filter_query(params, :after_date)
 
@@ -260,6 +261,7 @@ defmodule StepFlow.Workflows do
     errors = count_status(jobs, :error)
     skipped = count_status(jobs, :skipped)
     queued = count_queued_status(jobs)
+    processing = count_status(jobs, :processing)
 
     job_status = %{
       total: length(jobs),
@@ -267,6 +269,7 @@ defmodule StepFlow.Workflows do
       errors: errors,
       queued: queued,
       skipped: skipped
+      processing: processing,
     }
 
     status =
@@ -274,6 +277,7 @@ defmodule StepFlow.Workflows do
         errors > 0 -> :error
         queued > 0 -> :processing
         skipped > 0 -> :skipped
+        processing > 0 -> :processing
         completed > 0 -> :completed
         true -> :queued
       end
