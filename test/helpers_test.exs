@@ -5,6 +5,8 @@ defmodule StepFlow.HelpersTest do
   require Logger
   alias StepFlow.Amqp.Helpers
   alias StepFlow.Jobs.Status
+  alias StepFlow.Progressions
+  alias StepFlow.Repo
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
   alias StepFlow.Workflows
 
@@ -225,5 +227,24 @@ defmodule StepFlow.HelpersTest do
       |> Workflows.create_workflow()
 
     workflow
+  end
+
+  def create_progression(workflow, step_id) do
+    workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
+
+    job =
+      workflow_jobs
+      |> Enum.filter(fn job -> job.step_id == step_id end)
+      |> List.first()
+
+    {result, _} =
+      Progressions.create_progression(%{
+        job_id: job.id,
+        datetime: ~N[2020-01-31 09:48:53],
+        docker_container_id: "unknown",
+        progression: 50
+      })
+
+    result
   end
 end
