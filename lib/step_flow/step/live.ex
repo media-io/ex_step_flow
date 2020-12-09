@@ -44,6 +44,8 @@ defmodule StepFlow.Step.Live do
         message.parameters ++ [%{id: "action", type: "string", value: "create"}]
       )
 
+    message = filter_message(message)
+
     case CommonEmitter.publish_json(
            "job_worker_manager",
            LaunchParams.get_step_id(launch_params),
@@ -61,6 +63,7 @@ defmodule StepFlow.Step.Live do
 
   defp delete_live_worker(launch_params, job) do
     message = generate_message(job)
+    message = filter_message(message)
 
     case CommonEmitter.publish_json(
            "job_worker_manager",
@@ -81,6 +84,19 @@ defmodule StepFlow.Step.Live do
       |> Status.get_action_parameter()
 
     Map.put(message, :parameters, message.parameters ++ action_parameter)
+  end
+
+  defp filter_message(message) do
+    Map.put(
+      message,
+      :parameters,
+      Enum.filter(message.parameters, fn x ->
+        Enum.member?(
+          ["step_id", "action", "namespace", "worker", "ports", "direct_messaging_queue"],
+          x["id"]
+        )
+      end)
+    )
   end
 
   defp publish_message(message, launch_params) do
