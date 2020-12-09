@@ -94,10 +94,15 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowTest do
       StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
       StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
 
+      StepFlow.HelpersTest.create_progression(workflow, 0)
+
       {:ok, "still_processing"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.check(workflow.id, "first_parallel_step", 1)
       StepFlow.HelpersTest.check(workflow.id, "second_parallel_step", 1)
+
+      StepFlow.HelpersTest.create_progression(workflow, 1)
+      StepFlow.HelpersTest.create_progression(workflow, 2)
 
       {:ok, "still_processing"} = Step.start_next(workflow)
 
