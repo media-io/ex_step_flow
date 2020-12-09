@@ -322,25 +322,7 @@ defmodule StepFlow.Workflows do
         end
       else
         if status == :processing do
-          case job.progressions do
-            [] ->
-              count
-
-            _ ->
-              last_progression =
-                job.progressions
-                |> Progression.get_last_progression()
-
-              last_status =
-                job.status
-                |> Status.get_last_status()
-
-              cond do
-                last_status == nil -> count + 1
-                last_progression.updated_at > last_status.updated_at -> count + 1
-                true -> count
-              end
-          end
+          count_processing(job, count)
         else
           Enum.filter(job.status, fn s -> s.state == status end)
           |> length
@@ -355,6 +337,28 @@ defmodule StepFlow.Workflows do
       end
 
     count_status(jobs, status, count)
+  end
+
+  defp count_processing(job, count) do
+    case job.progressions do
+      [] ->
+        count
+
+      _ ->
+        last_progression =
+          job.progressions
+          |> Progression.get_last_progression()
+
+        last_status =
+          job.status
+          |> Status.get_last_status()
+
+        cond do
+          last_status == nil -> count + 1
+          last_progression.updated_at > last_status.updated_at -> count + 1
+          true -> count
+        end
+    end
   end
 
   defp count_queued_status(jobs, count \\ 0)
