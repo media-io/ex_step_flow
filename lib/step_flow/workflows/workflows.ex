@@ -7,6 +7,7 @@ defmodule StepFlow.Workflows do
 
   alias StepFlow.Jobs
   alias StepFlow.Jobs.Status
+  alias StepFlow.Progressions.Progression
   alias StepFlow.Repo
   alias StepFlow.Workflows.Workflow
 
@@ -224,7 +225,7 @@ defmodule StepFlow.Workflows do
   end
 
   defp preload_workflow(workflow) do
-    jobs = Repo.preload(workflow.jobs, :status)
+    jobs = Repo.preload(workflow.jobs, [:status, :progressions])
 
     steps =
       workflow
@@ -259,25 +260,26 @@ defmodule StepFlow.Workflows do
     completed = count_status(jobs, :completed)
     errors = count_status(jobs, :error)
     skipped = count_status(jobs, :skipped)
-    queued = count_queued_status(jobs)
     processing = count_status(jobs, :processing)
+    queued = count_queued_status(jobs)
 
     job_status = %{
       total: length(jobs),
       completed: completed,
       errors: errors,
+      processing: processing,
       queued: queued,
       skipped: skipped
-      processing: processing,
     }
 
     status =
       cond do
         errors > 0 -> :error
-        queued > 0 -> :processing
-        skipped > 0 -> :skipped
         processing > 0 -> :processing
+        # queued > 0 -> :processing
+        skipped > 0 -> :skipped
         completed > 0 -> :completed
+        # only queued in this case
         true -> :queued
       end
 
@@ -319,14 +321,36 @@ defmodule StepFlow.Workflows do
           count
         end
       else
-        Enum.filter(job.status, fn s -> s.state == status end)
-        |> length
-        |> case do
-          0 ->
-            count
+        if status == :processing do
+          case job.progressions do
+            [] ->
+              count
 
-          _ ->
-            count + 1
+            _ ->
+              last_progression =
+                job.progressions
+                |> Progression.get_last_progression()
+
+              last_status =
+                job.status
+                |> Status.get_last_status()
+
+              cond do
+                last_status == nil -> count + 1
+                last_progression.updated_at > last_status.updated_at -> count + 1
+                true -> count
+              end
+          end
+        else
+          Enum.filter(job.status, fn s -> s.state == status end)
+          |> length
+          |> case do
+            0 ->
+              count
+
+            _ ->
+              count + 1
+          end
         end
       end
 
