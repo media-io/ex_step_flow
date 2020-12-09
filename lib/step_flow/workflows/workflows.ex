@@ -276,7 +276,6 @@ defmodule StepFlow.Workflows do
       cond do
         errors > 0 -> :error
         processing > 0 -> :processing
-        # queued > 0 -> :processing
         skipped > 0 -> :skipped
         completed > 0 -> :completed
         # only queued in this case
