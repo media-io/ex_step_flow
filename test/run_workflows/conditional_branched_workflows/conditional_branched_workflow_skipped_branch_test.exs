@@ -112,7 +112,6 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowSkippedBranchTest do
       StepFlow.HelpersTest.check(workflow.id, 3)
 
       StepFlow.HelpersTest.create_progression(workflow, 1)
-      StepFlow.HelpersTest.create_progression(workflow, 2)
 
       {:ok, "still_processing"} = Step.start_next(workflow)
       StepFlow.HelpersTest.check(workflow.id, 4)
