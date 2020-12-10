@@ -229,7 +229,7 @@ defmodule StepFlow.HelpersTest do
     workflow
   end
 
-  def create_progression(workflow, step_id) do
+  def create_progression(workflow, step_id, progress \\ 50) do
     workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
 
     job =
@@ -240,9 +240,9 @@ defmodule StepFlow.HelpersTest do
     {result, _} =
       Progressions.create_progression(%{
         job_id: job.id,
-        datetime: ~N[2020-01-31 09:48:53],
+        datetime: NaiveDateTime.utc_now,
         docker_container_id: "unknown",
-        progression: 50
+        progression: progress
       })
 
     result
