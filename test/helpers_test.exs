@@ -240,7 +240,7 @@ defmodule StepFlow.HelpersTest do
     {result, _} =
       Progressions.create_progression(%{
         job_id: job.id,
-        datetime: NaiveDateTime.utc_now,
+        datetime: NaiveDateTime.utc_now(),
         docker_container_id: "unknown",
         progression: progress
       })
