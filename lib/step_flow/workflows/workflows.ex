@@ -365,7 +365,7 @@ defmodule StepFlow.Workflows do
     count =
       case Enum.map(job.status, fn s -> s.state end) |> List.last() do
         nil -> count + 1
-        :retry -> count + 1
+        :retrying -> count + 1
         _state -> count
       end
 
