@@ -247,4 +247,15 @@ defmodule StepFlow.HelpersTest do
 
     result
   end
+
+  def retry_job(workflow, step_id) do
+    workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
+
+    job =
+      workflow_jobs
+      |> Enum.filter(fn job -> job.step_id == step_id end)
+      |> List.first()
+
+    Status.set_job_status(job.id, :retrying)
+  end
 end
