@@ -339,24 +339,22 @@ defmodule StepFlow.Workflows do
   end
 
   defp count_processing(job, count) do
-    case job.progressions do
-      [] ->
-        count
+    if job.progressions == [] do
+      count
+    else
+      last_progression =
+        job.progressions
+        |> Progression.get_last_progression()
 
-      _ ->
-        last_progression =
-          job.progressions
-          |> Progression.get_last_progression()
+      last_status =
+        job.status
+        |> Status.get_last_status()
 
-        last_status =
-          job.status
-          |> Status.get_last_status()
-
-        cond do
-          last_status == nil -> count + 1
-          last_progression.updated_at > last_status.updated_at -> count + 1
-          true -> count
-        end
+      cond do
+        last_status == nil -> count + 1
+        last_progression.updated_at > last_status.updated_at -> count + 1
+        true -> count
+      end
     end
   end
 
