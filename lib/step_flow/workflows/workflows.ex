@@ -276,9 +276,10 @@ defmodule StepFlow.Workflows do
       cond do
         errors > 0 -> :error
         processing > 0 -> :processing
+        queued > 0 -> :processing
         skipped > 0 -> :skipped
         completed > 0 -> :completed
-        # only queued in this case
+        # TODO: change this case into to_start as not started yet
         true -> :queued
       end
 
@@ -363,10 +364,25 @@ defmodule StepFlow.Workflows do
 
   defp count_queued_status([job | jobs], count) do
     count =
-      case Enum.map(job.status, fn s -> s.state end) |> List.last() do
-        nil -> count + 1
-        :retrying -> count + 1
-        _state -> count
+      case {Enum.map(job.status, fn s -> s.state end) |> List.last(), job.progressions} do
+        {nil, []} ->
+          count + 1
+
+        {nil, _} ->
+          count
+
+        {:retrying, _} ->
+          last_progression = job.progressions |> Progression.get_last_progression()
+          last_status = job.status |> Status.get_last_status()
+
+          if last_progression.updated_at > last_status.updated_at do
+            count
+          else
+            count + 1
+          end
+
+        {_state, _} ->
+          count
       end
 
     count_queued_status(jobs, count)
