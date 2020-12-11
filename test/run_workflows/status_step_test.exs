@@ -1,4 +1,4 @@
-defmodule StepFlow.RunWorkflows.RetryStepTest do
+defmodule StepFlow.RunWorkflows.StatusStepTest do
   use ExUnit.Case
   use Plug.Test
 
@@ -15,13 +15,13 @@ defmodule StepFlow.RunWorkflows.RetryStepTest do
   describe "workflows" do
     @workflow_definition %{
       schema_version: "1.8",
-      identifier: "skipped_steps",
+      identifier: "status_steps",
       version_major: 6,
       version_minor: 5,
       version_micro: 4,
       reference: "some id",
       icon: "custom_icon",
-      label: "Skipped steps",
+      label: "Status steps",
       tags: ["test"],
       parameters: [],
       steps: [
@@ -65,25 +65,45 @@ defmodule StepFlow.RunWorkflows.RetryStepTest do
       StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
       StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
 
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 0).completed == 1
+
       {:ok, "started"} = Step.start_next(workflow)
+
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).queued == 1
 
       StepFlow.HelpersTest.check(workflow.id, "second_step", 1)
       StepFlow.HelpersTest.create_progression(workflow, 1)
 
       {:ok, "still_processing"} = Step.start_next(workflow)
 
-      StepFlow.HelpersTest.retry_job(workflow, 1)
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).queued == 0
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).processing == 1
 
-      {:ok, "started"} = Step.start_next(workflow)
-
-      :timer.sleep(1000)
-
-      StepFlow.HelpersTest.check(workflow.id, "second_step", 2)
-      StepFlow.HelpersTest.create_progression(workflow, 1)
+      StepFlow.HelpersTest.change_job_status(workflow, 1, :retrying)
 
       {:ok, "still_processing"} = Step.start_next(workflow)
 
-      StepFlow.HelpersTest.check(workflow.id, 3)
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).queued == 1
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).processing == 0
+
+      :timer.sleep(1000)
+
+      StepFlow.HelpersTest.check(workflow.id, "second_step", 1)
+      StepFlow.HelpersTest.create_progression(workflow, 1)
+
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).queued == 0
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).processing == 1
+
+      {:ok, "still_processing"} = Step.start_next(workflow)
+
+      StepFlow.HelpersTest.check(workflow.id, 2)
+
+      StepFlow.HelpersTest.change_job_status(workflow, 1, :error)
+
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).queued == 0
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).processing == 0
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).errors == 1
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).completed == 0
     end
   end
 end
