@@ -248,7 +248,7 @@ defmodule StepFlow.HelpersTest do
     result
   end
 
-  def retry_job(workflow, step_id) do
+  def change_job_status(workflow, step_id, status) do
     workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
 
     job =
@@ -256,6 +256,20 @@ defmodule StepFlow.HelpersTest do
       |> Enum.filter(fn job -> job.step_id == step_id end)
       |> List.first()
 
-    Status.set_job_status(job.id, :retrying)
+    Status.set_job_status(job.id, status)
+  end
+
+  def get_job_count_status(workflow, step_id) do
+    jobs =
+      Repo.preload(workflow, jobs: [:status, :progressions])
+      |> Map.get(:jobs)
+
+    step =
+      StepFlow.Map.get_by_key_or_atom(workflow, :steps)
+      |> Workflows.get_step_status(jobs)
+      |> Enum.filter(fn step -> step["id"] == step_id end)
+      |> List.first()
+
+    step.jobs
   end
 end
