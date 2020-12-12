@@ -279,7 +279,7 @@ defmodule StepFlow.Workflows do
         queued > 0 -> :processing
         skipped > 0 -> :skipped
         completed > 0 -> :completed
-        # TODO: change this case into to_start as not started yet
+        # TO DO: change this case into to_start as not started yet
         true -> :queued
       end
 
