@@ -17,7 +17,8 @@ defmodule StepFlow.Jobs.Status do
     "error",
     "completed",
     "ready_to_init",
-    "ready_to_start"
+    "ready_to_start",
+    "update"
   ])
 
   defp state_map_lookup(value) do
@@ -29,7 +30,8 @@ defmodule StepFlow.Jobs.Status do
       4 => :error,
       5 => :completed,
       6 => :ready_to_init,
-      7 => :ready_to_start
+      7 => :ready_to_start,
+      8 => :update
     }
 
     if is_number(value) do
@@ -98,6 +100,7 @@ defmodule StepFlow.Jobs.Status do
       "queued" -> "create"
       "ready_to_init" -> "init"
       "ready_to_start" -> "start"
+      "update" -> "update"
       "completed" -> "delete"
       _ -> "none"
     end
