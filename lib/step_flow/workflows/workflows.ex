@@ -7,6 +7,7 @@ defmodule StepFlow.Workflows do
 
   alias StepFlow.Jobs
   alias StepFlow.Jobs.Status
+  alias StepFlow.Progressions.Progression
   alias StepFlow.Repo
   alias StepFlow.Workflows.Workflow
 
@@ -224,7 +225,7 @@ defmodule StepFlow.Workflows do
   end
 
   defp preload_workflow(workflow) do
-    jobs = Repo.preload(workflow.jobs, :status)
+    jobs = Repo.preload(workflow.jobs, [:status, :progressions])
 
     steps =
       workflow
@@ -259,12 +260,14 @@ defmodule StepFlow.Workflows do
     completed = count_status(jobs, :completed)
     errors = count_status(jobs, :error)
     skipped = count_status(jobs, :skipped)
+    processing = count_status(jobs, :processing)
     queued = count_queued_status(jobs)
 
     job_status = %{
       total: length(jobs),
       completed: completed,
       errors: errors,
+      processing: processing,
       queued: queued,
       skipped: skipped
     }
@@ -272,9 +275,11 @@ defmodule StepFlow.Workflows do
     status =
       cond do
         errors > 0 -> :error
+        processing > 0 -> :processing
         queued > 0 -> :processing
         skipped > 0 -> :skipped
         completed > 0 -> :completed
+        # TO DO: change this case into to_start as not started yet
         true -> :queued
       end
 
@@ -316,18 +321,42 @@ defmodule StepFlow.Workflows do
           count
         end
       else
-        Enum.filter(job.status, fn s -> s.state == status end)
-        |> length
-        |> case do
-          0 ->
-            count
+        if status == :processing do
+          count_processing(job, count)
+        else
+          Enum.filter(job.status, fn s -> s.state == status end)
+          |> length
+          |> case do
+            0 ->
+              count
 
-          _ ->
-            count + 1
+            _ ->
+              count + 1
+          end
         end
       end
 
     count_status(jobs, status, count)
+  end
+
+  defp count_processing(job, count) do
+    if job.progressions == [] do
+      count
+    else
+      last_progression =
+        job.progressions
+        |> Progression.get_last_progression()
+
+      last_status =
+        job.status
+        |> Status.get_last_status()
+
+      cond do
+        last_status == nil -> count + 1
+        last_progression.updated_at > last_status.updated_at -> count + 1
+        true -> count
+      end
+    end
   end
 
   defp count_queued_status(jobs, count \\ 0)
@@ -335,9 +364,25 @@ defmodule StepFlow.Workflows do
 
   defp count_queued_status([job | jobs], count) do
     count =
-      case Enum.map(job.status, fn s -> s.state end) |> List.last() do
-        nil -> count + 1
-        _state -> count
+      case {Enum.map(job.status, fn s -> s.state end) |> List.last(), job.progressions} do
+        {nil, []} ->
+          count + 1
+
+        {nil, _} ->
+          count
+
+        {:retrying, _} ->
+          last_progression = job.progressions |> Progression.get_last_progression()
+          last_status = job.status |> Status.get_last_status()
+
+          if last_progression.updated_at > last_status.updated_at do
+            count
+          else
+            count + 1
+          end
+
+        {_state, _} ->
+          count
       end
 
     count_queued_status(jobs, count)

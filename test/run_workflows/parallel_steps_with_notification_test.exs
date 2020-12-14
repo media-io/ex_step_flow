@@ -115,12 +115,16 @@ defmodule StepFlow.RunWorkflows.ParallelStepsWithNotificationTest do
       StepFlow.HelpersTest.check(workflow.id, "first_parallel_step", 1)
       StepFlow.HelpersTest.check(workflow.id, "notification_step", 1)
 
+      StepFlow.HelpersTest.create_progression(workflow, 1)
+
       {:ok, "still_processing"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.complete_jobs(workflow.id, "first_parallel_step")
 
       StepFlow.HelpersTest.check(workflow.id, "first_parallel_step", 1)
       StepFlow.HelpersTest.check(workflow.id, "notification_step", 1)
+
+      StepFlow.HelpersTest.create_progression(workflow, 2)
 
       {:ok, "still_processing"} = Step.start_next(workflow)
 
