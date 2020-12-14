@@ -37,6 +37,21 @@ defmodule StepFlow.WorkflowEventsController do
           |> json(%{status: "error", message: "Forbidden to abort this workflow"})
         end
 
+      %{"event" => "update", "job_id" => job_id} ->
+        if has_right(workflow, user, "update") do
+          Logger.warn("update job #{job_id}")
+
+          job = Jobs.get_job_with_status!(job_id)
+
+          last_status = Status.get_last_status(job.status)
+
+          Jobs.update_job(job_id)
+        else
+          conn
+          |> put_status(:forbidden)
+          |> json(%{status: "error", message: "Forbidden to update this workflow"})
+        end
+
       %{"event" => "retry", "job_id" => job_id} ->
         if has_right(workflow, user, "retry") do
           Logger.warn("retry job #{job_id}")
