@@ -8,6 +8,7 @@ defmodule StepFlow.Step.Live do
   alias StepFlow.Repo
   alias StepFlow.Step.Launch
   alias StepFlow.Step.LaunchParams
+  alias StepFlow.Updates.Update
 
   def update_job_live(
         [source_path | _source_paths],
@@ -23,11 +24,12 @@ defmodule StepFlow.Step.Live do
         create_live_worker(source_path, launch_params)
 
       job ->
-        job = Repo.preload(job, :status)
+        job = Repo.preload(job, [:status, :updates])
 
         case Status.get_last_status(job.status).state do
           :ready_to_init -> update_live_worker(launch_params, job)
           :ready_to_start -> update_live_worker(launch_params, job)
+          :update -> update_live_worker(launch_params, job)
           :completed -> delete_live_worker(launch_params, job)
           _ -> {:ok, "nothing to do"}
         end
@@ -79,9 +81,9 @@ defmodule StepFlow.Step.Live do
     message = Jobs.get_message(job)
 
     action_parameter =
-      job.status
-      |> Status.get_last_status()
-      |> Status.get_action_parameter()
+        job.status
+        |> Status.get_last_status()
+        |> Status.get_action_parameter()
 
     Map.put(message, :parameters, message.parameters ++ action_parameter)
   end
