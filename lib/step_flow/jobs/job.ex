@@ -4,6 +4,7 @@ defmodule StepFlow.Jobs.Job do
   alias StepFlow.Jobs.Job
   alias StepFlow.Jobs.Status
   alias StepFlow.Progressions.Progression
+  alias StepFlow.Updates.Update
   alias StepFlow.Workflows.Workflow
 
   @moduledoc false
@@ -13,9 +14,11 @@ defmodule StepFlow.Jobs.Job do
     field(:step_id, :integer)
     field(:parameters, {:array, :map}, default: [])
     field(:is_live, :boolean, default: false)
+    field(:is_updatable, :boolean, default: false)
     belongs_to(:workflow, Workflow, foreign_key: :workflow_id)
     has_many(:status, Status, on_delete: :delete_all)
     has_many(:progressions, Progression, on_delete: :delete_all)
+    has_many(:updates, Update, on_delete: :delete_all)
 
     timestamps()
   end
