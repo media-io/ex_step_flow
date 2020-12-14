@@ -24,7 +24,6 @@ defmodule StepFlow.Amqp.Supervisor do
       worker(StepFlow.Amqp.CompletedConsumer, []),
       worker(StepFlow.Amqp.ErrorConsumer, []),
       worker(StepFlow.Amqp.ProgressionConsumer, []),
-      worker(StepFlow.Amqp.QueueNotFoundConsumer, []),
       worker(StepFlow.Amqp.WorkerDiscoveryConsumer, [])
     ]
 
