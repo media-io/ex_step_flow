@@ -7,6 +7,7 @@ defmodule StepFlow.HelpersTest do
   alias StepFlow.Jobs.Status
   alias StepFlow.Progressions
   alias StepFlow.Repo
+  alias StepFlow.Updates
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
   alias StepFlow.Workflows
 
@@ -248,6 +249,17 @@ defmodule StepFlow.HelpersTest do
     result
   end
 
+  def create_update(workflow, step_id, update) do
+    workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
+
+    job =
+      workflow_jobs
+      |> Enum.filter(fn job -> job.step_id == step_id end)
+      |> List.first()
+
+    Updates.update_parameters(job, update)
+  end
+
   def change_job_status(workflow, step_id, status) do
     workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
 
@@ -271,5 +283,17 @@ defmodule StepFlow.HelpersTest do
       |> List.first()
 
     step.jobs
+  end
+
+  def get_parameter_value_list(workflow, type) do
+    StepFlow.Jobs.list_jobs(%{
+      "job_type" => type,
+      "workflow_id" => workflow.id |> Integer.to_string(),
+      "size" => 50
+    })
+    |> Map.get(:data)
+    |> List.first()
+    |> Map.get(:parameters)
+    |> Enum.map(fn x -> x["value"] end)
   end
 end
