@@ -9,7 +9,7 @@ defmodule StepFlow.Updates.Update do
   schema "step_flow_updates" do
     field(:datetime, :utc_datetime)
     field(:docker_container_id, :string)
-    field(:updates, :string)
+    field(:parameters, {:array, :map})
     belongs_to(:job, Job, foreign_key: :job_id)
 
     timestamps()

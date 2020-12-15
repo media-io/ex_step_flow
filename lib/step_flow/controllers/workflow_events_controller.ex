@@ -45,7 +45,8 @@ defmodule StepFlow.WorkflowEventsController do
 
           last_status = Status.get_last_status(job.status)
 
-          Jobs.update_job(job_id)
+          # Check if is_updatable
+          Update.update_job(job_id)
         else
           conn
           |> put_status(:forbidden)
