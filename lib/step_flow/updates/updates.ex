@@ -28,8 +28,12 @@ defmodule StepFlow.Updates do
   end
 
   def update_parameters(job, parameters) do
-    update_parameter(job, parameters)
-    Status.set_job_status(job.id, :update, "Updated parameters: " ++ parameters)
+    job_parameters =
+      job.parameters
+      |> update_parameter(parameters)
+
+    Jobs.update_job(job, %{parameters: job_parameters})
+    Status.set_job_status(job.id, :update, "Updating parameters")
 
     create_update(%{
       job_id: job.id,
@@ -38,10 +42,17 @@ defmodule StepFlow.Updates do
     })
   end
 
-  def update_parameter(job, [parameter | parameters]) do
-    Jobs.update_job(job, parameter)
-    update_parameter(job, parameters)
+  def update_parameter(job_parameters, [parameter | parameters]) do
+    Enum.map(job_parameters, fn x ->
+      if x["id"] == parameter.id do
+        x
+        |> Map.replace("value", parameter.value)
+      else
+        x
+      end
+    end)
+    |> update_parameter(parameters)
   end
 
-  def update_parameter(_job, []), do: nil
+  def update_parameter(job_parameters, []), do: job_parameters
 end
