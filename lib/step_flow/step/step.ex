@@ -80,7 +80,7 @@ defmodule StepFlow.Step do
 
   defp iter_get_steps_to_start(steps, all_steps, is_live, completed \\ true, result \\ [])
 
-  defp iter_get_steps_to_start([], _all_steps, is_live, completed, result),
+  defp iter_get_steps_to_start([], _all_steps, _is_live, completed, result),
     do: {completed, result}
 
   defp iter_get_steps_to_start([step | steps], all_steps, true, completed, result) do

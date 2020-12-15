@@ -8,7 +8,6 @@ defmodule StepFlow.Step.Live do
   alias StepFlow.Repo
   alias StepFlow.Step.Launch
   alias StepFlow.Step.LaunchParams
-  alias StepFlow.Updates.Update
 
   def update_job_live(
         [source_path | _source_paths],
@@ -81,9 +80,9 @@ defmodule StepFlow.Step.Live do
     message = Jobs.get_message(job)
 
     action_parameter =
-        job.status
-        |> Status.get_last_status()
-        |> Status.get_action_parameter()
+      job.status
+      |> Status.get_last_status()
+      |> Status.get_action_parameter()
 
     Map.put(message, :parameters, message.parameters ++ action_parameter)
   end
