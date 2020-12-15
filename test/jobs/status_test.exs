@@ -46,9 +46,14 @@ defmodule StepFlow.Jobs.StatusTest do
     assert "ready_to_start" == Status.state_enum_label(7)
   end
 
+  test "get update state enum label" do
+    assert "update" == Status.state_enum_label(:update)
+    assert "update" == Status.state_enum_label(8)
+  end
+
   test "get unknown state enum label" do
     assert "unknown" == Status.state_enum_label(:other)
-    assert "unknown" == Status.state_enum_label(8)
+    assert "unknown" == Status.state_enum_label(9)
     assert "unknown" == Status.state_enum_label(nil)
   end
 
