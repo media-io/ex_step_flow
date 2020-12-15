@@ -47,20 +47,27 @@ defmodule StepFlow.Amqp.Connection do
     {:noreply, chan}
   end
 
+  # Confirmation sent by the broker after registering this process as a consumer
+  def handle_info({:basic_consume_ok, %{consumer_tag: consumer_tag}}, chan) do
+    {:noreply, chan}
+  end
+
   def handle_info({:basic_deliver, payload, %{delivery_tag: tag, redelivered: redelivered} = headers},channel) do
     data =
       payload
       |> Jason.decode!()
 
-    case Jobs.get_job(data.job_id) do
+    job_id = Map.get(data,"job_id")
+
+    case Jobs.get_job(job_id) do
       nil ->
         Basic.reject(channel, tag, requeue: true)
 
       _ ->
         description = "No worker is started with this queue name."
         Logger.error("Job error #{inspect(payload)}")
-        Status.set_job_status(data.job_id, :error, %{message: description})
-        Workflows.notification_from_job(data.job_id, description)
+        Status.set_job_status(job_id, :error, %{message: description})
+        Workflows.notification_from_job(job_id, description)
 
         AMQP.Basic.ack(channel, tag)
     end
@@ -103,6 +110,8 @@ defmodule StepFlow.Amqp.Connection do
 
     AMQP.Exchange.fanout(channel, "job_queue_not_found", durable: true)
 
+    AMQP.Queue.declare(channel, "job_queue_not_found")
+    AMQP.Queue.bind(channel, "job_queue_not_found", "job_queue_not_found")
     AMQP.Basic.consume(channel, "job_queue_not_found")
 
     {:ok, %{channel: channel, connection: connection}}
