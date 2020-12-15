@@ -11,8 +11,8 @@ defmodule StepFlow.WorkflowEventsController do
     Notifications.Notification,
     Step.Helpers,
     Step.Launch,
-    Workflows,
-    Updates
+    Updates,
+    Workflows
   }
 
   action_fallback(StepFlow.FallbackController)
