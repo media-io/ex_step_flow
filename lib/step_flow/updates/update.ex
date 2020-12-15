@@ -8,7 +8,6 @@ defmodule StepFlow.Updates.Update do
 
   schema "step_flow_updates" do
     field(:datetime, :utc_datetime)
-    field(:docker_container_id, :string)
     field(:parameters, {:array, :map})
     belongs_to(:job, Job, foreign_key: :job_id)
 
@@ -18,9 +17,9 @@ defmodule StepFlow.Updates.Update do
   @doc false
   def changeset(%Update{} = update, attrs) do
     update
-    |> cast(attrs, [:datetime, :docker_container_id, :job_id, :update])
+    |> cast(attrs, [:datetime, :job_id, :parameters])
     |> foreign_key_constraint(:job_id)
-    |> validate_required([:datetime, :docker_container_id, :job_id, :update])
+    |> validate_required([:datetime, :job_id, :parameters])
   end
 
   @doc """
