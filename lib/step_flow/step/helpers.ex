@@ -142,7 +142,8 @@ defmodule StepFlow.Step.Helpers do
 
     %{
       date_time: Timex.format!(now, "%Y_%m_%d__%H_%M_%S", :strftime),
-      date: Timex.format!(now, "%Y_%m_%d", :strftime)
+      date: Timex.format!(now, "%Y_%m_%d", :strftime),
+      epoch: Timex.epoch()
     }
   end
 
