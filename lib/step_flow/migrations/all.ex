@@ -77,7 +77,13 @@ defmodule StepFlow.Migration.All do
     Ecto.Migrator.up(
       StepFlow.Repo,
       20_201_214_223_900,
-      StepFlow.Migration.AddLiveParameter
+      StepFlow.Migration.AddUpdatableParameter
+    )
+
+    Ecto.Migrator.up(
+      StepFlow.Repo,
+      20_201_215_142_100,
+      StepFlow.Migration.CreateUpdates
     )
   end
 end

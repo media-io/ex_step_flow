@@ -1,4 +1,4 @@
-defmodule StepFlow.Migration.AddLiveParameter do
+defmodule StepFlow.Migration.AddUpdatableParameter do
   use Ecto.Migration
   @moduledoc false
 
