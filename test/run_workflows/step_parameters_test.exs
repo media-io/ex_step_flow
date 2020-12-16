@@ -21,7 +21,7 @@ defmodule StepFlow.RunWorkflows.StepParametersTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_test",
           icon: "step_icon",
           label: "My first step",
           work_dir: "/custom/work/directory/",

@@ -10,10 +10,10 @@ defmodule StepFlow.RunWorkflows.DestinationFilenameTemplateTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    channel = StepFlow.HelpersTest.get_amqp_connection()
+    {_conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 1)
+      StepFlow.HelpersTest.consume_messages(channel, "job_test", 1)
     end)
 
     :ok
@@ -33,7 +33,7 @@ defmodule StepFlow.RunWorkflows.DestinationFilenameTemplateTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_test",
           icon: "step_icon",
           label: "My first step",
           parameters: [
@@ -66,11 +66,11 @@ defmodule StepFlow.RunWorkflows.DestinationFilenameTemplateTest do
       {:ok, "started"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.check(workflow.id, 1)
-      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
+      StepFlow.HelpersTest.check(workflow.id, 0, 1)
 
       destination_path =
         StepFlow.Jobs.list_jobs(%{
-          "job_type" => "my_first_step",
+          "step_id" => 0,
           "workflow_id" => workflow.id |> Integer.to_string(),
           "size" => 50
         })
@@ -84,7 +84,7 @@ defmodule StepFlow.RunWorkflows.DestinationFilenameTemplateTest do
       assert destination_path ==
                "/test_work_dir/" <> Integer.to_string(workflow.id) <> "/my_file.mov.wav"
 
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 0)
 
       {:ok, "completed"} = Step.start_next(workflow)
       StepFlow.HelpersTest.check(workflow.id, 1)

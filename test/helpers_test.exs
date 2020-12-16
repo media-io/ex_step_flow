@@ -34,9 +34,36 @@ defmodule StepFlow.HelpersTest do
     {:ok, connection} = AMQP.Connection.open(url)
     {:ok, channel} = AMQP.Channel.open(connection)
 
-    clean_queue(channel, "job_queue_not_found")
+    AMQP.Queue.declare(channel, "job_test", durable: false)
+    AMQP.Queue.bind(channel, "job_test", "job_submit", routing_key: "job_test")
 
-    channel
+    clean_queue(channel, "job_test")
+
+    AMQP.Queue.declare(channel, "job_ffmpeg", durable: false)
+    AMQP.Queue.bind(channel, "job_ffmpeg", "job_submit", routing_key: "job_ffmpeg")
+
+    clean_queue(channel, "job_ffmpeg")
+
+    AMQP.Queue.declare(channel, "job_transfer", durable: false)
+    AMQP.Queue.bind(channel, "job_transfer", "job_submit", routing_key: "job_transfer")
+
+    clean_queue(channel, "job_transfer")
+
+    AMQP.Queue.declare(channel, "job_speech_to_text", durable: false)
+    AMQP.Queue.bind(channel, "job_speech_to_text", "job_submit", routing_key: "job_speech_to_text")
+
+    clean_queue(channel, "job_speech_to_text")
+
+    AMQP.Queue.declare(channel, "job_file_system", durable: false)
+    AMQP.Queue.bind(channel, "job_file_system", "job_submit", routing_key: "job_file_system")
+
+    clean_queue(channel, "job_file_system")
+
+    {connection, channel}
+  end
+
+  def close_amqp_connection(conn) do
+    AMQP.Connection.close(conn)
   end
 
   def validate_message_format(%{"job_id" => job_id, "parameters" => parameters})
@@ -149,14 +176,14 @@ defmodule StepFlow.HelpersTest do
     assert length(all_jobs) == total
   end
 
-  def check(workflow_id, type, total) do
-    all_jobs = get_jobs(workflow_id, type)
+  def check(workflow_id, step_id, total) do
+    all_jobs = get_jobs(workflow_id, step_id)
 
     assert length(all_jobs) == total
   end
 
-  def complete_jobs(workflow_id, type) do
-    all_jobs = get_jobs(workflow_id, type)
+  def complete_jobs(workflow_id, step_id) do
+    all_jobs = get_jobs(workflow_id, step_id)
 
     for job <- all_jobs do
       Status.set_job_status(job.id, Status.state_enum_label(:completed))
@@ -165,19 +192,19 @@ defmodule StepFlow.HelpersTest do
     all_jobs
   end
 
-  def get_jobs(workflow_id, type) do
+  def get_jobs(workflow_id, step_id) do
     StepFlow.Jobs.list_jobs(%{
-      "job_type" => type,
+      "step_id" => step_id,
       "workflow_id" => workflow_id |> Integer.to_string(),
       "size" => 50
     })
     |> Map.get(:data)
   end
 
-  def set_output_files(workflow_id, type, paths) do
+  def set_output_files(workflow_id, step_id, paths) do
     all_jobs =
       StepFlow.Jobs.list_jobs(%{
-        "job_type" => type,
+        "step_id" => step_id,
         "workflow_id" => workflow_id |> Integer.to_string(),
         "size" => 50
       })
