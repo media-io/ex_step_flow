@@ -7,6 +7,10 @@ defmodule StepFlow.Amqp.Connection do
 
   use GenServer
   alias StepFlow.Amqp.Helpers
+  alias StepFlow.Jobs
+  alias StepFlow.Jobs.Status
+  alias StepFlow.Workflows
+  alias StepFlow.Workflows.StepManager
 
   def start_link do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
@@ -35,12 +39,12 @@ defmodule StepFlow.Amqp.Connection do
     {:noreply, conn}
   end
 
-  def handle_cast({:consume, queue, _callback}, conn) do
-    Logger.warn("#{__MODULE__}: consume messages on queue: #{queue}")
-    # AMQP.Queue.declare(conn.channel, queue, durable: false)
-    {:ok, _consumer_tag} = AMQP.Basic.consume(conn, queue)
-    {:noreply, conn}
-  end
+  # def handle_cast({:consume, queue, _callback}, conn) do
+  #   Logger.warn("#{__MODULE__}: consume messages on queue: #{queue}")
+  #   # AMQP.Queue.declare(conn.channel, queue, durable: false)
+  #   {:ok, _consumer_tag} = AMQP.Basic.consume(conn, queue)
+  #   {:noreply, conn}
+  # end
 
   def handle_info({:DOWN, _, :process, _pid, _reason}, _) do
     {:ok, chan} = rabbitmq_connect()
@@ -48,29 +52,31 @@ defmodule StepFlow.Amqp.Connection do
   end
 
   # Confirmation sent by the broker after registering this process as a consumer
-  def handle_info({:basic_consume_ok, %{consumer_tag: consumer_tag}}, chan) do
+  def handle_info({:basic_consume_ok, %{consumer_tag: _consumer_tag}}, chan) do
     {:noreply, chan}
   end
 
-  def handle_info({:basic_deliver, payload, %{delivery_tag: tag, redelivered: redelivered} = headers},channel) do
+  def handle_info({:basic_deliver, payload, %{delivery_tag: tag, redelivered: _redelivered} = _headers}, channel) do
     data =
       payload
       |> Jason.decode!()
 
     job_id = Map.get(data,"job_id")
+    IO.inspect(job_id)
 
-    case Jobs.get_job(job_id) do
-      nil ->
-        Basic.reject(channel, tag, requeue: true)
-
-      _ ->
-        description = "No worker is started with this queue name."
-        Logger.error("Job error #{inspect(payload)}")
-        Status.set_job_status(job_id, :error, %{message: description})
-        Workflows.notification_from_job(job_id, description)
-
-        AMQP.Basic.ack(channel, tag)
+    try do
+      Jobs.get_job(job_id)
+    rescue
+      e in Ecto.NoResultsError -> IO.inspect(e)
+      e -> IO.inspect(e)
+        AMQP.Basic.reject(channel.channel, tag)
     end
+
+    Logger.error("Job queue not found #{inspect(payload)}")
+    description = "No worker is started with this queue name."
+    Status.set_job_status(job_id, :error, %{message: description})
+    Workflows.notification_from_job(job_id, description)
+    AMQP.Basic.ack(channel.channel, tag)
 
     {:noreply, channel}
   end
