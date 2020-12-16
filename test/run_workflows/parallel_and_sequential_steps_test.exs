@@ -102,6 +102,8 @@ defmodule StepFlow.RunWorkflows.ParallelSequentialStepsTest do
 
       StepFlow.HelpersTest.create_progression(workflow, 0)
 
+      StepFlow.HelpersTest.create_progression(workflow, 0)
+
       {:ok, "still_processing"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.complete_jobs(workflow.id, 0)
@@ -110,6 +112,9 @@ defmodule StepFlow.RunWorkflows.ParallelSequentialStepsTest do
 
       StepFlow.HelpersTest.check(workflow.id, 1, 1)
       StepFlow.HelpersTest.check(workflow.id, 2, 1)
+
+      StepFlow.HelpersTest.create_progression(workflow, 1)
+      StepFlow.HelpersTest.create_progression(workflow, 2)
 
       StepFlow.HelpersTest.create_progression(workflow, 1)
       StepFlow.HelpersTest.create_progression(workflow, 2)
@@ -123,6 +128,10 @@ defmodule StepFlow.RunWorkflows.ParallelSequentialStepsTest do
       StepFlow.HelpersTest.check(workflow.id, 1, 1)
       StepFlow.HelpersTest.check(workflow.id, 2, 1)
       StepFlow.HelpersTest.check(workflow.id, 3, 1)
+
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 2)
+
+      StepFlow.HelpersTest.create_progression(workflow, 3)
 
       StepFlow.HelpersTest.complete_jobs(workflow.id, 2)
 
