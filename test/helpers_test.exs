@@ -52,6 +52,7 @@ defmodule StepFlow.HelpersTest do
     clean_queue(channel, "job_transfer")
 
     AMQP.Queue.declare(channel, "job_speech_to_text", durable: false)
+
     AMQP.Queue.bind(channel, "job_speech_to_text", "job_submit", routing_key: "job_speech_to_text")
 
     clean_queue(channel, "job_speech_to_text")

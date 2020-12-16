@@ -56,19 +56,23 @@ defmodule StepFlow.Amqp.Connection do
     {:noreply, chan}
   end
 
-  def handle_info({:basic_deliver, payload, %{delivery_tag: tag, redelivered: _redelivered} = _headers}, channel) do
+  def handle_info(
+        {:basic_deliver, payload, %{delivery_tag: tag, redelivered: _redelivered} = _headers},
+        channel
+      ) do
     data =
       payload
       |> Jason.decode!()
 
-    job_id = Map.get(data,"job_id")
-    IO.inspect(job_id)
+    job_id = Map.get(data, "job_id")
 
     try do
       Jobs.get_job(job_id)
     rescue
-      e in Ecto.NoResultsError -> IO.inspect(e)
-      e -> IO.inspect(e)
+      e in Ecto.NoResultsError ->
+        Logger.error("Cannot retrieve job id")
+
+      e ->
         AMQP.Basic.reject(channel.channel, tag)
     end
 
