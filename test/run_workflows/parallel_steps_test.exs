@@ -97,6 +97,9 @@ defmodule StepFlow.RunWorkflows.ParallelStepsTest do
       StepFlow.HelpersTest.check(workflow.id, 1, 1)
       StepFlow.HelpersTest.check(workflow.id, 2, 1)
 
+      StepFlow.HelpersTest.create_progression(workflow, 1)
+      StepFlow.HelpersTest.create_progression(workflow, 2)
+
       {:ok, "still_processing"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.complete_jobs(workflow.id, 1)

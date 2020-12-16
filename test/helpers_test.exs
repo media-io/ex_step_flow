@@ -5,6 +5,8 @@ defmodule StepFlow.HelpersTest do
   require Logger
   alias StepFlow.Amqp.Helpers
   alias StepFlow.Jobs.Status
+  alias StepFlow.Progressions
+  alias StepFlow.Repo
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
   alias StepFlow.Workflows
 
@@ -252,5 +254,49 @@ defmodule StepFlow.HelpersTest do
       |> Workflows.create_workflow()
 
     workflow
+  end
+
+  def create_progression(workflow, step_id, progress \\ 50) do
+    workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
+
+    job =
+      workflow_jobs
+      |> Enum.filter(fn job -> job.step_id == step_id end)
+      |> List.first()
+
+    {result, _} =
+      Progressions.create_progression(%{
+        job_id: job.id,
+        datetime: NaiveDateTime.utc_now(),
+        docker_container_id: "unknown",
+        progression: progress
+      })
+
+    result
+  end
+
+  def change_job_status(workflow, step_id, status) do
+    workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
+
+    job =
+      workflow_jobs
+      |> Enum.filter(fn job -> job.step_id == step_id end)
+      |> List.first()
+
+    Status.set_job_status(job.id, status)
+  end
+
+  def get_job_count_status(workflow, step_id) do
+    jobs =
+      Repo.preload(workflow, jobs: [:status, :progressions])
+      |> Map.get(:jobs)
+
+    step =
+      StepFlow.Map.get_by_key_or_atom(workflow, :steps)
+      |> Workflows.get_step_status(jobs)
+      |> Enum.filter(fn step -> step["id"] == step_id end)
+      |> List.first()
+
+    step.jobs
   end
 end

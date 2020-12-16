@@ -16,7 +16,7 @@ defmodule StepFlow.Step do
   def start_next(%Workflow{id: workflow_id} = workflow) do
     workflow = Repo.preload(workflow, :jobs, force: true)
 
-    jobs = Repo.preload(workflow.jobs, :status)
+    jobs = Repo.preload(workflow.jobs, [:status, :progressions])
 
     steps =
       StepFlow.Map.get_by_key_or_atom(workflow, :steps)
