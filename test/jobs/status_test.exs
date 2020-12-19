@@ -64,7 +64,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:15:00],
         job_id: 123,
-        state: "queued",
+        state: :queued,
         updated_at: ~N[2020-01-14 15:15:00]
       },
       %{
@@ -72,7 +72,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:17:32],
         job_id: 123,
-        state: "skipped",
+        state: :skipped,
         updated_at: ~N[2020-01-14 15:17:32]
       },
       %{
@@ -80,14 +80,14 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:16:03],
         job_id: 123,
-        state: "processing",
+        state: :processing,
         updated_at: ~N[2020-01-14 15:16:03]
       }
     ]
 
     last_status = Status.get_last_status(status_list)
 
-    assert "skipped" == last_status.state
+    assert :skipped == last_status.state
   end
 
   test "get create action" do
@@ -97,7 +97,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:17:00],
         job_id: 123,
-        state: "queued",
+        state: :queued,
         updated_at: ~N[2020-01-14 15:17:00]
       },
       %{
@@ -105,7 +105,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:16:03],
         job_id: 123,
-        state: "processing",
+        state: :processing,
         updated_at: ~N[2020-01-14 15:16:03]
       }
     ]
@@ -124,7 +124,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:15:00],
         job_id: 123,
-        state: "queued",
+        state: :queued,
         updated_at: ~N[2020-01-14 15:15:00]
       },
       %{
@@ -132,7 +132,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:17:32],
         job_id: 123,
-        state: "ready_to_init",
+        state: :ready_to_init,
         updated_at: ~N[2020-01-14 15:17:32]
       },
       %{
@@ -140,7 +140,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:16:03],
         job_id: 123,
-        state: "processing",
+        state: :processing,
         updated_at: ~N[2020-01-14 15:16:03]
       }
     ]
@@ -159,7 +159,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:15:00],
         job_id: 123,
-        state: "queued",
+        state: :queued,
         updated_at: ~N[2020-01-14 15:15:00]
       },
       %{
@@ -167,7 +167,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:17:32],
         job_id: 123,
-        state: "ready_to_start",
+        state: :ready_to_start,
         updated_at: ~N[2020-01-14 15:17:32]
       },
       %{
@@ -175,7 +175,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:16:03],
         job_id: 123,
-        state: "processing",
+        state: :processing,
         updated_at: ~N[2020-01-14 15:16:03]
       }
     ]
@@ -194,7 +194,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:15:00],
         job_id: 123,
-        state: "queued",
+        state: :queued,
         updated_at: ~N[2020-01-14 15:15:00]
       },
       %{
@@ -202,7 +202,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:17:32],
         job_id: 123,
-        state: "completed",
+        state: :completed,
         updated_at: ~N[2020-01-14 15:17:32]
       },
       %{
@@ -210,7 +210,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:16:03],
         job_id: 123,
-        state: "processing",
+        state: :processing,
         updated_at: ~N[2020-01-14 15:16:03]
       }
     ]
@@ -229,7 +229,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:15:00],
         job_id: 123,
-        state: "queued",
+        state: :queued,
         updated_at: ~N[2020-01-14 15:15:00]
       },
       %{
@@ -237,7 +237,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:17:32],
         job_id: 123,
-        state: "completed",
+        state: :completed,
         updated_at: ~N[2020-01-14 15:17:32]
       },
       %{
@@ -245,7 +245,7 @@ defmodule StepFlow.Jobs.StatusTest do
         id: 456,
         inserted_at: ~N[2020-01-14 15:16:03],
         job_id: 123,
-        state: "processing",
+        state: :processing,
         updated_at: ~N[2020-01-14 15:16:03]
       }
     ]
@@ -254,6 +254,6 @@ defmodule StepFlow.Jobs.StatusTest do
       Status.get_last_status(status_list)
       |> Status.get_action_parameter()
 
-    assert [%{id: "action", type: "string", value: "delete"}] == action
+    assert [%{"id" => "action", "type" => "string", "value" => "delete"}] == action
   end
 end

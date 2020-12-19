@@ -55,7 +55,7 @@ defmodule StepFlow.LiveTest do
             %{
               id: "direct_messaging_queue",
               type: "string",
-              value: "job_queue_not_found"
+              value: "job_live"
             }
           ]
         }
@@ -127,6 +127,7 @@ defmodule StepFlow.LiveTest do
     # Start
 
     Status.set_job_status(job_id, "ready_to_start")
+
     Live.update_job_live(source_paths, launch_params, workflow, step)
 
     :timer.sleep(1000)
