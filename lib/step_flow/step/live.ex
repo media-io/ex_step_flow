@@ -42,7 +42,7 @@ defmodule StepFlow.Step.Live do
       Map.put(
         message,
         :parameters,
-        message.parameters ++ [%{id: "action", type: "string", value: "create"}]
+        message.parameters ++ [%{"id" => "action", "type" => "string", "value" => "create"}]
       )
 
     message = filter_message(message)
@@ -102,7 +102,7 @@ defmodule StepFlow.Step.Live do
 
   defp publish_message(message, launch_params) do
     case CommonEmitter.publish_json(
-           LaunchParams.get_step_parameter(launch_params, "direct_messaging_queue").value,
+           LaunchParams.get_step_parameter(launch_params, "direct_messaging_queue")["value"],
            LaunchParams.get_step_id(launch_params),
            message
          ) do

@@ -97,11 +97,11 @@ defmodule StepFlow.Jobs.Status do
   """
   def get_action(status) do
     case status.state do
-      "queued" -> "create"
-      "ready_to_init" -> "init"
-      "ready_to_start" -> "start"
-      "update" -> "update"
-      "completed" -> "delete"
+      :queued -> "create"
+      :ready_to_init -> "init"
+      :ready_to_start -> "start"
+      :update -> "update"
+      :completed -> "delete"
       _ -> "none"
     end
   end
@@ -111,6 +111,6 @@ defmodule StepFlow.Jobs.Status do
   """
   def get_action_parameter(status) do
     action = get_action(status)
-    [%{id: "action", type: "string", value: action}]
+    [%{"id" => "action", "type" => "string", "value" => action}]
   end
 end
