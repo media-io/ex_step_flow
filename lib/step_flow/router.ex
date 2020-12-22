@@ -1,5 +1,8 @@
 defmodule StepFlow.Router do
   use Plug.Router
+  alias StepFlow.Metrics.PrometheusExporter
+
+  plug(PrometheusExporter)
 
   plug(:match)
   plug(:dispatch)

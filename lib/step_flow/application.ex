@@ -4,6 +4,7 @@ defmodule StepFlow.Application do
   @moduledoc false
 
   use Application
+  alias StepFLow.Metrics
   alias StepFlow.Migration
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
   require Logger
@@ -48,6 +49,11 @@ defmodule StepFlow.Application do
     Migration.All.apply_migrations()
 
     WorkflowDefinition.load_workflows_in_database()
+
+    # Start prometheus  exporter and instrumenters
+    StepFlow.Metrics.PrometheusExporter.setup()
+    StepFlow.Metrics.WorkflowInstrumenter.setup()
+
     supervisor
   end
 end

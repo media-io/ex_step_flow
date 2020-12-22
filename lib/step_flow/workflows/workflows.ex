@@ -5,6 +5,7 @@ defmodule StepFlow.Workflows do
 
   import Ecto.Query, warn: false
 
+  alias StepFlow.Artifacts.Artifact
   alias StepFlow.Jobs
   alias StepFlow.Jobs.Status
   alias StepFlow.Progressions.Progression
@@ -532,6 +533,66 @@ defmodule StepFlow.Workflows do
       ),
       :count,
       :id
+    )
+  end
+
+  def workflows_duration_in_interval(scale, delta) do
+    query =
+      from(
+        workflow in Workflow,
+        inner_join:
+          artifacts in subquery(
+            from(
+              artifacts in Artifact,
+              where:
+                artifacts.inserted_at > datetime_add(^NaiveDateTime.utc_now(), ^delta, ^scale),
+              group_by: artifacts.workflow_id,
+              select: %{
+                workflow_id: artifacts.workflow_id,
+                inserted_at: max(artifacts.inserted_at)
+              }
+            )
+          ),
+        on: workflow.id == artifacts.workflow_id,
+        group_by: workflow.identifier,
+        select: %{
+          duration:
+            fragment(
+              "EXTRACT(EPOCH FROM (SELECT avg(? - ?)))",
+              artifacts.inserted_at,
+              workflow.inserted_at
+            ),
+          identifier: workflow.identifier
+        }
+      )
+
+    Repo.all(query)
+  end
+
+  def workflows_number_in_interval(scale, delta) do
+    Repo.all(
+      from(
+        workflow in Workflow,
+        inner_join:
+          artifacts in subquery(
+            from(
+              artifacts in Artifact,
+              where:
+                artifacts.inserted_at > datetime_add(^NaiveDateTime.utc_now(), ^delta, ^scale),
+              group_by: artifacts.workflow_id,
+              select: %{
+                workflow_id: artifacts.workflow_id,
+                inserted_at: max(artifacts.inserted_at)
+              }
+            )
+          ),
+        on: workflow.id == artifacts.workflow_id,
+        group_by: workflow.identifier,
+        select: %{
+          count: count(),
+          identifier: workflow.identifier
+        }
+      )
     )
   end
 end
