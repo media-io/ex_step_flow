@@ -1,4 +1,7 @@
 defmodule StepFlow.Metrics.WorkflowDurationCollector do
+  @moduledoc """
+  Prometheus metrics collector for workflow duration
+  """
   use Prometheus.Collector
   alias StepFlow.Workflows
 

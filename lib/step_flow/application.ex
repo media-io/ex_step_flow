@@ -4,8 +4,8 @@ defmodule StepFlow.Application do
   @moduledoc false
 
   use Application
-  alias StepFlow.Metrics.WorkflowInstrumenter
   alias StepFlow.Metrics.PrometheusExporter
+  alias StepFlow.Metrics.WorkflowInstrumenter
   alias StepFlow.Migration
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
   require Logger

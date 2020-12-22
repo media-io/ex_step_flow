@@ -1,4 +1,7 @@
 defmodule StepFlow.Metrics.WorkflowNumberCollector do
+  @moduledoc """
+  Prometheus metrics collector for workflow number
+  """
   use Prometheus.Collector
   alias StepFlow.Workflows
 
