@@ -1,8 +1,5 @@
 defmodule StepFlow.Router do
-  use Plug.Router
-  alias StepFlow.Metrics.PrometheusExporter
-
-  plug(PrometheusExporter)
+  use StepFlow, :router
 
   plug(:match)
   plug(:dispatch)
@@ -74,6 +71,8 @@ defmodule StepFlow.Router do
   get "/jobs" do
     StepFlow.JobController.index(conn, conn.params)
   end
+
+  get("/metrics", to: StepFlow.Metrics.PrometheusExporter)
 
   match(_, do: send_resp(conn, 404, "Not found"))
 end
