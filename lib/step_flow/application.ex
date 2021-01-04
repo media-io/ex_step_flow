@@ -51,9 +51,11 @@ defmodule StepFlow.Application do
 
     WorkflowDefinition.load_workflows_in_database()
 
-    # Start prometheus  exporter and instrumenters
-    PrometheusExporter.setup()
-    WorkflowInstrumenter.setup()
+    # Start prometheus exporter and instrumenters
+    if StepFlow.Configuration.metrics_enabled?() do
+      PrometheusExporter.setup()
+      WorkflowInstrumenter.setup()
+    end
 
     supervisor
   end
