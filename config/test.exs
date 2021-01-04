@@ -24,3 +24,5 @@ config :step_flow, StepFlow.Amqp,
   username: "guest",
   password: "guest",
   virtual_host: ""
+
+import_config "test.secret.exs"

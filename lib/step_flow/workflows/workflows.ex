@@ -536,7 +536,7 @@ defmodule StepFlow.Workflows do
     )
   end
 
-  def workflows_duration_in_interval(scale, delta) do
+  def get_statistics_per_identifier(scale, delta) do
     query =
       from(
         workflow in Workflow,
@@ -556,6 +556,7 @@ defmodule StepFlow.Workflows do
         on: workflow.id == artifacts.workflow_id,
         group_by: workflow.identifier,
         select: %{
+          count: count(),
           duration:
             fragment(
               "EXTRACT(EPOCH FROM (SELECT avg(? - ?)))",
@@ -567,32 +568,5 @@ defmodule StepFlow.Workflows do
       )
 
     Repo.all(query)
-  end
-
-  def workflows_number_in_interval(scale, delta) do
-    Repo.all(
-      from(
-        workflow in Workflow,
-        inner_join:
-          artifacts in subquery(
-            from(
-              artifacts in Artifact,
-              where:
-                artifacts.inserted_at > datetime_add(^NaiveDateTime.utc_now(), ^delta, ^scale),
-              group_by: artifacts.workflow_id,
-              select: %{
-                workflow_id: artifacts.workflow_id,
-                inserted_at: max(artifacts.inserted_at)
-              }
-            )
-          ),
-        on: workflow.id == artifacts.workflow_id,
-        group_by: workflow.identifier,
-        select: %{
-          count: count(),
-          identifier: workflow.identifier
-        }
-      )
-    )
   end
 end

@@ -127,46 +127,26 @@ defmodule StepFlow.WorkflowsTest do
     end
 
     @tag capture_log: true
-    test "workflows_duration_in_interval/1 returns workflows duration" do
+    test "get_statistics_per_identifier/1 returns finished workflow number" do
       workflow = workflow_fixture()
-      :timer.sleep(1000)
 
       Artifacts.create_artifact(%{
         resources: %{},
         workflow_id: workflow.id
       })
 
-      [%{duration: duration} | _] = Workflows.workflows_duration_in_interval("day", -1)
+      [%{count: count, duration: duration} | _] =
+        Workflows.get_statistics_per_identifier("day", -1)
 
+      assert count == 1
       assert duration == 1
     end
 
     @tag capture_log: true
-    test "workflows_duration_in_interval/1 no artifacts" do
+    test "get_statistics_per_identifier/1 no artifacts" do
       workflow_fixture()
 
-      assert [] == Workflows.workflows_duration_in_interval("day", -1)
-    end
-
-    @tag capture_log: true
-    test "workflows_number_in_interval/1 returns finished workflow number" do
-      workflow = workflow_fixture()
-
-      Artifacts.create_artifact(%{
-        resources: %{},
-        workflow_id: workflow.id
-      })
-
-      [%{count: count} | _] = Workflows.workflows_number_in_interval("day", -1)
-
-      assert count == 1
-    end
-
-    @tag capture_log: true
-    test "workflows_number_in_interval/1 no artifacts" do
-      workflow_fixture()
-
-      assert [] == Workflows.workflows_number_in_interval("day", -1)
+      assert [] == Workflows.get_statistics_per_identifier("day", -1)
     end
   end
 end
