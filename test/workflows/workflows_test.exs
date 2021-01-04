@@ -129,6 +129,7 @@ defmodule StepFlow.WorkflowsTest do
     @tag capture_log: true
     test "get_statistics_per_identifier/1 returns finished workflow number" do
       workflow = workflow_fixture()
+      :timer.sleep(1000)
 
       Artifacts.create_artifact(%{
         resources: %{},
