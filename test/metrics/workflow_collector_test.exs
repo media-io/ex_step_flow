@@ -6,9 +6,9 @@ defmodule Prometheus.Metrics.WorkflowCollectorTest do
 
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Artifacts
+  alias StepFlow.Metrics.WorkflowCollector
   alias StepFlow.Repo
   alias StepFlow.Workflows
-  alias StepFlow.Metrics.WorkflowCollector
 
   doctest StepFlow
 
@@ -51,6 +51,7 @@ defmodule Prometheus.Metrics.WorkflowCollectorTest do
         resources: %{},
         workflow_id: workflow.id
       })
+
       assert capture_io(fn ->
                WorkflowCollector.collect_mf(:workflow_collector, fn mf ->
                  :io.format("~p", [mf])
