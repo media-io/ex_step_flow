@@ -62,6 +62,8 @@ defmodule StepFlow.HelpersTest do
 
     clean_queue(channel, "job_file_system")
 
+    clean_queue(channel, "job_queue_not_found")
+
     {connection, channel}
   end
 

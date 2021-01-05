@@ -14,11 +14,7 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
     :ok = Sandbox.checkout(StepFlow.Repo)
     {conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
 
-    on_exit(fn ->
-      StepFlow.HelpersTest.close_amqp_connection(conn)
-    end)
-
-    [channel: channel]
+    [channel: channel, conn: conn]
   end
 
   @workflow %{
@@ -37,7 +33,7 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
     ]
   }
 
-  test "consume well formed message", %{channel: channel} do
+  test "consume well formed message", %{channel: channel, conn: conn} do
     {_, workflow} = Workflows.create_workflow(@workflow)
 
     {_, job} =
@@ -63,14 +59,18 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
         }
       )
 
+    StepFlow.HelpersTest.close_amqp_connection(conn)
+
     assert result == :ok
   end
 
   @tag capture_log: true
-  test "consume badly formed message", %{channel: channel} do
+  test "consume badly formed message", %{channel: channel, conn: conn} do
     tag = "acs"
 
     result = ProgressionConsumer.consume(channel, tag, false, %{})
+
+    StepFlow.HelpersTest.close_amqp_connection(conn)
 
     assert result == :ok
   end
