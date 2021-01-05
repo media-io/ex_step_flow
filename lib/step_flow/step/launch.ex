@@ -526,11 +526,12 @@ defmodule StepFlow.Step.Launch do
               source_paths
             )
 
-          %{
-            id: StepFlow.Map.get_by_key_or_atom(param, :id),
-            type: "string",
-            value: value
-          }
+          {_, filtered_map} =
+            Map.replace(param, "type", "string")
+            |> Map.replace("value", value)
+            |> Map.pop("default")
+
+          filtered_map
 
         "array_of_templates" ->
           filter_and_pre_compile_array_of_templates_parameter(
@@ -571,11 +572,15 @@ defmodule StepFlow.Step.Launch do
           )
           |> Helpers.templates_process(workflow, step, dates)
 
-        %{
-          id: StepFlow.Map.get_by_key_or_atom(param, :id),
-          type: "array_of_strings",
-          value: value
-        }
+        # Interestingly key can be atom or string..
+        {_, filtered_map} =
+          Map.replace(param, "type", "array_of_strings")
+          |> Map.replace(:type, "array_of_strings")
+          |> Map.replace("value", value)
+          |> Map.replace(:value, value)
+          |> Map.pop("default")
+
+        filtered_map
     end
   end
 end
