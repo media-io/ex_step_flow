@@ -7,7 +7,6 @@ defmodule Prometheus.Metrics.WorkflowCollectorTest do
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Artifacts
   alias StepFlow.Metrics.WorkflowCollector
-  alias StepFlow.Repo
   alias StepFlow.Workflows
 
   doctest StepFlow
