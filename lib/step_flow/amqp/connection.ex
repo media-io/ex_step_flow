@@ -10,7 +10,6 @@ defmodule StepFlow.Amqp.Connection do
   alias StepFlow.Jobs
   alias StepFlow.Jobs.Status
   alias StepFlow.Workflows
-  alias StepFlow.Workflows.StepManager
 
   def start_link do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
@@ -69,10 +68,10 @@ defmodule StepFlow.Amqp.Connection do
     try do
       Jobs.get_job(job_id)
     rescue
-      e in Ecto.NoResultsError ->
+      _e in Ecto.NoResultsError ->
         Logger.error("Cannot retrieve Job")
 
-      e ->
+      _e ->
         AMQP.Basic.reject(channel.channel, tag, requeue: true)
     end
 
