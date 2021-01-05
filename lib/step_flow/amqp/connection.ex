@@ -70,17 +70,23 @@ defmodule StepFlow.Amqp.Connection do
       Jobs.get_job(job_id)
     rescue
       e in Ecto.NoResultsError ->
-        Logger.error("Cannot retrieve job id")
+        Logger.error("Cannot retrieve Job")
 
       e ->
-        AMQP.Basic.reject(channel.channel, tag)
+        AMQP.Basic.reject(channel.channel, tag, requeue: true)
     end
 
-    Logger.error("Job queue not found #{inspect(payload)}")
-    description = "No worker is started with this queue name."
-    Status.set_job_status(job_id, :error, %{message: description})
-    Workflows.notification_from_job(job_id, description)
-    AMQP.Basic.ack(channel.channel, tag)
+    case Jobs.get_job(job_id) do
+      nil ->
+        AMQP.Basic.reject(channel.channel, tag, requeue: true)
+
+      _ ->
+        Logger.error("Job queue not found #{inspect(payload)}")
+        description = "No worker is started with this queue name."
+        Status.set_job_status(job_id, :error, %{message: description})
+        Workflows.notification_from_job(job_id, description)
+        AMQP.Basic.ack(channel.channel, tag)
+    end
 
     {:noreply, channel}
   end
