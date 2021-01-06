@@ -527,8 +527,8 @@ defmodule StepFlow.Step.Launch do
             )
 
           {_, filtered_map} =
-            Map.replace(param, "type", "string")
-            |> Map.replace("value", value)
+            StepFlow.Map.replace_by_atom(param, :type, "string")
+            |> StepFlow.Map.replace_by_atom(:value, value)
             |> Map.pop("default")
 
           filtered_map
@@ -572,12 +572,9 @@ defmodule StepFlow.Step.Launch do
           )
           |> Helpers.templates_process(workflow, step, dates)
 
-        # Interestingly key can be atom or string..
         {_, filtered_map} =
-          Map.replace(param, "type", "array_of_strings")
-          |> Map.replace(:type, "array_of_strings")
-          |> Map.replace("value", value)
-          |> Map.replace(:value, value)
+          StepFlow.Map.replace_by_atom(param, :type, "array_of_strings")
+          |> StepFlow.Map.replace_by_atom(:value, value)
           |> Map.pop("default")
 
         filtered_map
