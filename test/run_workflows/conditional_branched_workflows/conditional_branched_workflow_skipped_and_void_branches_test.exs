@@ -10,10 +10,10 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowSkippedAndVoidTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    channel = StepFlow.HelpersTest.get_amqp_connection()
+    {_conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 2)
+      StepFlow.HelpersTest.consume_messages(channel, "job_test", 2)
     end)
 
     :ok
@@ -34,7 +34,7 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowSkippedAndVoidTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_test",
           icon: "step_icon",
           label: "My first step",
           parameters: [
@@ -51,7 +51,7 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowSkippedAndVoidTest do
           id: 2,
           required_to_start: [0],
           parent_ids: [0],
-          name: "second_parallel_step",
+          name: "job_test",
           icon: "step_icon",
           label: "Second parallel step",
           condition: "length(source_paths) > 2",
@@ -61,7 +61,7 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowSkippedAndVoidTest do
           id: 3,
           required_to_start: [2],
           parent_ids: [2],
-          name: "second_parallel_step_two",
+          name: "job_test",
           icon: "step_icon",
           label: "Second parallel step 2",
           parameters: []
@@ -70,7 +70,7 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowSkippedAndVoidTest do
           id: 4,
           required_to_start: [0, 3],
           parent_ids: [0, 3],
-          name: "joined_last_step",
+          name: "job_test",
           icon: "step_icon",
           label: "Joind last step",
           parameters: []
@@ -90,26 +90,26 @@ defmodule StepFlow.RunWorkflows.ConditionalBranchedWorkflowSkippedAndVoidTest do
       {:ok, "started"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.check(workflow.id, 1)
-      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
+      StepFlow.HelpersTest.check(workflow.id, 0, 1)
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 0)
 
       {:ok, "started"} = Step.start_next(workflow)
 
-      StepFlow.HelpersTest.check(workflow.id, "second_parallel_step", 1)
+      StepFlow.HelpersTest.check(workflow.id, 2, 1)
       StepFlow.HelpersTest.check(workflow.id, 4)
 
       StepFlow.HelpersTest.check(workflow.id, 4)
 
-      StepFlow.HelpersTest.check(workflow.id, "second_parallel_step_two", 1)
+      StepFlow.HelpersTest.check(workflow.id, 3, 1)
       StepFlow.HelpersTest.check(workflow.id, 4)
 
-      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
-      StepFlow.HelpersTest.check(workflow.id, "second_parallel_step", 1)
-      StepFlow.HelpersTest.check(workflow.id, "second_parallel_step_two", 1)
-      StepFlow.HelpersTest.check(workflow.id, "joined_last_step", 1)
+      StepFlow.HelpersTest.check(workflow.id, 0, 1)
+      StepFlow.HelpersTest.check(workflow.id, 2, 1)
+      StepFlow.HelpersTest.check(workflow.id, 3, 1)
+      StepFlow.HelpersTest.check(workflow.id, 4, 1)
       StepFlow.HelpersTest.check(workflow.id, 4)
 
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "joined_last_step")
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 4)
 
       {:ok, "completed"} = Step.start_next(workflow)
       StepFlow.HelpersTest.check(workflow.id, 4)
