@@ -27,7 +27,7 @@ defmodule StepFlow.RunWorkflows.SkippedStepsTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_step",
           icon: "step_icon",
           label: "My first step",
           parameters: [
@@ -42,7 +42,7 @@ defmodule StepFlow.RunWorkflows.SkippedStepsTest do
           id: 1,
           required_to_start: [0],
           parent_ids: [0],
-          name: "first_parallel_step",
+          name: "job_step",
           icon: "step_icon",
           label: "First parallel step",
           parameters: []
@@ -51,7 +51,7 @@ defmodule StepFlow.RunWorkflows.SkippedStepsTest do
           id: 2,
           required_to_start: [0],
           parent_ids: [0],
-          name: "second_parallel_step",
+          name: "job_test",
           icon: "step_icon",
           label: "Second parallel step",
           parameters: []
@@ -60,7 +60,7 @@ defmodule StepFlow.RunWorkflows.SkippedStepsTest do
           id: 3,
           required_to_start: [1, 2],
           parent_ids: [1, 2],
-          name: "joined_last_step",
+          name: "job_test",
           icon: "step_icon",
           label: "Joined last step",
           parameters: []

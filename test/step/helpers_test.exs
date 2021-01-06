@@ -17,7 +17,7 @@ defmodule StepFlow.StepHelpersTest do
       }
 
       step = %{
-        name: "my_step"
+        name: "job_step"
       }
 
       source_path = "source_folder/filename.ttml"
@@ -41,7 +41,7 @@ defmodule StepFlow.StepHelpersTest do
       }
 
       step = %{
-        name: "my_step"
+        name: "job_step"
       }
 
       source_path = "source_folder/filename.ttml"
@@ -76,7 +76,7 @@ defmodule StepFlow.StepHelpersTest do
       }
 
       step = %{
-        name: "my_step"
+        name: "job_step"
       }
 
       source_path = "source_folder/filename.ttml"
@@ -111,7 +111,7 @@ defmodule StepFlow.StepHelpersTest do
       }
 
       step = %{
-        name: "my_step"
+        name: "job_step"
       }
 
       source_paths = [
@@ -149,7 +149,7 @@ defmodule StepFlow.StepHelpersTest do
       }
 
       step = %{
-        name: "my_step",
+        name: "job_step",
         work_dir: "/custom/work_dir"
       }
 

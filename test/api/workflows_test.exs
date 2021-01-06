@@ -14,6 +14,13 @@ defmodule StepFlow.Api.WorkflowsTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
+    {conn, _channel} = StepFlow.HelpersTest.get_amqp_connection()
+
+    on_exit(fn ->
+      StepFlow.HelpersTest.close_amqp_connection(conn)
+    end)
+
+    :ok
   end
 
   describe "workflow" do

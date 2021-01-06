@@ -10,10 +10,10 @@ defmodule StepFlow.RunWorkflows.MultipleJobsTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    channel = StepFlow.HelpersTest.get_amqp_connection()
+    {_conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 3)
+      StepFlow.HelpersTest.consume_messages(channel, "job_test", 3)
     end)
 
     :ok
@@ -53,7 +53,7 @@ defmodule StepFlow.RunWorkflows.MultipleJobsTest do
       steps: [
         %{
           id: 0,
-          name: "multiple_jobs_step",
+          name: "job_test",
           icon: "step_icon",
           label: "Multiple jobs step",
           multiple_jobs: "segments",
@@ -82,8 +82,8 @@ defmodule StepFlow.RunWorkflows.MultipleJobsTest do
       {:ok, "started"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.check(workflow.id, 3)
-      StepFlow.HelpersTest.check(workflow.id, "multiple_jobs_step", 3)
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "multiple_jobs_step")
+      StepFlow.HelpersTest.check(workflow.id, 0, 3)
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 0)
 
       {:ok, "completed"} = Step.start_next(workflow)
       StepFlow.HelpersTest.check(workflow.id, 3)
