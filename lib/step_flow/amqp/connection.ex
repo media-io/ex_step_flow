@@ -38,13 +38,6 @@ defmodule StepFlow.Amqp.Connection do
     {:noreply, conn}
   end
 
-  # def handle_cast({:consume, queue, _callback}, conn) do
-  #   Logger.warn("#{__MODULE__}: consume messages on queue: #{queue}")
-  #   # AMQP.Queue.declare(conn.channel, queue, durable: false)
-  #   {:ok, _consumer_tag} = AMQP.Basic.consume(conn, queue)
-  #   {:noreply, conn}
-  # end
-
   def handle_info({:DOWN, _, :process, _pid, _reason}, _) do
     {:ok, chan} = rabbitmq_connect()
     {:noreply, chan}
@@ -64,16 +57,6 @@ defmodule StepFlow.Amqp.Connection do
       |> Jason.decode!()
 
     job_id = Map.get(data, "job_id")
-
-    try do
-      Jobs.get_job(job_id)
-    rescue
-      _e in Ecto.NoResultsError ->
-        Logger.error("Cannot retrieve Job")
-
-      _e ->
-        AMQP.Basic.reject(channel.channel, tag, requeue: true)
-    end
 
     case Jobs.get_job(job_id) do
       nil ->
