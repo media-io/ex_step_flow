@@ -12,7 +12,11 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    channel = StepFlow.HelpersTest.get_amqp_connection()
+    {conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
+
+    on_exit(fn ->
+      StepFlow.HelpersTest.close_amqp_connection(conn)
+    end)
 
     [channel: channel]
   end

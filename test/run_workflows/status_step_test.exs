@@ -27,7 +27,7 @@ defmodule StepFlow.RunWorkflows.StatusStepTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_test",
           icon: "step_icon",
           label: "My first step",
           parameters: [
@@ -42,7 +42,7 @@ defmodule StepFlow.RunWorkflows.StatusStepTest do
           id: 1,
           required_to_start: [0],
           parent_ids: [0],
-          name: "second_step",
+          name: "job_test",
           icon: "step_icon",
           label: "Second step",
           parameters: []
@@ -62,8 +62,8 @@ defmodule StepFlow.RunWorkflows.StatusStepTest do
       {:ok, "started"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.check(workflow.id, 1)
-      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
+      StepFlow.HelpersTest.check(workflow.id, 0, 1)
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 0)
 
       assert StepFlow.HelpersTest.get_job_count_status(workflow, 0).completed == 1
 
@@ -71,7 +71,7 @@ defmodule StepFlow.RunWorkflows.StatusStepTest do
 
       assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).queued == 1
 
-      StepFlow.HelpersTest.check(workflow.id, "second_step", 1)
+      StepFlow.HelpersTest.check(workflow.id, 1, 1)
       StepFlow.HelpersTest.create_progression(workflow, 1)
 
       {:ok, "still_processing"} = Step.start_next(workflow)
@@ -88,7 +88,7 @@ defmodule StepFlow.RunWorkflows.StatusStepTest do
 
       :timer.sleep(1000)
 
-      StepFlow.HelpersTest.check(workflow.id, "second_step", 1)
+      StepFlow.HelpersTest.check(workflow.id, 1, 1)
       StepFlow.HelpersTest.create_progression(workflow, 1)
 
       assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).queued == 0

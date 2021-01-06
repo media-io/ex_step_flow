@@ -10,10 +10,10 @@ defmodule StepFlow.RunWorkflows.TwoStepsWorkflowTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    channel = StepFlow.HelpersTest.get_amqp_connection()
+    {_conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 2)
+      StepFlow.HelpersTest.consume_messages(channel, "job_test", 2)
     end)
 
     :ok
@@ -33,20 +33,20 @@ defmodule StepFlow.RunWorkflows.TwoStepsWorkflowTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_test",
           icon: "step_icon",
           label: "My first step",
           parameters: [
             %{
               id: "source_paths",
               type: "array_of_strings",
-              value: ["my_file.mov"]
+              value: ["coucou.mov"]
             }
           ]
         },
         %{
           id: 1,
-          name: "my_second_step",
+          name: "job_test",
           icon: "step_icon",
           label: "My second step",
           parent_ids: [0],
@@ -69,14 +69,14 @@ defmodule StepFlow.RunWorkflows.TwoStepsWorkflowTest do
       {:ok, "started"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.check(workflow.id, 1)
-      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
+      StepFlow.HelpersTest.check(workflow.id, 0, 1)
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 0)
 
       {:ok, "started"} = Step.start_next(workflow)
       StepFlow.HelpersTest.check(workflow.id, 2)
-      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
-      StepFlow.HelpersTest.check(workflow.id, "my_second_step", 1)
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "my_second_step")
+      StepFlow.HelpersTest.check(workflow.id, 0, 1)
+      StepFlow.HelpersTest.check(workflow.id, 1, 1)
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 1)
 
       {:ok, "completed"} = Step.start_next(workflow)
       StepFlow.HelpersTest.check(workflow.id, 2)
