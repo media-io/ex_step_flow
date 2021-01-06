@@ -188,3 +188,38 @@ config :step_flow, StepFlow.WorkflowDefinitions.ExternalLoader, specification_fo
 config :step_flow, StepFlow.WorkflowDefinitions.WorkflowDefinition,
   workflow_schema_url: "./mediacloudai/standard/1.8/workflow-definition.schema.json"
 ```
+
+### Prometheus exporter
+
+Several metrics are defined to monitor step flow:
+- number of workflows per identifier created in the last 24 hours
+- execution time of worflows per identifier of ended worflow in the last 24 hours
+
+Metrics can be exported by:
+
+```elixir
+config :step_flow, StepFlow,
+  enable_metrics: true # activate metrics
+```
+
+Metric exports can be formatted:
+
+```elixir
+config :prometheus, StepFlow.Metrics.PrometheusExporter,
+  format: :auto, ## or :protobuf, or :text
+```
+
+Export endpoint can be optionally secured using HTTP Basic Authentication:
+
+```elixir
+config :prometheus, StepFlow.Metrics.PrometheusExporter,
+  auth: {:basic, "username", "password"}
+```
+
+Metrics can be configured with
+
+```elixir
+config :step_flow, StepFlow.Metrics,
+  scale: "day", # "year", "month", "week", "day", "hour", "minute", "second", "millisecond", and "microsecond"
+  delta: -1
+```

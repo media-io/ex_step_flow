@@ -75,6 +75,8 @@ defmodule StepFlow.MixProject do
       {:phoenix_html, "~> 2.10"},
       {:plug, "~> 1.11"},
       {:postgrex, "~> 0.15.0"},
+      {:prometheus_ex, "~> 3.0"},
+      {:prometheus_plugs, "~> 1.1"},
       {:slack, "~> 0.23.5"},
       {:timex, "~> 3.2"}
     ]

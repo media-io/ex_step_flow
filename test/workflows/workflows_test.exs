@@ -3,6 +3,7 @@ defmodule StepFlow.WorkflowsTest do
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox
+  alias StepFlow.Artifacts
   alias StepFlow.Repo
   alias StepFlow.Workflows
   alias StepFlow.Workflows.Workflow
@@ -123,6 +124,30 @@ defmodule StepFlow.WorkflowsTest do
     test "change_workflow/1 returns a workflow changeset" do
       workflow = workflow_fixture()
       assert %Ecto.Changeset{} = Workflows.change_workflow(workflow)
+    end
+
+    @tag capture_log: true
+    test "get_statistics_per_identifier/1 returns finished workflow number" do
+      workflow = workflow_fixture()
+      :timer.sleep(1000)
+
+      Artifacts.create_artifact(%{
+        resources: %{},
+        workflow_id: workflow.id
+      })
+
+      [%{count: count, duration: duration} | _] =
+        Workflows.get_statistics_per_identifier("day", -1)
+
+      assert count == 1
+      assert duration == 1
+    end
+
+    @tag capture_log: true
+    test "get_statistics_per_identifier/1 no artifacts" do
+      workflow_fixture()
+
+      assert [] == Workflows.get_statistics_per_identifier("day", -1)
     end
   end
 end
