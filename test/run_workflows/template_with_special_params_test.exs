@@ -10,10 +10,10 @@ defmodule StepFlow.RunWorkflows.TemplateWithSpecialParamsTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    channel = StepFlow.HelpersTest.get_amqp_connection()
+    {_conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 1)
+      StepFlow.HelpersTest.consume_messages(channel, "job_test", 1)
     end)
 
     :ok
@@ -33,7 +33,7 @@ defmodule StepFlow.RunWorkflows.TemplateWithSpecialParamsTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_test",
           icon: "step_icon",
           label: "My first step",
           parameters: [
@@ -80,11 +80,11 @@ defmodule StepFlow.RunWorkflows.TemplateWithSpecialParamsTest do
       {:ok, "started"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.check(workflow.id, 1)
-      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
+      StepFlow.HelpersTest.check(workflow.id, 0, 1)
 
       step_params =
         StepFlow.Jobs.list_jobs(%{
-          "job_type" => "my_first_step",
+          "job_type" => "job_test",
           "workflow_id" => workflow.id |> Integer.to_string(),
           "size" => 50
         })
@@ -115,7 +115,7 @@ defmodule StepFlow.RunWorkflows.TemplateWithSpecialParamsTest do
 
       assert map_size(several_special_files) == 4
 
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 0)
 
       {:ok, "completed"} = Step.start_next(workflow)
       StepFlow.HelpersTest.check(workflow.id, 1)
