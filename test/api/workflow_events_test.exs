@@ -98,7 +98,7 @@ defmodule StepFlow.Api.WorkflowEventsTest do
     test "POST /workflows/:id/events retry valid (on failed job) with authorized user" do
       workflow = workflow_fixture()
       step_id = 0
-      action = "test_action"
+      action = "job_test"
 
       job_params = %{
         name: action,
