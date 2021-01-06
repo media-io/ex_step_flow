@@ -37,7 +37,7 @@ defmodule StepFlow.RunWorkflows.JobQueueNotFoundToErrorTest do
       steps: [
         %{
           id: 0,
-          name: "job_toto",
+          name: "job_with_queue_not_existing",
           icon: "step_icon",
           label: "My first step",
           parameters: [
