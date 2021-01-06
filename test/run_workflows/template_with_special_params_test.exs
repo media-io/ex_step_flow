@@ -1,4 +1,4 @@
-defmodule StepFlow.RunWorkflows.DestinationPathTemplateTest do
+defmodule StepFlow.RunWorkflows.TemplateWithSpecialParamsTest do
   use ExUnit.Case
   use Plug.Test
 
@@ -22,14 +22,14 @@ defmodule StepFlow.RunWorkflows.DestinationPathTemplateTest do
   describe "workflows" do
     @workflow_definition %{
       schema_version: "1.8",
-      identifier: "destination_path",
+      identifier: "template_with_special_params",
+      label: "Check template with special params",
+      tags: ["test"],
+      icon: "custom_icon",
       version_major: 6,
       version_minor: 5,
       version_micro: 4,
       reference: "some-identifier",
-      icon: "custom_icon",
-      label: "Destination Path",
-      tags: ["test"],
       steps: [
         %{
           id: 0,
@@ -43,10 +43,24 @@ defmodule StepFlow.RunWorkflows.DestinationPathTemplateTest do
               value: ["my_file.mov"]
             },
             %{
-              id: "destination_path",
+              id: "special_file",
               type: "template",
-              default: "{workflow_reference}/{date_time}/{filename}",
-              value: "{workflow_reference}/{date_time}/{filename}"
+              store: "BACKEND",
+              default: "{workflow_reference}/{date_time}/toto",
+              value: "{workflow_reference}/{date_time}/toto"
+            },
+            %{
+              id: "several_special_files",
+              type: "array_of_templates",
+              store: "BACKEND",
+              default: [
+                "{workflow_reference}/{date_time}/tata",
+                "{workflow_reference}/{date_time}/titi"
+              ],
+              value: [
+                "{workflow_reference}/{date_time}/tata",
+                "{workflow_reference}/{date_time}/titi"
+              ]
             }
           ]
         }
@@ -60,7 +74,7 @@ defmodule StepFlow.RunWorkflows.DestinationPathTemplateTest do
       ]
     }
 
-    test "run destination path with template" do
+    test "run template with special parameters" do
       workflow = StepFlow.HelpersTest.workflow_fixture(@workflow_definition)
 
       {:ok, "started"} = Step.start_next(workflow)
@@ -68,23 +82,38 @@ defmodule StepFlow.RunWorkflows.DestinationPathTemplateTest do
       StepFlow.HelpersTest.check(workflow.id, 1)
       StepFlow.HelpersTest.check(workflow.id, 0, 1)
 
-      destination_path =
+      step_params =
         StepFlow.Jobs.list_jobs(%{
-          "step_id" => 0,
+          "job_type" => "job_test",
           "workflow_id" => workflow.id |> Integer.to_string(),
           "size" => 50
         })
         |> Map.get(:data)
         |> List.first()
         |> Map.get(:parameters)
-        |> Enum.filter(fn parameter -> Map.get(parameter, "id") == "destination_path" end)
+
+      special_file =
+        step_params
+        |> Enum.filter(fn parameter -> Map.get(parameter, "id") == "special_file" end)
         |> List.first()
+
+      assert map_size(special_file) == 4
+
+      special_file_filename =
+        special_file
         |> Map.get("value")
         |> String.split("/")
 
-      assert length(destination_path) == 3
-      assert destination_path |> List.first() == "some-identifier"
-      assert destination_path |> List.last() == "my_file.mov"
+      assert length(special_file_filename) == 3
+      assert special_file_filename |> List.first() == "some-identifier"
+      assert special_file_filename |> List.last() == "toto"
+
+      several_special_files =
+        step_params
+        |> Enum.filter(fn parameter -> Map.get(parameter, "id") == "special_file" end)
+        |> List.first()
+
+      assert map_size(several_special_files) == 4
 
       StepFlow.HelpersTest.complete_jobs(workflow.id, 0)
 

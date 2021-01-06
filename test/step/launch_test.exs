@@ -27,7 +27,7 @@ defmodule StepFlow.LaunchTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_step",
           parameters: [
             %{
               id: "source_paths",
@@ -58,7 +58,7 @@ defmodule StepFlow.LaunchTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_step",
           keep_source_paths: false,
           parameters: [
             %{
@@ -90,7 +90,7 @@ defmodule StepFlow.LaunchTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_step",
           parameters: [
             %{
               id: "source_paths",
@@ -129,7 +129,7 @@ defmodule StepFlow.LaunchTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_step",
           mode: "one_for_many",
           parameters: [
             %{
@@ -181,7 +181,7 @@ defmodule StepFlow.LaunchTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_step",
           condition: "my_condition",
           parameters: [
             %{
@@ -240,7 +240,7 @@ defmodule StepFlow.LaunchTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_step",
           mode: "one_for_many",
           parameters: [
             %{

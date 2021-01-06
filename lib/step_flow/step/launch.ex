@@ -539,11 +539,12 @@ defmodule StepFlow.Step.Launch do
               source_paths
             )
 
-          %{
-            id: StepFlow.Map.get_by_key_or_atom(param, :id),
-            type: "string",
-            value: value
-          }
+          {_, filtered_map} =
+            StepFlow.Map.replace_by_atom(param, :type, "string")
+            |> StepFlow.Map.replace_by_atom(:value, value)
+            |> Map.pop("default")
+
+          filtered_map
 
         "array_of_templates" ->
           filter_and_pre_compile_array_of_templates_parameter(
@@ -584,11 +585,12 @@ defmodule StepFlow.Step.Launch do
           )
           |> Helpers.templates_process(workflow, step, dates)
 
-        %{
-          id: StepFlow.Map.get_by_key_or_atom(param, :id),
-          type: "array_of_strings",
-          value: value
-        }
+        {_, filtered_map} =
+          StepFlow.Map.replace_by_atom(param, :type, "array_of_strings")
+          |> StepFlow.Map.replace_by_atom(:value, value)
+          |> Map.pop("default")
+
+        filtered_map
     end
   end
 end

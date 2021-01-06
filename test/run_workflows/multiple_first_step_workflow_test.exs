@@ -10,10 +10,10 @@ defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    channel = StepFlow.HelpersTest.get_amqp_connection()
+    {_conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 3)
+      StepFlow.HelpersTest.consume_messages(channel, "job_test", 3)
     end)
 
     :ok
@@ -34,7 +34,7 @@ defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
       steps: [
         %{
           id: 0,
-          name: "first_first_step",
+          name: "job_test",
           icon: "step_icon",
           label: "First step",
           parameters: [
@@ -50,7 +50,7 @@ defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
         },
         %{
           id: 1,
-          name: "second_first_step",
+          name: "job_test",
           icon: "step_icon",
           label: "Second step",
           parameters: [
@@ -78,10 +78,10 @@ defmodule StepFlow.RunWorkflows.MultipleFirstStepWorkflowTest do
       {:ok, "started"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.check(workflow.id, 3)
-      StepFlow.HelpersTest.check(workflow.id, "first_first_step", 2)
-      StepFlow.HelpersTest.check(workflow.id, "second_first_step", 1)
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "first_first_step")
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "second_first_step")
+      StepFlow.HelpersTest.check(workflow.id, 0, 2)
+      StepFlow.HelpersTest.check(workflow.id, 1, 1)
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 0)
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 1)
 
       {:ok, "completed"} = Step.start_next(workflow)
       StepFlow.HelpersTest.check(workflow.id, 3)
