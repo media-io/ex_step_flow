@@ -53,6 +53,10 @@ defmodule StepFlow.Configuration do
   end
 
   def metrics_enabled? do
-    get_var_value(StepFlow, :enable_metrics, false)
+    case get_var_value(StepFlow, :enable_metrics) do
+      true -> false
+      "true" -> true
+      _ -> false
+    end
   end
 end
