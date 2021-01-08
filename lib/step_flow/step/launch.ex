@@ -32,8 +32,16 @@ defmodule StepFlow.Step.Launch do
           |> Enum.sort()
           |> List.first()
 
+        step =
+          Map.put(
+            step,
+            :parameters,
+            step.parameters +
+              [%{id: "direct_messaging_queue_name", type: "string", value: Ecto.UUID.generate()}]
+          )
+
         launch_params = LaunchParams.new(workflow, step, dates, first_file)
-        Live.update_job_live(source_paths, launch_params, workflow, step)
+        Live.create_job_live(source_paths, launch_params)
 
       {_, "notification", false} ->
         Logger.debug("Notification step")
@@ -271,10 +279,10 @@ defmodule StepFlow.Step.Launch do
     Jobs.get_message(job)
   end
 
-  defp generate_job_parameters_one_for_one(
-         source_path,
-         launch_params
-       ) do
+  def generate_job_parameters_one_for_one(
+        source_path,
+        launch_params
+      ) do
     destination_path_templates =
       Helpers.get_value_in_parameters_with_type(
         launch_params.step,
