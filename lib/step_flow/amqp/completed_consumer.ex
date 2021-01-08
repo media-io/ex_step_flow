@@ -45,6 +45,10 @@ defmodule StepFlow.Amqp.CompletedConsumer do
         Workflows.notification_from_job(job_id)
         StepManager.check_step_status(%{job_id: job_id})
 
+        if job.is_live do
+          Live.update_job_live(job_id)
+        end
+
         Basic.ack(channel, tag)
     end
   end
