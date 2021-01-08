@@ -9,34 +9,8 @@ defmodule StepFlow.Step.Live do
   alias StepFlow.Step.Launch
   alias StepFlow.Step.LaunchParams
 
-  def update_job_live(
-        [source_path | _source_paths],
-        launch_params,
-        workflow,
-        step
-      ) do
-    workflow_id = workflow.id
-    step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
-
-    case Jobs.get_by(%{"workflow_id" => workflow_id, "step_id" => step_id}) do
-      nil ->
-        create_live_worker(source_path, launch_params)
-
-      job ->
-        job = Repo.preload(job, [:status, :updates])
-
-        case Status.get_last_status(job.status).state do
-          :ready_to_init -> update_live_worker(launch_params, job)
-          :ready_to_start -> update_live_worker(launch_params, job)
-          :update -> update_live_worker(launch_params, job)
-          :completed -> delete_live_worker(launch_params, job)
-          _ -> {:ok, "nothing to do"}
-        end
-    end
-  end
-
-  defp create_live_worker(source_path, launch_params) do
-    message = Launch.generate_message_one_for_one(source_path, launch_params)
+  def create_job_live([source_path | _source_paths], launch_params) do
+    message = generate_message_live(source_path, launch_params)
 
     message =
       Map.put(
@@ -57,18 +31,31 @@ defmodule StepFlow.Step.Live do
     end
   end
 
-  defp update_live_worker(launch_params, job) do
-    generate_message(job)
-    |> publish_message(launch_params)
+  def update_job_live(job_id) do
+    job = Repo.preload(Jobs.get_job(job_id), [:status, :updates])
+    step_id = job.step_id
+
+    case Status.get_last_status(job.status).state do
+      :ready_to_init -> update_live_worker(step_id, job)
+      :ready_to_start -> update_live_worker(step_id, job)
+      :update -> update_live_worker(step_id, job)
+      :completed -> delete_live_worker(step_id, job)
+      _ -> {:ok, "nothing to do"}
+    end
   end
 
-  defp delete_live_worker(launch_params, job) do
+  defp update_live_worker(step_id, job) do
+    generate_message(job)
+    |> publish_message(step_id)
+  end
+
+  defp delete_live_worker(step_id, job) do
     message = generate_message(job)
     message = filter_message(message)
 
     case CommonEmitter.publish_json(
            "job_worker_manager",
-           LaunchParams.get_step_id(launch_params),
+           step_id,
            message
          ) do
       :ok -> {:ok, "deleted"}
@@ -93,21 +80,53 @@ defmodule StepFlow.Step.Live do
       :parameters,
       Enum.filter(message.parameters, fn x ->
         Enum.member?(
-          ["step_id", "action", "namespace", "worker", "ports", "direct_messaging_queue"],
-          x["id"]
+          ["step_id", "action", "namespace", "worker", "ports", "direct_messaging_queue_name"],
+          StepFlow.Map.get_by_key_or_atom(x, :id)
         )
       end)
     )
   end
 
-  defp publish_message(message, launch_params) do
+  defp publish_message(message, step_id) do
     case CommonEmitter.publish_json(
-           LaunchParams.get_step_parameter(launch_params, "direct_messaging_queue")["value"],
-           LaunchParams.get_step_id(launch_params),
+           "direct_messaging_" <> get_direct_messaging_queue(message),
+           step_id,
            message
          ) do
       :ok -> {:ok, "started"}
       _ -> {:error, "unable to publish message"}
     end
+  end
+
+  defp get_direct_messaging_queue(message) do
+    StepFlow.Map.get_by_key_or_atom(message, :parameters)
+    |> Enum.filter(fn param ->
+      StepFlow.Map.get_by_key_or_atom(param, :id) == "direct_messaging_queue_name"
+    end)
+    |> List.first()
+    |> StepFlow.Map.get_by_key_or_atom(:value)
+  end
+
+  def generate_message_live(
+        source_path,
+        launch_params
+      ) do
+    parameters =
+      Launch.generate_job_parameters_one_for_one(
+        source_path,
+        launch_params
+      )
+
+    job_params = %{
+      name: LaunchParams.get_step_name(launch_params),
+      step_id: LaunchParams.get_step_id(launch_params),
+      is_live: true,
+      workflow_id: launch_params.workflow.id,
+      parameters: parameters
+    }
+
+    {:ok, job} = Jobs.create_job(job_params)
+
+    Jobs.get_message(job)
   end
 end
