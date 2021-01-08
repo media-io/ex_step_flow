@@ -17,10 +17,11 @@ defmodule StepFlow.LiveTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    channel = StepFlow.HelpersTest.get_amqp_connection()
+    {_conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_queue_not_found", 4)
+      StepFlow.HelpersTest.consume_messages(channel, "job_worker_manager", 2)
+      StepFlow.HelpersTest.consume_messages(channel, "direct_messaging_job_live", 2)
     end)
 
     :ok
@@ -38,7 +39,7 @@ defmodule StepFlow.LiveTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_live",
           parameters: [
             %{
               id: "source_paths",
@@ -53,7 +54,7 @@ defmodule StepFlow.LiveTest do
               value: "toto"
             },
             %{
-              id: "direct_messaging_queue",
+              id: "direct_messaging_queue_name",
               type: "string",
               value: "job_live"
             }
@@ -106,7 +107,7 @@ defmodule StepFlow.LiveTest do
         first_file
       )
 
-    Live.update_job_live(source_paths, launch_params, workflow, step)
+    Live.create_job_live(source_paths, launch_params)
 
     workflow_id = workflow.id
     step_id = StepFlow.Map.get_by_key_or_atom(step, :id)
@@ -120,7 +121,7 @@ defmodule StepFlow.LiveTest do
     # Init
 
     Status.set_job_status(job_id, "ready_to_init")
-    Live.update_job_live(source_paths, launch_params, workflow, step)
+    Live.update_job_live(job_id)
 
     :timer.sleep(1000)
 
@@ -128,13 +129,13 @@ defmodule StepFlow.LiveTest do
 
     Status.set_job_status(job_id, "ready_to_start")
 
-    Live.update_job_live(source_paths, launch_params, workflow, step)
+    Live.update_job_live(job_id)
 
     :timer.sleep(1000)
 
     # Delete
 
     Status.set_job_status(job_id, "completed")
-    Live.update_job_live(source_paths, launch_params, workflow, step)
+    Live.update_job_live(job_id)
   end
 end

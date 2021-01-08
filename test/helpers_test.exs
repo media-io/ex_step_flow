@@ -4,6 +4,7 @@ defmodule StepFlow.HelpersTest do
 
   require Logger
   alias StepFlow.Amqp.Helpers
+  alias StepFlow.Jobs
   alias StepFlow.Jobs.Status
   alias StepFlow.Progressions
   alias StepFlow.Repo
@@ -62,6 +63,20 @@ defmodule StepFlow.HelpersTest do
     AMQP.Queue.bind(channel, "job_file_system", "job_submit", routing_key: "job_file_system")
 
     clean_queue(channel, "job_file_system")
+
+    AMQP.Queue.declare(channel, "job_worker_manager", durable: false)
+
+    AMQP.Queue.bind(channel, "job_worker_manager", "job_submit", routing_key: "job_worker_manager")
+
+    clean_queue(channel, "job_worker_manager")
+
+    AMQP.Queue.declare(channel, "direct_messaging_job_live", durable: false)
+
+    AMQP.Queue.bind(channel, "direct_messaging_job_live", "job_submit",
+      routing_key: "direct_messaging_job_live"
+    )
+
+    clean_queue(channel, "direct_messaging_job_live")
 
     clean_queue(channel, "job_queue_not_found")
 
@@ -315,9 +330,14 @@ defmodule StepFlow.HelpersTest do
     step.jobs
   end
 
-  def get_parameter_value_list(workflow, type) do
+  def get_job_last_status(job_id) do
+    Repo.preload(Jobs.get_job(job_id), [:status]).status
+    |> Status.get_last_status()
+  end
+
+  def get_parameter_value_list(workflow, step_id) do
     StepFlow.Jobs.list_jobs(%{
-      "job_type" => type,
+      "step_id" => step_id,
       "workflow_id" => workflow.id |> Integer.to_string(),
       "size" => 50
     })

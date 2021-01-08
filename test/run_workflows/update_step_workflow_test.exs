@@ -27,7 +27,7 @@ defmodule StepFlow.RunWorkflows.UpdateStepTest do
       steps: [
         %{
           id: 0,
-          name: "my_first_step",
+          name: "job_test",
           icon: "step_icon",
           label: "My first step",
           parameters: [
@@ -47,7 +47,7 @@ defmodule StepFlow.RunWorkflows.UpdateStepTest do
           id: 1,
           required_to_start: [0],
           parent_ids: [0],
-          name: "second_step",
+          name: "job_test",
           icon: "step_icon",
           label: "Second step",
           parameters: [
@@ -83,7 +83,7 @@ defmodule StepFlow.RunWorkflows.UpdateStepTest do
       {:ok, "started"} = Step.start_next(workflow)
 
       StepFlow.HelpersTest.check(workflow.id, 1)
-      StepFlow.HelpersTest.check(workflow.id, "my_first_step", 1)
+      StepFlow.HelpersTest.check(workflow.id, 0, 1)
 
       StepFlow.HelpersTest.create_update(workflow, 0, [
         %{
@@ -93,15 +93,15 @@ defmodule StepFlow.RunWorkflows.UpdateStepTest do
         }
       ])
 
-      StepFlow.HelpersTest.complete_jobs(workflow.id, "my_first_step")
+      StepFlow.HelpersTest.complete_jobs(workflow.id, 0)
 
-      parameters = StepFlow.HelpersTest.get_parameter_value_list(workflow, "my_first_step")
+      parameters = StepFlow.HelpersTest.get_parameter_value_list(workflow, 0)
 
       assert Enum.at(parameters, 1) == "tata"
 
       {:ok, "started"} = Step.start_next(workflow)
 
-      StepFlow.HelpersTest.check(workflow.id, "second_step", 1)
+      StepFlow.HelpersTest.check(workflow.id, 1, 1)
 
       StepFlow.HelpersTest.create_update(workflow, 1, [
         %{
@@ -113,13 +113,13 @@ defmodule StepFlow.RunWorkflows.UpdateStepTest do
 
       {:ok, "still_processing"} = Step.start_next(workflow)
 
-      parameters = StepFlow.HelpersTest.get_parameter_value_list(workflow, "second_step")
+      parameters = StepFlow.HelpersTest.get_parameter_value_list(workflow, 1)
 
       assert Enum.at(parameters, 1) == "my_new_file.mov"
 
       :timer.sleep(1000)
 
-      StepFlow.HelpersTest.check(workflow.id, "second_step", 1)
+      StepFlow.HelpersTest.check(workflow.id, 1, 1)
 
       StepFlow.HelpersTest.create_update(workflow, 1, [
         %{
@@ -143,7 +143,7 @@ defmodule StepFlow.RunWorkflows.UpdateStepTest do
 
       StepFlow.HelpersTest.check(workflow.id, 2)
 
-      parameters = StepFlow.HelpersTest.get_parameter_value_list(workflow, "second_step")
+      parameters = StepFlow.HelpersTest.get_parameter_value_list(workflow, 1)
 
       assert Enum.at(parameters, 0) == "audio_file.wav"
       assert Enum.at(parameters, 1) == "video_file.mov"
