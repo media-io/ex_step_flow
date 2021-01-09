@@ -15,11 +15,13 @@ defmodule StepFlow.Step.Live do
     message =
       Map.put(
         message,
-        :parameters,
-        message.parameters ++ [%{"id" => "action", "type" => "string", "value" => "create"}]
+        :type,
+        "create"
       )
 
     message = filter_message(message)
+
+    IO.inspect(message)
 
     case CommonEmitter.publish_json(
            "job_worker_manager",
@@ -53,6 +55,8 @@ defmodule StepFlow.Step.Live do
     message = generate_message(job)
     message = filter_message(message)
 
+    IO.inspect(message)
+
     case CommonEmitter.publish_json(
            "job_worker_manager",
            step_id,
@@ -66,12 +70,12 @@ defmodule StepFlow.Step.Live do
   def generate_message(job) do
     message = Jobs.get_message(job)
 
-    action_parameter =
+    action =
       job.status
       |> Status.get_last_status()
-      |> Status.get_action_parameter()
+      |> Status.get_action()
 
-    Map.put(message, :parameters, message.parameters ++ action_parameter)
+    Map.put(message, :type, action)
   end
 
   defp filter_message(message) do
@@ -80,7 +84,7 @@ defmodule StepFlow.Step.Live do
       :parameters,
       Enum.filter(message.parameters, fn x ->
         Enum.member?(
-          ["step_id", "action", "namespace", "worker", "ports", "direct_messaging_queue_name"],
+          ["step_id", "namespace", "worker", "ports", "direct_messaging_queue_name"],
           StepFlow.Map.get_by_key_or_atom(x, :id)
         )
       end)
@@ -88,6 +92,8 @@ defmodule StepFlow.Step.Live do
   end
 
   defp publish_message(message, step_id) do
+    IO.inspect(message)
+    
     case CommonEmitter.publish_json(
            "direct_messaging_" <> get_direct_messaging_queue(message),
            step_id,

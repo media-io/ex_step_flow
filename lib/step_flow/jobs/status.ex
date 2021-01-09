@@ -98,9 +98,9 @@ defmodule StepFlow.Jobs.Status do
   def get_action(status) do
     case status.state do
       :queued -> "create"
-      :ready_to_init -> "init"
-      :ready_to_start -> "start"
-      :update -> "update"
+      :ready_to_init -> "init_process"
+      :ready_to_start -> "start_process"
+      :update -> "update_process"
       :completed -> "delete"
       _ -> "none"
     end

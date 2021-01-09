@@ -149,7 +149,7 @@ defmodule StepFlow.Jobs.StatusTest do
       Status.get_last_status(status_list)
       |> Status.get_action()
 
-    assert "init" == action
+    assert "init_process" == action
   end
 
   test "get start action" do
@@ -184,7 +184,7 @@ defmodule StepFlow.Jobs.StatusTest do
       Status.get_last_status(status_list)
       |> Status.get_action()
 
-    assert "start" == action
+    assert "start_process" == action
   end
 
   test "get delete action" do
