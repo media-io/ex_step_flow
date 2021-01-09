@@ -21,8 +21,6 @@ defmodule StepFlow.Step.Live do
 
     message = filter_message(message)
 
-    IO.inspect(message)
-
     case CommonEmitter.publish_json(
            "job_worker_manager",
            LaunchParams.get_step_id(launch_params),
@@ -54,8 +52,6 @@ defmodule StepFlow.Step.Live do
   defp delete_live_worker(step_id, job) do
     message = generate_message(job)
     message = filter_message(message)
-
-    IO.inspect(message)
 
     case CommonEmitter.publish_json(
            "job_worker_manager",
@@ -92,8 +88,6 @@ defmodule StepFlow.Step.Live do
   end
 
   defp publish_message(message, step_id) do
-    IO.inspect(message)
-    
     case CommonEmitter.publish_json(
            "direct_messaging_" <> get_direct_messaging_queue(message),
            step_id,
