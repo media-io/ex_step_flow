@@ -91,7 +91,8 @@ defmodule StepFlow.Step.Live do
     case CommonEmitter.publish_json(
            "direct_messaging_" <> get_direct_messaging_queue(message),
            step_id,
-           message
+           message,
+           "direct_message"
          ) do
       :ok -> {:ok, "started"}
       _ -> {:error, "unable to publish message"}
