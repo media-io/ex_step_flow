@@ -64,12 +64,12 @@ defmodule StepFlow.Amqp.CommonConsumer do
           payload
           |> Jason.decode!()
 
-        Logger.warn("#{__MODULE__}: receive message on queue: #{queue}")
+        Logger.info("#{__MODULE__}: receive message on queue: #{queue}")
 
         max_retry_to_timeout =
           StepFlow.Configuration.get_var_value(StepFlow.Amqp, :max_retry_to_timeout, 10)
 
-        Logger.error("#{__MODULE__} #{inspect(headers)}")
+        Logger.debug("#{__MODULE__} #{inspect(headers)}")
 
         max_retry_reached =
           with headers when headers != :undefined <- Map.get(headers, :headers),
