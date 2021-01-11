@@ -3,7 +3,7 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox
-  alias StepFlow.Amqp.ProgressionConsumer
+  alias StepFlow.Amqp.CommonEmitter
   alias StepFlow.Jobs
   alias StepFlow.Workflows
 
@@ -12,13 +12,13 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    {conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
+    # Setting the shared mode
+    Sandbox.mode(StepFlow.Repo, {:shared, self()})
+    {conn, _channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
       StepFlow.HelpersTest.close_amqp_connection(conn)
     end)
-
-    [channel: channel]
   end
 
   @workflow %{
@@ -37,7 +37,7 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
     ]
   }
 
-  test "consume well formed message", %{channel: channel} do
+  test "consume well formed message" do
     {_, workflow} = Workflows.create_workflow(@workflow)
 
     {_, job} =
@@ -47,30 +47,22 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
         workflow_id: workflow.id
       })
 
-    tag = "acs"
     {_, datetime, _} = DateTime.from_iso8601("2020-01-31T09:48:53Z")
 
     result =
-      ProgressionConsumer.consume(
-        channel,
-        tag,
-        false,
-        %{
-          "job_id" => job.id,
-          "datetime" => datetime,
-          "docker_container_id" => "unknown",
-          "progression" => 50
-        }
-      )
+      CommonEmitter.publish_json(
+             "job_progression",
+             0,
+             %{
+               job_id: job.id,
+               datetime: datetime,
+               docker_container_id: "unknown",
+               progression: 50
+             },
+             "job_response"
+           )
 
-    assert result == :ok
-  end
-
-  @tag capture_log: true
-  test "consume badly formed message", %{channel: channel} do
-    tag = "acs"
-
-    result = ProgressionConsumer.consume(channel, tag, false, %{})
+    :timer.sleep(1000)
 
     assert result == :ok
   end

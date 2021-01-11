@@ -3,7 +3,7 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumerTest do
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox
-  alias StepFlow.Amqp.WorkerCreatedConsumer
+  alias StepFlow.Amqp.CommonEmitter
   alias StepFlow.Jobs
   alias StepFlow.Workflows
 
@@ -12,13 +12,13 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumerTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    {conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
+    # Setting the shared mode
+    Sandbox.mode(StepFlow.Repo, {:shared, self()})
+    {conn, _channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
       StepFlow.HelpersTest.close_amqp_connection(conn)
     end)
-
-    [channel: channel]
   end
 
   @workflow %{
@@ -37,7 +37,7 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumerTest do
     ]
   }
 
-  test "consume well formed message with existing job", %{channel: channel} do
+  test "consume well formed message with existing job" do
     {_, workflow} = Workflows.create_workflow(@workflow)
 
     {_, job} =
@@ -54,45 +54,20 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumerTest do
         ]
       })
 
-    tag = "live"
-
     result =
-      WorkerCreatedConsumer.consume(
-        channel,
-        tag,
-        false,
-        %{
-          "direct_messaging_queue_name" => "direct_messaging_job_live"
-        }
-      )
+      CommonEmitter.publish_json(
+             "worker_created",
+             0,
+             %{
+               direct_messaging_queue_name: "direct_messaging_job_live"
+             },
+             "job_response"
+           )
+
+    :timer.sleep(1000)
+
+    assert result == :ok
 
     assert StepFlow.HelpersTest.get_job_last_status(job.id).state == :ready_to_init
-
-    assert result == :ok
-  end
-
-  test "consume well formed message with non-existing job", %{channel: channel} do
-    tag = "live"
-
-    result =
-      WorkerCreatedConsumer.consume(
-        channel,
-        tag,
-        false,
-        %{
-          "direct_messaging_queue_name" => "job_live"
-        }
-      )
-
-    assert result == :ok
-  end
-
-  @tag capture_log: true
-  test "consume badly formed message", %{channel: channel} do
-    tag = "live"
-
-    result = WorkerCreatedConsumer.consume(channel, tag, false, %{})
-
-    assert result == :ok
   end
 end

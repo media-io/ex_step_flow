@@ -3,7 +3,7 @@ defmodule StepFlow.Amqp.WorkerStatusConsumerTest do
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox
-  alias StepFlow.Amqp.WorkerStatusConsumer
+  alias StepFlow.Amqp.CommonEmitter
   alias StepFlow.Jobs
   alias StepFlow.Workflows
 
@@ -12,13 +12,11 @@ defmodule StepFlow.Amqp.WorkerStatusConsumerTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    {conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
+    {conn, _channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
       StepFlow.HelpersTest.close_amqp_connection(conn)
     end)
-
-    [channel: channel]
   end
 
   @workflow %{
@@ -37,7 +35,7 @@ defmodule StepFlow.Amqp.WorkerStatusConsumerTest do
     ]
   }
 
-  test "consume well formed message with existing job", %{channel: channel} do
+  test "consume well formed message with existing job" do
     {_, workflow} = Workflows.create_workflow(@workflow)
 
     {_, job} =
@@ -47,26 +45,17 @@ defmodule StepFlow.Amqp.WorkerStatusConsumerTest do
         workflow_id: workflow.id
       })
 
-    tag = "live"
-
     result =
-      WorkerStatusConsumer.consume(
-        channel,
-        tag,
-        false,
-        %{
-          "job_id" => job.id
-        }
-      )
+      CommonEmitter.publish_json(
+             "worker_status",
+             0,
+             %{
+               job_id: job.id
+             },
+             "job_response"
+           )
 
-    assert result == :ok
-  end
-
-  @tag capture_log: true
-  test "consume badly formed message", %{channel: channel} do
-    tag = "live"
-
-    result = WorkerStatusConsumer.consume(channel, tag, false, %{})
+    :timer.sleep(1000)
 
     assert result == :ok
   end
