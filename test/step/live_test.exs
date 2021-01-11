@@ -3,8 +3,8 @@ defmodule StepFlow.LiveTest do
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox
+  alias StepFlow.Amqp.CommonEmitter
   alias StepFlow.Jobs
-  alias StepFlow.Jobs.Status
   alias StepFlow.Repo
   alias StepFlow.Step.Helpers
   alias StepFlow.Step.Launch
@@ -17,14 +17,15 @@ defmodule StepFlow.LiveTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    {_conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
+    # Setting the shared mode
+    Sandbox.mode(StepFlow.Repo, {:shared, self()})
+    {conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_worker_manager", 2)
-      StepFlow.HelpersTest.consume_messages(channel, "direct_messaging_job_live", 2)
+      StepFlow.HelpersTest.consume_messages(channel, "job_worker_manager", 1)
+      # StepFlow.HelpersTest.consume_messages(channel, "direct_messaging_job_live", 2)
+      StepFlow.HelpersTest.close_amqp_connection(conn)
     end)
-
-    :ok
   end
 
   describe "live workflow" do
@@ -116,26 +117,72 @@ defmodule StepFlow.LiveTest do
 
     job_id = job.id
 
+    # Created
+
+    result =
+      CommonEmitter.publish_json(
+             "worker_created",
+             0,
+             %{
+               direct_messaging_queue_name: "direct_messaging_job_live"
+             },
+             "job_response"
+           )
+
+    assert result == :ok
+
     :timer.sleep(1000)
+    assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :ready_to_init
 
     # Init
 
-    Status.set_job_status(job_id, "ready_to_init")
-    Live.update_job_live(job_id)
+    result =
+      CommonEmitter.publish_json(
+             "worker_initialized",
+             0,
+             %{
+               job_id: job_id
+             },
+             "job_response"
+           )
+
+    assert result == :ok
 
     :timer.sleep(1000)
+    assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :ready_to_start
 
     # Start
 
-    Status.set_job_status(job_id, "ready_to_start")
+    result =
+      CommonEmitter.publish_json(
+             "worker_started",
+             0,
+             %{
+               job_id: job_id
+             },
+             "job_response"
+           )
 
-    Live.update_job_live(job_id)
+    assert result == :ok
 
     :timer.sleep(1000)
+    assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :processing
 
     # Delete
 
-    Status.set_job_status(job_id, "completed")
-    Live.update_job_live(job_id)
+    result =
+      CommonEmitter.publish_json(
+             "worker_terminated",
+             0,
+             %{
+               job_id: job_id
+             },
+             "job_response"
+           )
+
+    assert result == :ok
+
+    :timer.sleep(1000)
+    assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :completed
   end
 end
