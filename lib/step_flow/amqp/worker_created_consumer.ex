@@ -27,15 +27,12 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumer do
       ) do
     job =
       StepFlow.Jobs.list_jobs(%{
-        "size" => 50
+        "direct_messaging_queue_name" => direct_messaging_queue_name
       })
       |> Map.get(:data)
-      |> Enum.find(fn job ->
-        Enum.find(job.parameters, fn params ->
-          "direct_messaging_" <> StepFlow.Map.get_by_key_or_atom(params, :value) ==
-            direct_messaging_queue_name
-        end)
-      end)
+      |> List.first()
+
+    Logger.debug("Worker Creation job search result: #{inspect(job)}")
 
     case job do
       nil ->

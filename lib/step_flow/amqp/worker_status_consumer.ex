@@ -24,7 +24,6 @@ defmodule StepFlow.Amqp.WorkerStatusConsumer do
           "job_id" => job_id
         } = payload
       ) do
-    Status.set_job_status(job_id, "processing")
     Basic.ack(channel, tag)
   end
 
