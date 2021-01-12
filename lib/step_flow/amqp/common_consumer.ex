@@ -138,6 +138,16 @@ defmodule StepFlow.Amqp.CommonConsumer do
             arguments: [{"alternate-exchange", :longstr, "job_response_not_found"}]
           )
 
+        AMQP.Queue.declare(channel, "direct_message_not_found", durable: true)
+        AMQP.Queue.declare(channel, queue <> "_timeout", durable: true)
+
+        exchange =
+          AMQP.Exchange.declare(channel, "direct_message",
+            :headers,
+            durable: true,
+            arguments: [{"alternate-exchange", :longstr, "direct_message_not_found"}]
+          )
+
         exchange = AMQP.Exchange.fanout(channel, "job_response_delayed", durable: true)
 
         {:ok, job_response_delayed_queue} =
