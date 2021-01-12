@@ -15,6 +15,6 @@ defmodule StepFlow.Migration.CreateLiveWorkerTable do
       timestamps()
     end
 
-    create(index(:step_flow_progressions, [:job_id]))
+    create(index(:step_flow_live_workers, [:job_id]))
   end
 end
