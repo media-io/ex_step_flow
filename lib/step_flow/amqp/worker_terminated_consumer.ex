@@ -24,7 +24,6 @@ defmodule StepFlow.Amqp.WorkerTerminatedConsumer do
           "job_id" => job_id
         } = payload
       ) do
-    Status.set_job_status(job_id, "completed")
     Basic.ack(channel, tag)
   end
 
