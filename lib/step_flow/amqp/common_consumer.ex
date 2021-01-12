@@ -39,17 +39,17 @@ defmodule StepFlow.Amqp.CommonConsumer do
         rabbitmq_connect()
       end
 
-      # Confirmation sent by the broker after registering this process as a consumer
+      # Confirmation sent by broker after registering this process as consumer
       def handle_info({:basic_consume_ok, %{consumer_tag: _consumer_tag}}, channel) do
         {:noreply, channel}
       end
 
-      # Sent by the broker when the consumer is unexpectedly cancelled (such as after a queue deletion)
+      # Sent by broker when consumer is unexpectedly cancelled (such as after queue deletion)
       def handle_info({:basic_cancel, %{consumer_tag: _consumer_tag}}, channel) do
         {:stop, :normal, channel}
       end
 
-      # Confirmation sent by the broker to the consumer process after a Basic.cancel
+      # Confirmation sent by broker to consumer process after a Basic.cancel
       def handle_info({:basic_cancel_ok, %{consumer_tag: _consumer_tag}}, channel) do
         {:noreply, channel}
       end
@@ -94,7 +94,6 @@ defmodule StepFlow.Amqp.CommonConsumer do
 
       def handle_info({:DOWN, _, :process, _pid, _reason}, _) do
         {:ok, chan} = rabbitmq_connect()
-        # {:noreply, :ok}
       end
 
       def terminate(_reason, state) do
