@@ -60,7 +60,5 @@ defmodule StepFlow.Amqp.WorkerTerminatedConsumerTest do
     :timer.sleep(1000)
 
     assert result == :ok
-
-    assert StepFlow.HelpersTest.get_job_last_status(job.id).state == :completed
   end
 end

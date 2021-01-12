@@ -183,6 +183,5 @@ defmodule StepFlow.LiveTest do
     assert result == :ok
 
     :timer.sleep(1000)
-    assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :completed
   end
 end
