@@ -1,6 +1,7 @@
 defmodule StepFlow.LiveWorkers.LiveWorker do
   use Ecto.Schema
   import Ecto.Changeset
+  alias StepFlow.Jobs.Job
   alias StepFlow.LiveWorkers.LiveWorker
 
   @moduledoc false
@@ -8,11 +9,11 @@ defmodule StepFlow.LiveWorkers.LiveWorker do
   schema "step_flow_live_workers" do
     field(:ips, {:array, :string}, default: [])
     field(:ports, {:array, :integer}, default: [])
-    field(:job_id, :integer)
     field(:instance_id, :string, default: "")
     field(:direct_messaging_queue_name, :string)
     field(:creation_date, :utc_datetime)
     field(:termination_date, :utc_datetime)
+    belongs_to(:job, Job, foreign_key: :job_id)
 
     timestamps()
   end
@@ -29,6 +30,7 @@ defmodule StepFlow.LiveWorkers.LiveWorker do
       :creation_date,
       :termination_date
     ])
+    |> foreign_key_constraint(:job_id)
     |> validate_required([:job_id, :direct_messaging_queue_name])
   end
 end
