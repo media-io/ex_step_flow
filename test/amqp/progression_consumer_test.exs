@@ -51,16 +51,16 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
 
     result =
       CommonEmitter.publish_json(
-             "job_progression",
-             0,
-             %{
-               job_id: job.id,
-               datetime: datetime,
-               docker_container_id: "unknown",
-               progression: 50
-             },
-             "job_response"
-           )
+        "job_progression",
+        0,
+        %{
+          job_id: job.id,
+          datetime: datetime,
+          docker_container_id: "unknown",
+          progression: 50
+        },
+        "job_response"
+      )
 
     :timer.sleep(1000)
 

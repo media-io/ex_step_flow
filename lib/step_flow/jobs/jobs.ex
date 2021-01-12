@@ -65,15 +65,20 @@ defmodule StepFlow.Jobs do
           query
 
         direct_messaging_queue_name ->
-          direct_messaging_queue_name = String.replace(direct_messaging_queue_name, "direct_messaging_", "")
+          direct_messaging_queue_name =
+            String.replace(direct_messaging_queue_name, "direct_messaging_", "")
 
-          expected = %{
-            id: "direct_messaging_queue_name",
-            type: "string",
-            value: direct_messaging_queue_name
-          } |> Jason.encode!()
+          expected =
+            %{
+              id: "direct_messaging_queue_name",
+              type: "string",
+              value: direct_messaging_queue_name
+            }
+            |> Jason.encode!()
 
-          from(job in query, where: fragment("? @> array[?::text]::jsonb[]", job.parameters, ^expected))
+          from(job in query,
+            where: fragment("? @> array[?::text]::jsonb[]", job.parameters, ^expected)
+          )
       end
 
     total_query = from(item in query, select: count(item.id))

@@ -49,18 +49,18 @@ defmodule StepFlow.Amqp.WorkerTerminatedConsumerTest do
 
     result =
       CommonEmitter.publish_json(
-             "worker_terminated",
-             0,
-             %{
-               job_id: job.id
-             },
-             "job_response"
-           )
+        "worker_terminated",
+        0,
+        %{
+          job_id: job.id
+        },
+        "job_response"
+      )
 
-      :timer.sleep(1000)
+    :timer.sleep(1000)
 
-      assert result == :ok
+    assert result == :ok
 
-      assert StepFlow.HelpersTest.get_job_last_status(job.id).state == :completed
+    assert StepFlow.HelpersTest.get_job_last_status(job.id).state == :completed
   end
 end

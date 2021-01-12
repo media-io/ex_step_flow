@@ -49,13 +49,13 @@ defmodule StepFlow.Amqp.WorkerStartedConsumerTest do
 
     result =
       CommonEmitter.publish_json(
-             "worker_started",
-             0,
-             %{
-               job_id: job.id
-             },
-             "job_response"
-           )
+        "worker_started",
+        0,
+        %{
+          job_id: job.id
+        },
+        "job_response"
+      )
 
     :timer.sleep(1000)
 

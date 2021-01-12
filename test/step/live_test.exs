@@ -121,13 +121,13 @@ defmodule StepFlow.LiveTest do
 
     result =
       CommonEmitter.publish_json(
-             "worker_created",
-             0,
-             %{
-               direct_messaging_queue_name: "direct_messaging_job_live"
-             },
-             "job_response"
-           )
+        "worker_created",
+        0,
+        %{
+          direct_messaging_queue_name: "direct_messaging_job_live"
+        },
+        "job_response"
+      )
 
     assert result == :ok
 
@@ -138,13 +138,13 @@ defmodule StepFlow.LiveTest do
 
     result =
       CommonEmitter.publish_json(
-             "worker_initialized",
-             0,
-             %{
-               job_id: job_id
-             },
-             "job_response"
-           )
+        "worker_initialized",
+        0,
+        %{
+          job_id: job_id
+        },
+        "job_response"
+      )
 
     assert result == :ok
 
@@ -155,13 +155,13 @@ defmodule StepFlow.LiveTest do
 
     result =
       CommonEmitter.publish_json(
-             "worker_started",
-             0,
-             %{
-               job_id: job_id
-             },
-             "job_response"
-           )
+        "worker_started",
+        0,
+        %{
+          job_id: job_id
+        },
+        "job_response"
+      )
 
     assert result == :ok
 
@@ -172,13 +172,13 @@ defmodule StepFlow.LiveTest do
 
     result =
       CommonEmitter.publish_json(
-             "worker_terminated",
-             0,
-             %{
-               job_id: job_id
-             },
-             "job_response"
-           )
+        "worker_terminated",
+        0,
+        %{
+          job_id: job_id
+        },
+        "job_response"
+      )
 
     assert result == :ok
 

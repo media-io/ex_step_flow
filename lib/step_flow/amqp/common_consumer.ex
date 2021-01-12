@@ -142,8 +142,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
         AMQP.Queue.declare(channel, queue <> "_timeout", durable: true)
 
         exchange =
-          AMQP.Exchange.declare(channel, "direct_message",
-            :headers,
+          AMQP.Exchange.declare(channel, "direct_message", :headers,
             durable: true,
             arguments: [{"alternate-exchange", :longstr, "direct_message_not_found"}]
           )

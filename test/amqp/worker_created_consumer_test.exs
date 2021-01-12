@@ -56,13 +56,13 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumerTest do
 
     result =
       CommonEmitter.publish_json(
-             "worker_created",
-             0,
-             %{
-               direct_messaging_queue_name: "direct_messaging_job_live"
-             },
-             "job_response"
-           )
+        "worker_created",
+        0,
+        %{
+          direct_messaging_queue_name: "direct_messaging_job_live"
+        },
+        "job_response"
+      )
 
     :timer.sleep(1000)
 
