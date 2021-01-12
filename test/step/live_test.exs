@@ -23,7 +23,7 @@ defmodule StepFlow.LiveTest do
 
     on_exit(fn ->
       StepFlow.HelpersTest.consume_messages(channel, "job_worker_manager", 1)
-      # StepFlow.HelpersTest.consume_messages(channel, "direct_messaging_job_live", 2)
+      StepFlow.HelpersTest.consume_messages(channel, "direct_messaging_job_live", 2)
       StepFlow.HelpersTest.close_amqp_connection(conn)
     end)
   end
