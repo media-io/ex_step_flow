@@ -41,7 +41,6 @@ defmodule StepFlow.Step.Live do
 
     steps =
       job.workflow.steps
-      |> Enum.sort_by(fn step -> StepFlow.Map.get_by_key_or_atom(step, :id) end, :desc)
 
     start_next_job_live(workflow_jobs, steps)
   end
