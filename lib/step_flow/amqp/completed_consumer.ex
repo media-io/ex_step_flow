@@ -47,6 +47,8 @@ defmodule StepFlow.Amqp.CompletedConsumer do
         StepManager.check_step_status(%{job_id: job_id})
 
         if job.is_live do
+          live_worker_update(job_id, payload)
+
           Live.update_job_live(job_id)
         end
 
@@ -87,6 +89,26 @@ defmodule StepFlow.Amqp.CompletedConsumer do
       parameters ->
         parameters = workflow.parameters ++ parameters
         Workflows.update_workflow(workflow, %{parameters: parameters})
+    end
+  end
+
+  defp live_worker_update(job_id, payload) do
+    live_worker = LiveWorkers.get_by(%{"job_id" => job_id})
+
+    case live_worker do
+      nil ->
+        LiveWorkers.create_live_worker(%{
+          job_id: job_id,
+          direct_messaging_queue_name: payload.direct_messaging_queue_name,
+          ips: [payload.host_ip],
+          ports: payload.ports
+        })
+
+      _ ->
+        LiveWorkers.update_live_worker(live_worker, %{
+          "ips" => [payload.host_ip],
+          "ports" => payload.ports
+        })
     end
   end
 end
