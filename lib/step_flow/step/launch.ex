@@ -32,12 +32,18 @@ defmodule StepFlow.Step.Launch do
           |> Enum.sort()
           |> List.first()
 
+        direct_messaging_parameters = %{
+          id: "direct_messaging_queue_name",
+          type: "string",
+          value: Ecto.UUID.generate()
+        }
+
         step =
           Map.put(
             step,
             :parameters,
-            step.parameters +
-              [%{id: "direct_messaging_queue_name", type: "string", value: Ecto.UUID.generate()}]
+            StepFlow.Map.get_by_key_or_atom(step, :parameters) ++
+              [direct_messaging_parameters]
           )
 
         launch_params = LaunchParams.new(workflow, step, dates, first_file)
