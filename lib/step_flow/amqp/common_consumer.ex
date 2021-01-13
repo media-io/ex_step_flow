@@ -39,17 +39,17 @@ defmodule StepFlow.Amqp.CommonConsumer do
         rabbitmq_connect()
       end
 
-      # Confirmation sent by the broker after registering this process as a consumer
+      # Confirmation sent by broker after registering this process as consumer
       def handle_info({:basic_consume_ok, %{consumer_tag: _consumer_tag}}, channel) do
         {:noreply, channel}
       end
 
-      # Sent by the broker when the consumer is unexpectedly cancelled (such as after a queue deletion)
+      # Sent by broker when consumer is unexpectedly cancelled (such as after queue deletion)
       def handle_info({:basic_cancel, %{consumer_tag: _consumer_tag}}, channel) do
         {:stop, :normal, channel}
       end
 
-      # Confirmation sent by the broker to the consumer process after a Basic.cancel
+      # Confirmation sent by broker to consumer process after a Basic.cancel
       def handle_info({:basic_cancel_ok, %{consumer_tag: _consumer_tag}}, channel) do
         {:noreply, channel}
       end
@@ -64,12 +64,12 @@ defmodule StepFlow.Amqp.CommonConsumer do
           payload
           |> Jason.decode!()
 
-        Logger.warn("#{__MODULE__}: receive message on queue: #{queue}")
+        Logger.info("#{__MODULE__}: receive message on queue: #{queue}")
 
         max_retry_to_timeout =
           StepFlow.Configuration.get_var_value(StepFlow.Amqp, :max_retry_to_timeout, 10)
 
-        Logger.error("#{__MODULE__} #{inspect(headers)}")
+        Logger.debug("#{__MODULE__} #{inspect(headers)}")
 
         max_retry_reached =
           with headers when headers != :undefined <- Map.get(headers, :headers),
@@ -94,7 +94,6 @@ defmodule StepFlow.Amqp.CommonConsumer do
 
       def handle_info({:DOWN, _, :process, _pid, _reason}, _) do
         {:ok, chan} = rabbitmq_connect()
-        # {:noreply, :ok}
       end
 
       def terminate(_reason, state) do
@@ -136,6 +135,15 @@ defmodule StepFlow.Amqp.CommonConsumer do
           AMQP.Exchange.topic(channel, "job_response",
             durable: true,
             arguments: [{"alternate-exchange", :longstr, "job_response_not_found"}]
+          )
+
+        AMQP.Queue.declare(channel, "direct_message_not_found", durable: true)
+        AMQP.Queue.declare(channel, queue <> "_timeout", durable: true)
+
+        exchange =
+          AMQP.Exchange.declare(channel, "direct_message", :headers,
+            durable: true,
+            arguments: [{"alternate-exchange", :longstr, "direct_message_not_found"}]
           )
 
         exchange = AMQP.Exchange.fanout(channel, "job_response_delayed", durable: true)

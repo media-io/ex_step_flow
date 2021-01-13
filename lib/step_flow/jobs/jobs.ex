@@ -59,6 +59,28 @@ defmodule StepFlow.Jobs do
           from(job in query, where: job.step_id == ^step_id)
       end
 
+    query =
+      case Map.get(params, "direct_messaging_queue_name") do
+        nil ->
+          query
+
+        direct_messaging_queue_name ->
+          direct_messaging_queue_name =
+            String.replace(direct_messaging_queue_name, "direct_messaging_", "")
+
+          expected =
+            %{
+              id: "direct_messaging_queue_name",
+              type: "string",
+              value: direct_messaging_queue_name
+            }
+            |> Jason.encode!()
+
+          from(job in query,
+            where: fragment("? @> array[?::text]::jsonb[]", job.parameters, ^expected)
+          )
+      end
+
     total_query = from(item in query, select: count(item.id))
 
     total =
@@ -75,7 +97,7 @@ defmodule StepFlow.Jobs do
 
     jobs =
       Repo.all(query)
-      |> Repo.preload([:status, :progressions])
+      |> Repo.preload([:status, :progressions, :updates])
 
     %{
       data: jobs,
@@ -116,6 +138,38 @@ defmodule StepFlow.Jobs do
   def get_job(id), do: Repo.get(Job, id)
 
   @doc """
+  Gets a single job by workflow ID and step ID
+
+  ## Examples
+
+      iex> get_job(123)
+      %Job{}
+
+      iex> get_job(456)
+      nil
+
+  """
+  def get_by!(%{"workflow_id" => workflow_id, "step_id" => step_id}) do
+    Repo.get_by!(Job, workflow_id: workflow_id, step_id: step_id)
+  end
+
+  @doc """
+  Gets a single job by workflow ID and step ID
+
+  ## Examples
+
+      iex> get_job(123)
+      %Job{}
+
+      iex> get_job(456)
+      nil
+
+  """
+  def get_by(%{"workflow_id" => workflow_id, "step_id" => step_id}) do
+    Repo.get_by(Job, workflow_id: workflow_id, step_id: step_id)
+  end
+
+  @doc """
   Gets a single job with its related status.
 
   Raises `Ecto.NoResultsError` if the Job does not exist.
@@ -131,7 +185,7 @@ defmodule StepFlow.Jobs do
   """
   def get_job_with_status!(id) do
     get_job!(id)
-    |> Repo.preload([:status, :progressions])
+    |> Repo.preload([:status, :progressions, :updates])
   end
 
   @doc """
@@ -233,6 +287,8 @@ defmodule StepFlow.Jobs do
       step_id: step_id,
       workflow_id: workflow.id
     })
+
+    # Create dedicated method
     |> Map.get(:data)
     |> Enum.filter(fn job ->
       case job.status do

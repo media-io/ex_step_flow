@@ -19,8 +19,8 @@ defmodule StepFlow.Amqp.Connection do
     GenServer.cast(__MODULE__, {:consume, queue, callback})
   end
 
-  def publish(queue, message, options) do
-    GenServer.cast(__MODULE__, {:publish, queue, message, options})
+  def publish(queue, message, options, exchange \\ @submit_exchange) do
+    GenServer.cast(__MODULE__, {:publish, exchange, queue, message, options})
   end
 
   # def publish_json(queue, message) do
@@ -32,9 +32,9 @@ defmodule StepFlow.Amqp.Connection do
     rabbitmq_connect()
   end
 
-  def handle_cast({:publish, queue, message, options}, conn) do
-    Logger.warn("#{__MODULE__}: publish message on queue: #{queue} #{message}")
-    AMQP.Basic.publish(conn.channel, @submit_exchange, queue, message, options)
+  def handle_cast({:publish, exchange, queue, message, options}, conn) do
+    Logger.info("#{__MODULE__}: publish message on queue: #{exchange} #{queue} #{message}")
+    AMQP.Basic.publish(conn.channel, exchange, queue, message, options)
     {:noreply, conn}
   end
 

@@ -9,17 +9,50 @@ defmodule StepFlow.Jobs.Status do
 
   @moduledoc false
 
-  defenum(StateEnum, ["queued", "skipped", "processing", "retrying", "error", "completed"])
+  defenum(StateEnum, [
+    "queued",
+    "skipped",
+    "processing",
+    "retrying",
+    "error",
+    "completed",
+    "ready_to_init",
+    "ready_to_start",
+    "update"
+  ])
+
+  defp state_map_lookup(value) do
+    state_map = %{
+      0 => :queued,
+      1 => :skipped,
+      2 => :processing,
+      3 => :retrying,
+      4 => :error,
+      5 => :completed,
+      6 => :ready_to_init,
+      7 => :ready_to_start,
+      8 => :update
+    }
+
+    if is_number(value) do
+      state_map[value]
+    else
+      case Map.values(state_map) |> Enum.member?(value) do
+        true -> value
+        _ -> nil
+      end
+    end
+  end
 
   def state_enum_label(value) do
-    case value do
-      value when value in [0, :queued] -> "queued"
-      value when value in [1, :skipped] -> "skipped"
-      value when value in [2, :processing] -> "processing"
-      value when value in [3, :retrying] -> "retrying"
-      value when value in [4, :error] -> "error"
-      value when value in [5, :completed] -> "completed"
-      _ -> "unknown"
+    to_atom(value)
+    |> Atom.to_string()
+  end
+
+  defp to_atom(value) do
+    case state_map_lookup(value) do
+      nil -> :unknown
+      value -> value
     end
   end
 
@@ -58,4 +91,26 @@ defmodule StepFlow.Jobs.Status do
 
   def get_last_status(%Status{} = status), do: status
   def get_last_status(_status), do: nil
+
+  @doc """
+  Returns action linked to status
+  """
+  def get_action(status) do
+    case status.state do
+      :queued -> "create"
+      :ready_to_init -> "init_process"
+      :ready_to_start -> "start_process"
+      :update -> "update_process"
+      :completed -> "delete"
+      _ -> "none"
+    end
+  end
+
+  @doc """
+  Returns action linked to status as parameter
+  """
+  def get_action_parameter(status) do
+    action = get_action(status)
+    [%{"id" => "action", "type" => "string", "value" => action}]
+  end
 end

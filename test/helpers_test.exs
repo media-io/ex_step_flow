@@ -4,9 +4,11 @@ defmodule StepFlow.HelpersTest do
 
   require Logger
   alias StepFlow.Amqp.Helpers
+  alias StepFlow.Jobs
   alias StepFlow.Jobs.Status
   alias StepFlow.Progressions
   alias StepFlow.Repo
+  alias StepFlow.Updates
   alias StepFlow.WorkflowDefinitions.WorkflowDefinition
   alias StepFlow.Workflows
 
@@ -61,6 +63,18 @@ defmodule StepFlow.HelpersTest do
     AMQP.Queue.bind(channel, "job_file_system", "job_submit", routing_key: "job_file_system")
 
     clean_queue(channel, "job_file_system")
+
+    AMQP.Queue.declare(channel, "job_worker_manager", durable: false)
+
+    AMQP.Queue.bind(channel, "job_worker_manager", "job_submit", routing_key: "job_worker_manager")
+
+    clean_queue(channel, "job_worker_manager")
+
+    AMQP.Queue.declare(channel, "direct_messaging_job_live", durable: false)
+
+    AMQP.Queue.bind(channel, "direct_messaging_job_live", "direct_message")
+
+    clean_queue(channel, "direct_messaging_job_live")
 
     clean_queue(channel, "job_queue_not_found")
 
@@ -278,6 +292,17 @@ defmodule StepFlow.HelpersTest do
     result
   end
 
+  def create_update(workflow, step_id, update) do
+    workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
+
+    job =
+      workflow_jobs
+      |> Enum.filter(fn job -> job.step_id == step_id end)
+      |> List.first()
+
+    Updates.update_parameters(job, update)
+  end
+
   def change_job_status(workflow, step_id, status) do
     workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
 
@@ -301,5 +326,22 @@ defmodule StepFlow.HelpersTest do
       |> List.first()
 
     step.jobs
+  end
+
+  def get_job_last_status(job_id) do
+    Repo.preload(Jobs.get_job(job_id), [:status]).status
+    |> Status.get_last_status()
+  end
+
+  def get_parameter_value_list(workflow, step_id) do
+    StepFlow.Jobs.list_jobs(%{
+      "step_id" => step_id,
+      "workflow_id" => workflow.id |> Integer.to_string(),
+      "size" => 50
+    })
+    |> Map.get(:data)
+    |> List.first()
+    |> Map.get(:parameters)
+    |> Enum.map(fn x -> x["value"] end)
   end
 end

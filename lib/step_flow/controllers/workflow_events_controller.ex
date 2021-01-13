@@ -11,6 +11,7 @@ defmodule StepFlow.WorkflowEventsController do
     Notifications.Notification,
     Step.Helpers,
     Step.Launch,
+    Updates,
     Workflows
   }
 
@@ -21,54 +22,16 @@ defmodule StepFlow.WorkflowEventsController do
 
     case params do
       %{"event" => "abort"} ->
-        if has_right(workflow, user, "abort") do
-          workflow.steps
-          |> skip_remaining_steps(workflow)
+        abort(conn, workflow, user)
 
-          topic = "update_workflow_" <> Integer.to_string(workflow.id)
-          StepFlow.Notification.send(topic, %{workflow_id: workflow.id})
-
-          conn
-          |> put_status(:ok)
-          |> json(%{status: "ok"})
-        else
-          conn
-          |> put_status(:forbidden)
-          |> json(%{status: "error", message: "Forbidden to abort this workflow"})
-        end
+      %{"event" => "update", "job_id" => job_id, "parameters" => parameters} ->
+        update(conn, workflow, user, job_id, parameters)
 
       %{"event" => "retry", "job_id" => job_id} ->
-        if has_right(workflow, user, "retry") do
-          Logger.warn("retry job #{job_id}")
-
-          job = Jobs.get_job_with_status!(job_id)
-
-          last_status = Status.get_last_status(job.status)
-
-          internal_handle(conn, workflow, job, job.name, last_status.state)
-        else
-          conn
-          |> put_status(:forbidden)
-          |> json(%{status: "error", message: "Forbidden to retry this workflow"})
-        end
+        retry(conn, workflow, user, job_id)
 
       %{"event" => "delete"} ->
-        if has_right(workflow, user, "delete") do
-          for job <- workflow.jobs do
-            Jobs.delete_job(job)
-          end
-
-          Workflows.delete_workflow(workflow)
-          StepFlow.Notification.send("delete_workflow", %{workflow_id: workflow.id})
-
-          conn
-          |> put_status(:ok)
-          |> json(%{status: "ok"})
-        else
-          conn
-          |> put_status(:forbidden)
-          |> json(%{status: "error", message: "Forbidden to delete this workflow"})
-        end
+        delete(conn, workflow, user)
 
       _ ->
         send_resp(conn, 422, "event is not supported")
@@ -78,7 +41,7 @@ defmodule StepFlow.WorkflowEventsController do
   def handle(conn, _) do
     conn
     |> put_status(:forbidden)
-    |> json(%{status: "error", message: "orbidden to handle workflow with this identifier"})
+    |> json(%{status: "error", message: "Forbidden to handle workflow with this identifier"})
   end
 
   defp internal_handle(conn, _workflow, job, "job_notification", :error) do
@@ -135,5 +98,84 @@ defmodule StepFlow.WorkflowEventsController do
     end
 
     skip_remaining_steps(steps, workflow)
+  end
+
+  defp update(conn, workflow, user, job_id, parameters) do
+    if has_right(workflow, user, "update") do
+      Logger.warn("update job #{job_id}")
+
+      job = Jobs.get_job_with_status!(job_id)
+
+      if job.is_updatable do
+        Updates.update_parameters(job, parameters)
+
+        conn
+        |> put_status(:ok)
+        |> json(%{status: "ok"})
+      else
+        Logger.error("Job #{job_id} cannot be updated !")
+
+        conn
+        |> put_status(:error)
+        |> json(%{status: "error", message: "Forbidden to update this job"})
+      end
+    else
+      conn
+      |> put_status(:forbidden)
+      |> json(%{status: "error", message: "Forbidden to update this workflow"})
+    end
+  end
+
+  defp abort(conn, workflow, user) do
+    if has_right(workflow, user, "abort") do
+      workflow.steps
+      |> skip_remaining_steps(workflow)
+
+      topic = "update_workflow_" <> Integer.to_string(workflow.id)
+      StepFlow.Notification.send(topic, %{workflow_id: workflow.id})
+
+      conn
+      |> put_status(:ok)
+      |> json(%{status: "ok"})
+    else
+      conn
+      |> put_status(:forbidden)
+      |> json(%{status: "error", message: "Forbidden to abort this workflow"})
+    end
+  end
+
+  defp retry(conn, workflow, user, job_id) do
+    if has_right(workflow, user, "retry") do
+      Logger.warn("retry job #{job_id}")
+
+      job = Jobs.get_job_with_status!(job_id)
+
+      last_status = Status.get_last_status(job.status)
+
+      internal_handle(conn, workflow, job, job.name, last_status.state)
+    else
+      conn
+      |> put_status(:forbidden)
+      |> json(%{status: "error", message: "Forbidden to retry this workflow"})
+    end
+  end
+
+  defp delete(conn, workflow, user) do
+    if has_right(workflow, user, "delete") do
+      for job <- workflow.jobs do
+        Jobs.delete_job(job)
+      end
+
+      Workflows.delete_workflow(workflow)
+      StepFlow.Notification.send("delete_workflow", %{workflow_id: workflow.id})
+
+      conn
+      |> put_status(:ok)
+      |> json(%{status: "ok"})
+    else
+      conn
+      |> put_status(:forbidden)
+      |> json(%{status: "error", message: "Forbidden to delete this workflow"})
+    end
   end
 end

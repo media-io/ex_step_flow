@@ -67,5 +67,29 @@ defmodule StepFlow.Migration.All do
       20_201_127_120_000,
       StepFlow.Migration.AddSchemaVersionForWorkflow
     )
+
+    Ecto.Migrator.up(
+      StepFlow.Repo,
+      20_201_201_163_300,
+      StepFlow.Migration.AddLiveParameter
+    )
+
+    Ecto.Migrator.up(
+      StepFlow.Repo,
+      20_201_214_223_900,
+      StepFlow.Migration.AddUpdatableParameter
+    )
+
+    Ecto.Migrator.up(
+      StepFlow.Repo,
+      20_201_215_142_100,
+      StepFlow.Migration.CreateUpdates
+    )
+
+    Ecto.Migrator.up(
+      StepFlow.Repo,
+      20_210_112_145_300,
+      StepFlow.Migration.CreateLiveWorkerTable
+    )
   end
 end

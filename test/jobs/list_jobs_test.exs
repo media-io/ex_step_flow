@@ -1,9 +1,8 @@
-defmodule StepFlow.Amqp.ProgressionConsumerTest do
+defmodule StepFlow.Amqp.ListJobsTest do
   use ExUnit.Case
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox
-  alias StepFlow.Amqp.CommonEmitter
   alias StepFlow.Jobs
   alias StepFlow.Workflows
 
@@ -12,8 +11,6 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
-    # Setting the shared mode
-    Sandbox.mode(StepFlow.Repo, {:shared, self()})
     {conn, _channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
@@ -32,38 +29,35 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
     rights: [
       %{
         action: "create",
-        groups: ["adminitstrator"]
+        groups: ["administrator"]
       }
     ]
   }
 
-  test "consume well formed message" do
+  test "list jobs with direct message queue" do
     {_, workflow} = Workflows.create_workflow(@workflow)
 
     {_, job} =
       Jobs.create_job(%{
         name: "job_test",
         step_id: 0,
-        workflow_id: workflow.id
+        workflow_id: workflow.id,
+        parameters: [
+          %{
+            id: "direct_messaging_queue_name",
+            type: "string",
+            value: "job_live"
+          }
+        ]
       })
 
-    {_, datetime, _} = DateTime.from_iso8601("2020-01-31T09:48:53Z")
+    job_query =
+      StepFlow.Jobs.list_jobs(%{
+        "direct_messaging_queue_name" => "direct_messaging_job_live"
+      })
+      |> Map.get(:data)
+      |> List.first()
 
-    result =
-      CommonEmitter.publish_json(
-        "job_progression",
-        0,
-        %{
-          job_id: job.id,
-          datetime: datetime,
-          docker_container_id: "unknown",
-          progression: 50
-        },
-        "job_response"
-      )
-
-    :timer.sleep(1000)
-
-    assert result == :ok
+    assert job_query.id == job.id
   end
 end

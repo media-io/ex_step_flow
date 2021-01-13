@@ -24,7 +24,13 @@ defmodule StepFlow.Amqp.Supervisor do
       worker(StepFlow.Amqp.CompletedConsumer, []),
       worker(StepFlow.Amqp.ErrorConsumer, []),
       worker(StepFlow.Amqp.ProgressionConsumer, []),
-      worker(StepFlow.Amqp.WorkerDiscoveryConsumer, [])
+      worker(StepFlow.Amqp.WorkerDiscoveryConsumer, []),
+      worker(StepFlow.Amqp.WorkerCreatedConsumer, []),
+      worker(StepFlow.Amqp.WorkerInitializedConsumer, []),
+      worker(StepFlow.Amqp.WorkerStartedConsumer, []),
+      worker(StepFlow.Amqp.WorkerStatusConsumer, []),
+      worker(StepFlow.Amqp.WorkerTerminatedConsumer, []),
+      worker(StepFlow.Amqp.WorkerUpdatedConsumer, [])
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

@@ -53,7 +53,7 @@ defmodule StepFlow.RunWorkflows.SourcePathsTemplateTest do
       rights: [
         %{
           action: "create",
-          groups: ["adminitstrator"]
+          groups: ["administrator"]
         }
       ]
     }

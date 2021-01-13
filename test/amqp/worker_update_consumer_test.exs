@@ -1,4 +1,4 @@
-defmodule StepFlow.Amqp.ProgressionConsumerTest do
+defmodule StepFlow.Amqp.WorkerUpdatedConsumerTest do
   use ExUnit.Case
   use Plug.Test
 
@@ -32,12 +32,12 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
     rights: [
       %{
         action: "create",
-        groups: ["adminitstrator"]
+        groups: ["administrator"]
       }
     ]
   }
 
-  test "consume well formed message" do
+  test "consume well formed message with existing job" do
     {_, workflow} = Workflows.create_workflow(@workflow)
 
     {_, job} =
@@ -47,17 +47,12 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
         workflow_id: workflow.id
       })
 
-    {_, datetime, _} = DateTime.from_iso8601("2020-01-31T09:48:53Z")
-
     result =
       CommonEmitter.publish_json(
-        "job_progression",
+        "worker_updated",
         0,
         %{
-          job_id: job.id,
-          datetime: datetime,
-          docker_container_id: "unknown",
-          progression: 50
+          job_id: job.id
         },
         "job_response"
       )
@@ -65,5 +60,7 @@ defmodule StepFlow.Amqp.ProgressionConsumerTest do
     :timer.sleep(1000)
 
     assert result == :ok
+
+    assert StepFlow.HelpersTest.get_job_last_status(job.id).state == :processing
   end
 end
