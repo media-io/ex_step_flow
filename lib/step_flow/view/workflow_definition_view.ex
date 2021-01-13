@@ -27,6 +27,7 @@ defmodule StepFlow.WorkflowDefinitionView do
       identifier: workflow_definition.identifier,
       label: workflow_definition.label,
       icon: workflow_definition.icon,
+      is_live: workflow_definition.is_live,
       version_major: workflow_definition.version_major,
       version_minor: workflow_definition.version_minor,
       version_micro: workflow_definition.version_micro,
