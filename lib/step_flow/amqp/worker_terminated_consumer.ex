@@ -21,7 +21,7 @@ defmodule StepFlow.Amqp.WorkerTerminatedConsumer do
         tag,
         _redelivered,
         %{
-          "job_id" => _job_id
+          "job_id" => job_id
         } = _payload
       ) do
     Workflows.notification_from_job(job_id)
