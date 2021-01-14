@@ -29,8 +29,8 @@ defmodule StepFlow.WorkflowViewTest do
   }
 
   test "render a Workflow" do
-    {:ok, workflow} = StepFlow.Workflows.create_workflow(@workflow)
-    workflow = StepFlow.Repo.preload(workflow, [:artifacts, :jobs])
+    {:ok, %{rights: [right]} = workflow} = StepFlow.Workflows.create_workflow(@workflow)
+    workflow = StepFlow.Repo.preload(workflow, [:artifacts, :jobs, :rights])
 
     assert render(StepFlow.WorkflowView, "show.json", %{workflow: workflow}) == %{
              data: %{
@@ -46,14 +46,22 @@ defmodule StepFlow.WorkflowViewTest do
                version_micro: 4,
                reference: "some id",
                parameters: [],
-               steps: []
+               steps: [],
+               rights: [
+                 %{
+                   action: "create",
+                   groups: ["administrator"],
+                   id: right.id,
+                   inserted_at: right.inserted_at
+                 }
+               ]
              }
            }
   end
 
   test "render many Workflows" do
-    {:ok, workflow} = StepFlow.Workflows.create_workflow(@workflow)
-    workflow = StepFlow.Repo.preload(workflow, [:artifacts, :jobs])
+    {:ok, %{rights: [right]} = workflow} = StepFlow.Workflows.create_workflow(@workflow)
+    workflow = StepFlow.Repo.preload(workflow, [:artifacts, :jobs, :rights])
 
     assert render(StepFlow.WorkflowView, "index.json", %{workflows: %{data: [workflow], total: 1}}) ==
              %{
@@ -71,7 +79,15 @@ defmodule StepFlow.WorkflowViewTest do
                    version_micro: 4,
                    reference: "some id",
                    parameters: [],
-                   steps: []
+                   steps: [],
+                   rights: [
+                     %{
+                       action: "create",
+                       groups: ["administrator"],
+                       id: right.id,
+                       inserted_at: right.inserted_at
+                     }
+                   ]
                  }
                ],
                total: 1
