@@ -5,7 +5,10 @@ defmodule StepFlow.Amqp.WorkerStatusConsumer do
 
   require Logger
   alias StepFlow.Amqp.WorkerStatusConsumer
+<<<<<<< HEAD
   alias StepFlow.Workflows
+=======
+>>>>>>> upstream/develop
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "worker_status",
@@ -21,8 +24,8 @@ defmodule StepFlow.Amqp.WorkerStatusConsumer do
         tag,
         _redelivered,
         %{
-          "job_id" => job_id
-        } = payload
+          "job_id" => _job_id
+        } = _payload
       ) do
     Basic.ack(channel, tag)
   end

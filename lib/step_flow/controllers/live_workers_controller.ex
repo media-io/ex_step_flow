@@ -2,7 +2,6 @@ defmodule StepFlow.LiveWorkersController do
   use StepFlow, :controller
 
   alias StepFlow.LiveWorkers
-  alias StepFlow.LiveWorkers.LiveWorker
 
   action_fallback(StepFlow.FallbackController)
 

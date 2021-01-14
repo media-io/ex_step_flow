@@ -25,7 +25,7 @@ defmodule StepFlow.Amqp.WorkerInitializedConsumer do
         _redelivered,
         %{
           "job_id" => job_id
-        } = payload
+        } = _payload
       ) do
     Status.set_job_status(job_id, "ready_to_start")
     Workflows.notification_from_job(job_id)

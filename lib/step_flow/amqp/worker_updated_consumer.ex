@@ -23,7 +23,7 @@ defmodule StepFlow.Amqp.WorkerUpdatedConsumer do
         _redelivered,
         %{
           "job_id" => job_id
-        } = payload
+        } = _payload
       ) do
     Status.set_job_status(job_id, "processing")
     Workflows.notification_from_job(job_id)

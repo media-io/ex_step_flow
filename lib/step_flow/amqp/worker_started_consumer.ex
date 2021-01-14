@@ -6,9 +6,12 @@ defmodule StepFlow.Amqp.WorkerStartedConsumer do
   require Logger
   alias StepFlow.Amqp.WorkerStartedConsumer
   alias StepFlow.Jobs.Status
+<<<<<<< HEAD
   alias StepFlow.Step.Live
   alias StepFlow.Workflows
   alias StepFlow.Workflows.StepManager
+=======
+>>>>>>> upstream/develop
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "worker_started",
@@ -25,7 +28,7 @@ defmodule StepFlow.Amqp.WorkerStartedConsumer do
         _redelivered,
         %{
           "job_id" => job_id
-        } = payload
+        } = _payload
       ) do
     Status.set_job_status(job_id, "processing")
     Workflows.notification_from_job(job_id)

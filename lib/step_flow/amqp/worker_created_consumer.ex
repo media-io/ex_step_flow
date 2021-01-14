@@ -26,7 +26,7 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumer do
         _redelivered,
         %{
           "direct_messaging_queue_name" => direct_messaging_queue_name
-        } = payload
+        } = _payload
       ) do
     job =
       StepFlow.Jobs.list_jobs(%{

@@ -77,6 +77,13 @@ defmodule StepFlow.HelpersTest do
     clean_queue(channel, "direct_messaging_job_live")
 
     clean_queue(channel, "job_queue_not_found")
+    clean_queue(channel, "job_progression")
+    clean_queue(channel, "worker_created")
+    clean_queue(channel, "worker_initialized")
+    clean_queue(channel, "worker_started")
+    clean_queue(channel, "worker_status")
+    clean_queue(channel, "worker_terminated")
+    clean_queue(channel, "worker_updated")
 
     {connection, channel}
   end
