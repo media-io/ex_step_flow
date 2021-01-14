@@ -4,6 +4,7 @@ defmodule StepFlow.Amqp.CompletedConsumer do
   """
 
   require Logger
+
   alias StepFlow.{
     Amqp.CompletedConsumer,
     Jobs,
@@ -98,19 +99,53 @@ defmodule StepFlow.Amqp.CompletedConsumer do
   defp live_worker_update(job_id, payload) do
     live_worker = LiveWorkers.get_by(%{"job_id" => job_id})
 
+    instance_id =
+      StepFlow.Map.get_by_key_or_atom(payload, :parameters)
+      |> Enum.filter(fn param ->
+        StepFlow.Map.get_by_key_or_atom(param, :id) == "instance_id"
+      end)
+      |> List.first()
+      |> StepFlow.Map.get_by_key_or_atom(:value)
+
+    host_ip =
+      StepFlow.Map.get_by_key_or_atom(payload, :parameters)
+      |> Enum.filter(fn param ->
+        StepFlow.Map.get_by_key_or_atom(param, :id) == "host_ip"
+      end)
+      |> List.first()
+      |> StepFlow.Map.get_by_key_or_atom(:value)
+
+    ports =
+      StepFlow.Map.get_by_key_or_atom(payload, :parameters)
+      |> Enum.filter(fn param ->
+        StepFlow.Map.get_by_key_or_atom(param, :id) == "ports"
+      end)
+      |> List.first()
+      |> StepFlow.Map.get_by_key_or_atom(:value)
+
     case live_worker do
       nil ->
+        direct_messaging_queue_name =
+          StepFlow.Map.get_by_key_or_atom(payload, :parameters)
+          |> Enum.filter(fn param ->
+            StepFlow.Map.get_by_key_or_atom(param, :id) == "direct_messaging_queue_name"
+          end)
+          |> List.first()
+          |> StepFlow.Map.get_by_key_or_atom(:value)
+
         LiveWorkers.create_live_worker(%{
           job_id: job_id,
-          direct_messaging_queue_name: payload.direct_messaging_queue_name,
-          ips: [payload.host_ip],
-          ports: payload.ports
+          instance_id: instance_id,
+          direct_messaging_queue_name: direct_messaging_queue_name,
+          ips: [host_ip],
+          ports: ports
         })
 
       _ ->
         LiveWorkers.update_live_worker(live_worker, %{
-          "ips" => [payload.host_ip],
-          "ports" => payload.ports
+          "instance_id" => instance_id,
+          "ips" => [host_ip],
+          "ports" => ports
         })
     end
   end
