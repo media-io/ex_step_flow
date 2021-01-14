@@ -6,6 +6,7 @@ defmodule StepFlow.Amqp.WorkerUpdatedConsumer do
   require Logger
   alias StepFlow.Amqp.WorkerUpdatedConsumer
   alias StepFlow.Jobs.Status
+  alias StepFlow.Workflows
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "worker_updated",
@@ -25,6 +26,7 @@ defmodule StepFlow.Amqp.WorkerUpdatedConsumer do
         } = payload
       ) do
     Status.set_job_status(job_id, "processing")
+    Workflows.notification_from_job(job_id)
     Basic.ack(channel, tag)
   end
 

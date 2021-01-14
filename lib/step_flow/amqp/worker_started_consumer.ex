@@ -7,6 +7,8 @@ defmodule StepFlow.Amqp.WorkerStartedConsumer do
   alias StepFlow.Amqp.WorkerStartedConsumer
   alias StepFlow.Jobs.Status
   alias StepFlow.Step.Live
+  alias StepFlow.Workflows
+  alias StepFlow.Workflows.StepManager
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "worker_started",
@@ -26,6 +28,8 @@ defmodule StepFlow.Amqp.WorkerStartedConsumer do
         } = payload
       ) do
     Status.set_job_status(job_id, "processing")
+    Workflows.notification_from_job(job_id)
+    StepManager.check_step_status(%{job_id: job_id})
     Basic.ack(channel, tag)
   end
 
