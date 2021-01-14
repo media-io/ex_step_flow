@@ -114,12 +114,10 @@ defmodule StepFlow.Step.Live do
 
     live_worker = LiveWorkers.get_by(%{"job_id" => job.id})
     ips = live_worker.ips
-    port = Integer.to_string(live_worker.ports |> List.first())
+    port = live_worker.ports |> List.last()
     created = live_worker.creation_date
 
     if created != nil && ips != [] do
-      # Add job changeset
-
       ip = ips |> List.first()
 
       params =
@@ -128,22 +126,18 @@ defmodule StepFlow.Step.Live do
           case StepFlow.Map.get_by_key_or_atom(param, :id) do
             "source_paths" ->
               value = ["srt://#{ip}:#{port}"]
-
-              filtered_map = StepFlow.Map.replace_by_string(param, "value", value)
-
-              filtered_map
+              StepFlow.Map.replace_by_string(param, "value", value)
 
             "source_path" ->
               value = "srt://#{ip}:#{port}"
-
-              filtered_map = StepFlow.Map.replace_by_string(param, "value", value)
-
-              filtered_map
+              StepFlow.Map.replace_by_string(param, "value", value)
 
             _ ->
               param
           end
         end)
+
+      Jobs.update_job(job, %{parameters: params})
 
       {:ok, StepFlow.Map.replace_by_atom(message, :parameters, params)}
     else

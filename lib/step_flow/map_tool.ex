@@ -77,8 +77,7 @@ defmodule StepFlow.Map do
     |> Map.put(string, value)
   end
 
-  def replace_by_String(_dict, _string, _value) do
+  def replace_by_string(_dict, _string, _value) do
     raise "Got unsupported 2nd argument type, expected String."
   end
-
 end
