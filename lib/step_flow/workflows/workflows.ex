@@ -49,27 +49,6 @@ defmodule StepFlow.Workflows do
       end
 
     query =
-      case Map.get(params, "mode") do
-        nil ->
-          from(workflow in query)
-
-        ["live", "file"] ->
-          from(workflow in query)
-
-        ["live"] ->
-          from(
-            workflow in query,
-            where: workflow.is_live == true
-          )
-
-        ["file"] ->
-          from(
-            workflow in query,
-            where: workflow.is_live == false
-          )
-      end
-
-    query =
       from(workflow in subquery(query))
       |> filter_query(params, :video_id)
       |> filter_query(params, :identifier)
@@ -77,10 +56,10 @@ defmodule StepFlow.Workflows do
       |> filter_query(params, :version_minor)
       |> filter_query(params, :version_micro)
       |> filter_query(params, :is_live)
+      |> filter_status(params)
+      |> filter_mode(params)
       |> date_before_filter_query(params, :before_date)
       |> date_after_filter_query(params, :after_date)
-
-    query = filter_status(query, params)
 
     query =
       case StepFlow.Map.get_by_key_or_atom(params, :ids) do
@@ -147,6 +126,28 @@ defmodule StepFlow.Workflows do
       end
     else
       nil
+    end
+  end
+
+  defp filter_mode(query, params) do
+    case Map.get(params, "mode") do
+      nil ->
+        from(workflow in query)
+
+      ["live", "file"] ->
+        from(workflow in query)
+
+      ["live"] ->
+        from(
+          workflow in query,
+          where: workflow.is_live == true
+        )
+
+      ["file"] ->
+        from(
+          workflow in query,
+          where: workflow.is_live == false
+        )
     end
   end
 

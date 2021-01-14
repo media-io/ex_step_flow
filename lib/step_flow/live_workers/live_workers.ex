@@ -28,47 +28,11 @@ defmodule StepFlow.LiveWorkers do
 
     offset = page * size
 
-    query = from(live_worker in LiveWorker)
-
     query =
-      case Map.get(params, "initializing") do
-        nil ->
-          from(worker in query)
-
-        _ ->
-          from(
-            worker in query,
-            where: (fragment("? = array[]::character varying[]", worker.ips) or
-              is_nil(worker.creation_date)) and
-              is_nil(worker.termination_date)
-          )
-      end
-
-    query =
-      case Map.get(params, "started") do
-        nil ->
-          from(worker in query)
-
-        _ ->
-          from(
-            worker in query,
-            where: fragment("array_length(?, 1)", worker.ips) > 0 and
-              not is_nil(worker.creation_date) and
-              is_nil(worker.termination_date)
-          )
-      end
-
-    query =
-      case Map.get(params, "terminated") do
-        nil ->
-          from(worker in query)
-
-        _ ->
-          from(
-            worker in query,
-            where: not is_nil(worker.termination_date)
-          )
-      end
+      from(live_worker in LiveWorker)
+      |> filter_initializing(params)
+      |> filter_started(params)
+      |> filter_terminated(params)
 
     total_query = from(item in query, select: count(item.id))
 
@@ -189,5 +153,50 @@ defmodule StepFlow.LiveWorkers do
   """
   def change_live_worker(%LiveWorker{} = live_worker) do
     LiveWorker.changeset(live_worker, %{})
+  end
+
+  defp filter_initializing(query, params) do
+    case Map.get(params, "initializing") do
+      nil ->
+        from(worker in query)
+
+      _ ->
+        from(
+          worker in query,
+          where:
+            (fragment("? = array[]::character varying[]", worker.ips) or
+               is_nil(worker.creation_date)) and
+              is_nil(worker.termination_date)
+        )
+    end
+  end
+
+  defp filter_started(query, params) do
+    case Map.get(params, "started") do
+      nil ->
+        from(worker in query)
+
+      _ ->
+        from(
+          worker in query,
+          where:
+            fragment("array_length(?, 1)", worker.ips) > 0 and
+              not is_nil(worker.creation_date) and
+              is_nil(worker.termination_date)
+        )
+    end
+  end
+
+  defp filter_terminated(query, params) do
+    case Map.get(params, "terminated") do
+      nil ->
+        from(worker in query)
+
+      _ ->
+        from(
+          worker in query,
+          where: not is_nil(worker.termination_date)
+        )
+    end
   end
 end
