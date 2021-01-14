@@ -6,12 +6,9 @@ defmodule StepFlow.Amqp.WorkerStartedConsumer do
   require Logger
   alias StepFlow.Amqp.WorkerStartedConsumer
   alias StepFlow.Jobs.Status
-<<<<<<< HEAD
   alias StepFlow.Step.Live
   alias StepFlow.Workflows
   alias StepFlow.Workflows.StepManager
-=======
->>>>>>> upstream/develop
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "worker_started",
