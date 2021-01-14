@@ -64,7 +64,7 @@ defmodule StepFlow.HelpersTest do
 
     clean_queue(channel, "job_file_system")
 
-    AMQP.Queue.declare(channel, "job_worker_manager", durable: false)
+    AMQP.Queue.declare(channel, "job_worker_manager", durable: true)
 
     AMQP.Queue.bind(channel, "job_worker_manager", "job_submit", routing_key: "job_worker_manager")
 
