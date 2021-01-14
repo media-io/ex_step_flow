@@ -1,6 +1,6 @@
 defmodule StepFlow.WorkflowView do
   use StepFlow, :view
-  alias StepFlow.{ArtifactView, JobView, WorkflowView}
+  alias StepFlow.{ArtifactView, JobView, RightView, WorkflowView}
 
   def render("index.json", %{workflows: %{data: workflows, total: total}}) do
     %{
@@ -41,9 +41,17 @@ defmodule StepFlow.WorkflowView do
         result
       end
 
-    if is_list(workflow.jobs) do
-      jobs = render_many(workflow.jobs, JobView, "job.json")
-      Map.put(result, :jobs, jobs)
+    result =
+      if is_list(workflow.jobs) do
+        jobs = render_many(workflow.jobs, JobView, "job.json")
+        Map.put(result, :jobs, jobs)
+      else
+        result
+      end
+
+    if is_list(workflow.rights) do
+      rights = render_many(workflow.rights, RightView, "right.json")
+      Map.put(result, :rights, rights)
     else
       result
     end
