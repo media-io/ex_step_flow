@@ -39,8 +39,7 @@ defmodule StepFlow.Step.Live do
 
     step_id = job.step_id
 
-    steps =
-      job.workflow.steps
+    steps = job.workflow.steps
 
     start_next_job_live(workflow_jobs, steps)
   end
