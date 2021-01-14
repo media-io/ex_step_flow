@@ -32,14 +32,16 @@ defmodule StepFlow.Workflows do
 
     offset = page * size
 
+    query = from(workflow in Workflow)
+
     query =
       case Map.get(params, "rights") do
         nil ->
-          from(workflow in Workflow)
+          query
 
         user_rights ->
           from(
-            workflow in Workflow,
+            workflow in query,
             join: rights in assoc(workflow, :rights),
             where: rights.action == "view",
             where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
@@ -49,20 +51,20 @@ defmodule StepFlow.Workflows do
     query =
       case Map.get(params, "mode") do
         nil ->
-          from(workflow in Workflow)
+          from(workflow in query)
 
         ["live", "file"] ->
-          from(workflow in Workflow)
+          from(workflow in query)
 
         ["live"] ->
           from(
-            workflow in Workflow,
+            workflow in query,
             where: workflow.is_live == true
           )
 
         ["file"] ->
           from(
-            workflow in Workflow,
+            workflow in query,
             where: workflow.is_live == false
           )
       end
