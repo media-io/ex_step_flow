@@ -43,6 +43,7 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumer do
 
       _ ->
         job_id = job.id
+        live_worker_update(job_id, direct_messaging_queue_name)
         Status.set_job_status(job_id, "ready_to_init")
         Workflows.notification_from_job(job_id)
         StepManager.check_step_status(%{job_id: job_id})
