@@ -28,6 +28,10 @@ defmodule StepFlow.Router do
     StepFlow.WorkflowController.create(conn, conn.params)
   end
 
+  get "/live_workers" do
+    StepFlow.LiveWorkersController.index(conn, conn.params)
+  end
+
   post "/workflows" do
     StepFlow.WorkflowController.create(conn, conn.params)
   end
