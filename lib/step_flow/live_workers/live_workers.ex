@@ -38,10 +38,9 @@ defmodule StepFlow.LiveWorkers do
         _ ->
           from(
             worker in query,
-            where: (not (fragment("array_length(?, 1)", worker.ips) > 0))
-          #   where: (fragment("array_length(?, 1)", worker.ips) == 0 or
-          #     is_nil(worker.creation_date)) and
-          #     is_nil(worker.termination_date)
+            where: (fragment("? = array[]::character varying[]", worker.ips) or
+              is_nil(worker.creation_date)) and
+              is_nil(worker.termination_date)
           )
       end
 
