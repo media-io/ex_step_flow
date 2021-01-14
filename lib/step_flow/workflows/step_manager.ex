@@ -8,6 +8,7 @@ defmodule StepFlow.Workflows.StepManager do
   use GenServer
   alias StepFlow.Repo
   alias StepFlow.Step
+  alias StepFlow.Step.Live
 
   def init(args) do
     {:ok, args}
@@ -33,8 +34,12 @@ defmodule StepFlow.Workflows.StepManager do
     topic = "update_workflow_" <> Integer.to_string(job.workflow_id)
     StepFlow.Notification.send(topic, %{workflow_id: job.workflow_id})
 
-    job = Repo.preload(job, :workflow)
-    Step.start_next(job.workflow)
+    if job.is_live do
+      Live.update_job_live(job_id)
+    else
+      job = Repo.preload(job, :workflow)
+      Step.start_next(job.workflow)
+    end
 
     {:noreply, state}
   end
