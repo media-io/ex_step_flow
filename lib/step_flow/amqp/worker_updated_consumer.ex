@@ -22,7 +22,7 @@ defmodule StepFlow.Amqp.WorkerUpdatedConsumer do
         _redelivered,
         %{
           "job_id" => job_id
-        } = payload
+        } = _payload
       ) do
     Status.set_job_status(job_id, "processing")
     Basic.ack(channel, tag)

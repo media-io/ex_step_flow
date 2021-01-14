@@ -66,6 +66,10 @@ defmodule StepFlow.Map do
     |> Map.put(String.to_atom(string), value)
   end
 
+  def replace_by_atom(_dict, _atom, _value) do
+    raise "Got unsupported key type instead of expected Atom or String."
+  end
+
   def replace_by_string(dict, string, value) when is_bitstring(string) do
     dict
     |> Map.delete(String.to_atom(string))
@@ -73,7 +77,8 @@ defmodule StepFlow.Map do
     |> Map.put(string, value)
   end
 
-  def replace_by_atom(_dict, _atom, _value) do
-    raise "Got unsupported key type instead of expected Atom or String."
+  def replace_by_String(_dict, _string, _value) do
+    raise "Got unsupported 2nd argument type, expected String."
   end
+
 end

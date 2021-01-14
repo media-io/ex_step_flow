@@ -5,8 +5,8 @@ defmodule StepFlow.Amqp.WorkerInitializedConsumer do
 
   require Logger
   alias StepFlow.Amqp.WorkerInitializedConsumer
-  alias StepFlow.Jobs.Status
   alias StepFlow.Step.Live
+  alias StepFlow.Jobs.Status
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "worker_initialized",
@@ -23,7 +23,7 @@ defmodule StepFlow.Amqp.WorkerInitializedConsumer do
         _redelivered,
         %{
           "job_id" => job_id
-        } = payload
+        } = _payload
       ) do
     Status.set_job_status(job_id, "ready_to_start")
     Live.update_job_live(job_id)

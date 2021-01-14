@@ -9,7 +9,6 @@ defmodule StepFlow.Step.Live do
   alias StepFlow.Repo
   alias StepFlow.Step.Launch
   alias StepFlow.Step.LaunchParams
-  alias StepFlow.Workflows
 
   def create_job_live([source_path | _source_paths], launch_params) do
     message = generate_message_live(source_path, launch_params)
@@ -37,14 +36,14 @@ defmodule StepFlow.Step.Live do
     job = Repo.preload(Jobs.get_job(job_id), [:status, :updates, :workflow])
     workflow_jobs = Repo.preload(job.workflow, [:jobs]).jobs
 
-    step_id = job.step_id
-
     steps =
       job.workflow.steps
       |> Enum.sort_by(fn step -> StepFlow.Map.get_by_key_or_atom(step, :id) end, :desc)
 
     start_next_job_live(workflow_jobs, steps)
   end
+
+  defp start_next_job_live([], _step_id), do: {:ok, "nothing to do"}
 
   defp start_next_job_live([job | jobs], steps) do
     job = Repo.preload(Jobs.get_job(job.id), [:status])
@@ -61,8 +60,6 @@ defmodule StepFlow.Step.Live do
 
     start_next_job_live(jobs, steps)
   end
-
-  defp start_next_job_live([], step_id), do: {:ok, "nothing to do"}
 
   defp update_live_worker(steps, job) do
     case generate_message(steps, job) do
