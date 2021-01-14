@@ -47,6 +47,27 @@ defmodule StepFlow.Workflows do
       end
 
     query =
+      case Map.get(params, "mode") do
+        nil ->
+          from(workflow in Workflow)
+
+        ["live", "file"] ->
+          from(workflow in Workflow)
+
+        ["live"] ->
+          from(
+            workflow in Workflow,
+            where: workflow.is_live == true
+          )
+
+        ["file"] ->
+          from(
+            workflow in Workflow,
+            where: workflow.is_live == false
+          )
+      end
+
+    query =
       from(workflow in subquery(query))
       |> filter_query(params, :video_id)
       |> filter_query(params, :identifier)

@@ -22,6 +22,7 @@ defmodule StepFlow.WorkflowView do
       schema_version: workflow.schema_version,
       id: workflow.id,
       identifier: workflow.identifier,
+      is_live: workflow.is_live,
       version_major: workflow.version_major,
       version_minor: workflow.version_minor,
       version_micro: workflow.version_micro,
