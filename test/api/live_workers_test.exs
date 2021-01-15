@@ -56,6 +56,8 @@ defmodule StepFlow.Api.LiveWorkersTest do
         ]
       })
 
+    {:ok, now_date_time} = DateTime.now("Etc/UTC")
+
     {:ok, job} =
       Jobs.create_job(%{
         name: "my_live_step",
@@ -86,7 +88,7 @@ defmodule StepFlow.Api.LiveWorkersTest do
         instance_id: "9876543210",
         direct_messaging_queue_name: "my_direct_messaging_queue_name",
         job_id: job.id,
-        creation_date: DateTime.now!("Etc/UTC")
+        creation_date: now_date_time
       })
 
     {:ok, _live_worker} =
@@ -99,8 +101,8 @@ defmodule StepFlow.Api.LiveWorkersTest do
         instance_id: "444444444",
         direct_messaging_queue_name: "my_direct_messaging_queue_name",
         job_id: job.id,
-        creation_date: DateTime.now!("Etc/UTC") |> DateTime.add(-3600, :second),
-        termination_date: DateTime.now!("Etc/UTC")
+        creation_date: now_date_time |> DateTime.add(-3600, :second),
+        termination_date: now_date_time
       })
 
     {:ok, _live_worker} =
@@ -108,7 +110,7 @@ defmodule StepFlow.Api.LiveWorkersTest do
         instance_id: "666666666",
         direct_messaging_queue_name: "my_direct_messaging_queue_name",
         job_id: job.id,
-        creation_date: DateTime.now!("Etc/UTC") |> DateTime.add(-3600, :second)
+        creation_date: now_date_time |> DateTime.add(-3600, :second)
       })
 
     {:ok, _live_worker} =

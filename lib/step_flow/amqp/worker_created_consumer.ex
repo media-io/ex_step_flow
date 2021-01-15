@@ -64,12 +64,12 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumer do
         LiveWorkers.create_live_worker(%{
           job_id: job_id,
           direct_messaging_queue_name: direct_messaging_queue_name,
-          creation_date: DateTime.now!("Etc/UTC")
+          creation_date: DateTime.now("Etc/UTC")
         })
 
       _ ->
         LiveWorkers.update_live_worker(live_worker, %{
-          "creation_date" => DateTime.now!("Etc/UTC")
+          "creation_date" => DateTime.now("Etc/UTC")
         })
     end
   end
