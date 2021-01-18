@@ -3,6 +3,7 @@ defmodule StepFlow.RunWorkflows.StatusStepTest do
   use Plug.Test
 
   alias Ecto.Adapters.SQL.Sandbox
+  alias StepFlow.Repo
   alias StepFlow.Step
 
   doctest StepFlow
@@ -72,6 +73,15 @@ defmodule StepFlow.RunWorkflows.StatusStepTest do
       assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).queued == 1
 
       StepFlow.HelpersTest.check(workflow.id, 1, 1)
+      StepFlow.HelpersTest.change_job_status(workflow, 1, :retrying)
+
+      :timer.sleep(1000)
+
+      {:ok, "still_processing"} = Step.start_next(workflow)
+
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).queued == 1
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 1).processing == 0
+
       StepFlow.HelpersTest.create_progression(workflow, 1)
 
       {:ok, "still_processing"} = Step.start_next(workflow)
