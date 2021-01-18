@@ -373,7 +373,7 @@ defmodule StepFlow.Workflows do
           count
 
         {:retrying, []} ->
-          count
+          count + 1
 
         {:retrying, _} ->
           last_progression = job.progressions |> Progression.get_last_progression()
