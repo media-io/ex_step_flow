@@ -52,7 +52,7 @@ defmodule StepFlow.Amqp.WorkerStatusConsumerTest do
         %{
           job_id: job.id
         },
-        "job_response"
+        "worker_response"
       )
 
     :timer.sleep(1000)

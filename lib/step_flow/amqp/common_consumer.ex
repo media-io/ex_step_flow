@@ -8,6 +8,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
   defmodule MyModule do
     use StepFlow.Amqp.CommonConsumer, %{
       queue: "name_of_the_rabbit_mq_queue",
+      exchange "name_of_exchange",
       consumer: &MyModule.consume/4
     }
 
@@ -123,6 +124,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
 
         {:ok, channel} = AMQP.Channel.open(connection)
         queue = unquote(opts).queue
+        exchange_name = unquote(opts).exchange
 
         if Map.has_key?(unquote(opts), :prefetch_count) do
           :ok = AMQP.Basic.qos(channel, prefetch_count: unquote(opts).prefetch_count)
@@ -135,6 +137,12 @@ defmodule StepFlow.Amqp.CommonConsumer do
           AMQP.Exchange.topic(channel, "job_response",
             durable: true,
             arguments: [{"alternate-exchange", :longstr, "job_response_not_found"}]
+          )
+
+        exchange =
+          AMQP.Exchange.topic(channel, "worker_response",
+            durable: true,
+            arguments: [{"alternate-exchange", :longstr, "worker_response_not_found"}]
           )
 
         AMQP.Queue.declare(channel, "direct_message_not_found", durable: true)
@@ -167,7 +175,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
         )
 
         Logger.warn("#{__MODULE__}: bind #{queue}")
-        AMQP.Queue.bind(channel, queue, "job_response", routing_key: queue)
+        AMQP.Queue.bind(channel, queue, exchange_name, routing_key: queue)
 
         Logger.warn("#{__MODULE__}: connected to queue #{queue}")
 

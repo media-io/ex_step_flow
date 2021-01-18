@@ -149,7 +149,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           direct_messaging_queue_name: direct_messaging_queue_name_step_0
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
@@ -164,7 +164,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           direct_messaging_queue_name: direct_messaging_queue_name_step_1
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
@@ -181,7 +181,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
@@ -196,7 +196,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job2_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
@@ -213,7 +213,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
@@ -228,7 +228,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job2_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
@@ -245,7 +245,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
@@ -259,7 +259,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job2_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok

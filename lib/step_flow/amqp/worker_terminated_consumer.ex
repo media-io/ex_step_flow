@@ -9,6 +9,7 @@ defmodule StepFlow.Amqp.WorkerTerminatedConsumer do
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "worker_terminated",
+    exchange: "worker_response",
     prefetch_count: 1,
     consumer: &WorkerTerminatedConsumer.consume/4
   }

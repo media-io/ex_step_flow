@@ -61,7 +61,7 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumerTest do
         %{
           direct_messaging_queue_name: "direct_messaging_job_live"
         },
-        "job_response"
+        "worker_response"
       )
 
     :timer.sleep(1000)

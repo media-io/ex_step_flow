@@ -13,6 +13,7 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumer do
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "worker_created",
+    exchange: "worker_response",
     prefetch_count: 1,
     consumer: &WorkerCreatedConsumer.consume/4
   }
