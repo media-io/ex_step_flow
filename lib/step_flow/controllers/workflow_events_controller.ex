@@ -103,12 +103,12 @@ defmodule StepFlow.WorkflowEventsController do
     skip_remaining_steps(steps, workflow)
   end
 
-  defp stop_all_jobs([], _workflow), do: nil
+  defp stop_all_jobs([]), do: nil
 
-  defp stop_all_jobs([job | jobs], workflow) do
+  defp stop_all_jobs([job | jobs]) do
     StepFlow.Step.Live.stop_job(job)
 
-    stop_all_jobs(jobs, workflow)
+    stop_all_jobs(jobs)
   end
 
   defp update(conn, workflow, user, job_id, parameters) do
