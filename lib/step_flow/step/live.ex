@@ -65,6 +65,12 @@ defmodule StepFlow.Step.Live do
     start_next_job_live(jobs, steps)
   end
 
+  def stop_job(job) do
+    Jobs.get_message(job)
+    |> Map.put(:type, "stop_process")
+    |> publish_message(job.step_id)
+  end
+
   defp update_live_worker(steps, job) do
     case generate_message(steps, job) do
       {:ok, message} ->
