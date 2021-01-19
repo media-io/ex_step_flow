@@ -22,6 +22,12 @@ defmodule StepFlow.Step.Live do
 
     message = filter_message(message)
 
+    params =
+      StepFlow.Map.get_by_key_or_atom(message, :parameters, []) ++
+        [%{id: "action", type: "string", value: "create"}]
+
+    message = StepFlow.Map.replace_by_atom(message, :parameters, params)
+
     case CommonEmitter.publish_json(
            "job_worker_manager",
            LaunchParams.get_step_id(launch_params),
@@ -92,7 +98,13 @@ defmodule StepFlow.Step.Live do
       if requirements != nil do
         replace_ip_address(message, job.id, requirements)
       else
-        {:ok, message}
+        live_worker = LiveWorkers.get_by(%{"job_id" => job.id})
+
+        if live_worker.creation_date == nil || live_worker.instance_id == "" do
+          {:error, message}
+        else
+          {:ok, message}
+        end
       end
 
     action =
@@ -163,10 +175,14 @@ defmodule StepFlow.Step.Live do
            "direct_messaging_" <> get_direct_messaging_queue(message),
            step_id,
            message,
-           "direct_message"
+           "direct_messaging",
+           headers: [instance_id: get_instance_id(message)]
          ) do
-      :ok -> {:ok, "started"}
-      _ -> {:error, "unable to publish message"}
+      :ok ->
+        {:ok, "started"}
+
+      _ ->
+        {:error, "unable to publish message"}
     end
   end
 
@@ -177,6 +193,11 @@ defmodule StepFlow.Step.Live do
     end)
     |> List.first()
     |> StepFlow.Map.get_by_key_or_atom(:value)
+  end
+
+  defp get_instance_id(message) do
+    job_id = StepFlow.Map.get_by_key_or_atom(message, :job_id)
+    LiveWorkers.get_by(%{"job_id" => job_id}).instance_id |> String.slice(0..11)
   end
 
   defp get_requirements(steps, step_id) do
