@@ -44,11 +44,14 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumer do
 
       _ ->
         job_id = job.id
-        live_worker_update(job_id, direct_messaging_queue_name)
-        Status.set_job_status(job_id, "ready_to_init")
-        Workflows.notification_from_job(job_id)
-        StepManager.check_step_status(%{job_id: job_id})
-        Basic.ack(channel, tag)
+
+        case live_worker_update(job_id, direct_messaging_queue_name) do
+          :ok ->
+            Basic.ack(channel, tag)
+
+          :error ->
+            Basic.reject(channel, tag, requeue: true)
+        end
     end
   end
 
@@ -62,16 +65,17 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumer do
 
     case live_worker do
       nil ->
-        LiveWorkers.create_live_worker(%{
-          job_id: job_id,
-          direct_messaging_queue_name: direct_messaging_queue_name,
-          creation_date: DateTime.now("Etc/UTC")
-        })
+        :error
 
       _ ->
         LiveWorkers.update_live_worker(live_worker, %{
-          "creation_date" => DateTime.now("Etc/UTC")
+          "creation_date" => NaiveDateTime.utc_now()
         })
+
+        Status.set_job_status(job_id, "ready_to_init")
+        Workflows.notification_from_job(job_id)
+        StepManager.check_step_status(%{job_id: job_id})
+        :ok
     end
   end
 end
