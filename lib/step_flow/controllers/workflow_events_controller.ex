@@ -9,6 +9,7 @@ defmodule StepFlow.WorkflowEventsController do
     Jobs,
     Jobs.Status,
     Notifications.Notification,
+    Repo,
     Step.Helpers,
     Step.Launch,
     Updates,
@@ -172,7 +173,7 @@ defmodule StepFlow.WorkflowEventsController do
   end
 
   defp stop(conn, workflow, user) do
-    if has_right(workflow, user, "stop") do
+    if has_right(workflow, user, "abort") do
       workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
 
       workflow_jobs
