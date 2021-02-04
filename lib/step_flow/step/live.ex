@@ -57,7 +57,7 @@ defmodule StepFlow.Step.Live do
         :ready_to_init -> update_live_worker(steps, job)
         :ready_to_start -> update_live_worker(steps, job)
         :update -> update_live_worker(steps, job)
-        :completed -> delete_live_worker(steps, job)
+        :stopped -> delete_live_worker(steps, job)
         _ -> {:ok, "nothing to do"}
       end
     end
