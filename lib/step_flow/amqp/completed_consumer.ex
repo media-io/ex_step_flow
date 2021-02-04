@@ -39,25 +39,28 @@ defmodule StepFlow.Amqp.CompletedConsumer do
         Basic.reject(channel, tag, requeue: false)
 
       job ->
-        workflow =
-          job
-          |> Map.get(:workflow_id)
-          |> Workflows.get_workflow!()
-
-        set_generated_destination_paths(payload, job)
-        set_output_parameters(payload, workflow)
-
-        Status.set_job_status(job_id, status)
-        Workflows.notification_from_job(job_id)
-        StepManager.check_step_status(%{job_id: job_id})
-
         if job.is_live do
-          live_worker_update(job_id, payload)
+          case live_worker_update(job_id, payload) do
+            :ok ->
+              StepManager.check_step_status(%{job_id: job_id})
+              Basic.ack(channel, tag)
 
-          Live.update_job_live(job_id)
+            :error ->
+              Basic.reject(channel, tag, requeue: true)
+          end
+        else
+          workflow =
+            job
+            |> Map.get(:workflow_id)
+            |> Workflows.get_workflow!()
+
+          set_generated_destination_paths(payload, job)
+          set_output_parameters(payload, workflow)
+          Status.set_job_status(job_id, status)
+          Workflows.notification_from_job(job_id)
+          StepManager.check_step_status(%{job_id: job_id})
+          Basic.ack(channel, tag)
         end
-
-        Basic.ack(channel, tag)
     end
   end
 
@@ -100,6 +103,24 @@ defmodule StepFlow.Amqp.CompletedConsumer do
   defp live_worker_update(job_id, payload) do
     live_worker = LiveWorkers.get_by(%{"job_id" => job_id})
 
+    case live_worker do
+      nil ->
+        live_worker_creation(job_id, payload)
+
+      _ ->
+        case live_worker.termination_date do
+          nil ->
+            :error
+
+          _ ->
+            Status.set_job_status(job_id, "completed")
+            Workflows.notification_from_job(job_id)
+            :ok
+        end
+    end
+  end
+
+  defp live_worker_creation(job_id, payload) do
     instance_id =
       StepFlow.Map.get_by_key_or_atom(payload, :parameters)
       |> Enum.filter(fn param ->
@@ -124,30 +145,22 @@ defmodule StepFlow.Amqp.CompletedConsumer do
       |> List.first()
       |> StepFlow.Map.get_by_key_or_atom(:value)
 
-    case live_worker do
-      nil ->
-        direct_messaging_queue_name =
-          StepFlow.Map.get_by_key_or_atom(payload, :parameters)
-          |> Enum.filter(fn param ->
-            StepFlow.Map.get_by_key_or_atom(param, :id) == "direct_messaging_queue_name"
-          end)
-          |> List.first()
-          |> StepFlow.Map.get_by_key_or_atom(:value)
+    direct_messaging_queue_name =
+      StepFlow.Map.get_by_key_or_atom(payload, :parameters)
+      |> Enum.filter(fn param ->
+        StepFlow.Map.get_by_key_or_atom(param, :id) == "direct_messaging_queue_name"
+      end)
+      |> List.first()
+      |> StepFlow.Map.get_by_key_or_atom(:value)
 
-        LiveWorkers.create_live_worker(%{
-          job_id: job_id,
-          instance_id: instance_id,
-          direct_messaging_queue_name: direct_messaging_queue_name,
-          ips: [host_ip],
-          ports: ports
-        })
+    LiveWorkers.create_live_worker(%{
+      job_id: job_id,
+      instance_id: instance_id,
+      direct_messaging_queue_name: direct_messaging_queue_name,
+      ips: [host_ip],
+      ports: ports
+    })
 
-      _ ->
-        LiveWorkers.update_live_worker(live_worker, %{
-          "instance_id" => instance_id,
-          "ips" => [host_ip],
-          "ports" => ports
-        })
-    end
+    :ok
   end
 end
