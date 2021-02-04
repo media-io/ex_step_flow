@@ -5,6 +5,7 @@ defmodule StepFlow.Amqp.WorkerTerminatedConsumerTest do
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Amqp.CommonEmitter
   alias StepFlow.Jobs
+  alias StepFlow.LiveWorkers
   alias StepFlow.Workflows
 
   doctest StepFlow
@@ -47,6 +48,11 @@ defmodule StepFlow.Amqp.WorkerTerminatedConsumerTest do
         workflow_id: workflow.id
       })
 
+    LiveWorkers.create_live_worker(%{
+      job_id: job.id,
+      direct_messaging_queue_name: "direct_messaging_job_live"
+    })
+
     result =
       CommonEmitter.publish_json(
         "worker_terminated",
@@ -59,6 +65,9 @@ defmodule StepFlow.Amqp.WorkerTerminatedConsumerTest do
 
     :timer.sleep(1000)
 
+    live_worker = LiveWorkers.get_by(%{"job_id" => job.id})
+
     assert result == :ok
+    assert live_worker.termination_date != nil
   end
 end
