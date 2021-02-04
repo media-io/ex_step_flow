@@ -12,6 +12,7 @@ defmodule StepFlow.WorkflowEventsController do
     Repo,
     Step.Helpers,
     Step.Launch,
+    Step.Live,
     Updates,
     Workflows
   }
@@ -107,7 +108,7 @@ defmodule StepFlow.WorkflowEventsController do
   defp stop_all_jobs([]), do: nil
 
   defp stop_all_jobs([job | jobs]) do
-    StepFlow.Step.Live.stop_job(job)
+    Live.stop_job(job)
 
     stop_all_jobs(jobs)
   end
