@@ -85,6 +85,12 @@ defmodule StepFlow.Step.Live do
     {_, message} = generate_message(steps, job)
     message = filter_message(message)
 
+    params =
+      StepFlow.Map.get_by_key_or_atom(message, :parameters, []) ++
+        [%{id: "action", type: "string", value: "delete"}]
+
+    message = StepFlow.Map.replace_by_atom(message, :parameters, params)
+
     case CommonEmitter.publish_json(
            "job_worker_manager",
            job.step_id,
