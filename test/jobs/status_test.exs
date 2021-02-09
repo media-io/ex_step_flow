@@ -56,9 +56,24 @@ defmodule StepFlow.Jobs.StatusTest do
     assert "stopped" == Status.state_enum_label(9)
   end
 
+  test "get initializing state enum label" do
+    assert "initializing" == Status.state_enum_label(:initializing)
+    assert "initializing" == Status.state_enum_label(10)
+  end
+
+  test "get starting state enum label" do
+    assert "starting" == Status.state_enum_label(:starting)
+    assert "starting" == Status.state_enum_label(11)
+  end
+
+  test "get updating state enum label" do
+    assert "updating" == Status.state_enum_label(:updating)
+    assert "updating" == Status.state_enum_label(12)
+  end
+
   test "get unknown state enum label" do
     assert "unknown" == Status.state_enum_label(:other)
-    assert "unknown" == Status.state_enum_label(10)
+    assert "unknown" == Status.state_enum_label(13)
     assert "unknown" == Status.state_enum_label(nil)
   end
 

@@ -35,9 +35,11 @@ defmodule StepFlow.Amqp.WorkerStartedConsumer do
     {:ok, _} = Status.set_job_status(job_id, "processing")
     query = from(job in Job, select: job.id)
     stream = Repo.stream(query)
-    Repo.transaction(fn() ->
+
+    Repo.transaction(fn ->
       Enum.to_list(stream)
     end)
+
     :timer.sleep(5000)
     Workflows.notification_from_job(job_id)
     StepManager.check_step_status(%{job_id: job_id})

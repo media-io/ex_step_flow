@@ -186,7 +186,7 @@ defmodule StepFlow.LiveWorkflowTest do
 
     assert result == :ok
 
-    :timer.sleep(1000)
+    :timer.sleep(6000)
     assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :ready_to_start
 
     result =
@@ -201,8 +201,8 @@ defmodule StepFlow.LiveWorkflowTest do
 
     assert result == :ok
 
-    :timer.sleep(1000)
-    assert StepFlow.HelpersTest.get_job_last_status(job2_id).state == :ready_to_start
+    :timer.sleep(6000)
+    assert StepFlow.HelpersTest.get_job_last_status(job2_id).state == :starting
 
     # Start
 
@@ -218,7 +218,7 @@ defmodule StepFlow.LiveWorkflowTest do
 
     assert result == :ok
 
-    :timer.sleep(1000)
+    :timer.sleep(6000)
     assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :processing
 
     result =
@@ -233,7 +233,7 @@ defmodule StepFlow.LiveWorkflowTest do
 
     assert result == :ok
 
-    :timer.sleep(1000)
+    :timer.sleep(6000)
     assert StepFlow.HelpersTest.get_job_last_status(job2_id).state == :processing
 
     # Delete

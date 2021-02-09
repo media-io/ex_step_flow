@@ -57,7 +57,7 @@ defmodule StepFlow.Amqp.WorkerStartedConsumerTest do
         "worker_response"
       )
 
-    :timer.sleep(1000)
+    :timer.sleep(6000)
 
     assert result == :ok
 

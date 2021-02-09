@@ -33,8 +33,10 @@ defmodule StepFlow.Amqp.Connection do
   end
 
   def handle_cast({:publish, exchange, queue, message, options}, conn) do
-    IO.inspect(options)
-    Logger.info("#{__MODULE__}: publish message on exchange #{exchange} and queue #{queue}: #{message}")
+    Logger.info(
+      "#{__MODULE__}: publish message on exchange #{exchange} and queue #{queue}: #{message}"
+    )
+
     AMQP.Basic.publish(conn.channel, exchange, queue, message, options)
     {:noreply, conn}
   end

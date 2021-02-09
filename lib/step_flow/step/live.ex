@@ -105,8 +105,6 @@ defmodule StepFlow.Step.Live do
   def generate_message(steps, job) do
     message = Jobs.get_message(job)
 
-    IO.inspect(message)
-
     requirements = get_requirements(steps, job.step_id)
 
     {result, message} =
@@ -135,7 +133,10 @@ defmodule StepFlow.Step.Live do
     workflow = Repo.preload(job.workflow, [:jobs])
 
     job_req =
-      Jobs.list_jobs(%{workflow_id: workflow.id, step_id: requirements |> Enum.sort() |> List.first()})
+      Jobs.list_jobs(%{
+        workflow_id: workflow.id,
+        step_id: requirements |> Enum.sort() |> List.first()
+      })
       |> Map.get(:data)
       |> List.first()
 

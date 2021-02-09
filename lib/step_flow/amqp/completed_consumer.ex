@@ -110,10 +110,10 @@ defmodule StepFlow.Amqp.CompletedConsumer do
       _ ->
         case live_worker.termination_date do
           nil ->
-#            :error
+            #            :error
             Status.set_job_status(job_id, "completed")
             Workflows.notification_from_job(job_id)
-            :ok            
+            :ok
 
           _ ->
             Status.set_job_status(job_id, "completed")
