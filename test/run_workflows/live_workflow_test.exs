@@ -149,7 +149,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           direct_messaging_queue_name: direct_messaging_queue_name_step_0
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
@@ -164,7 +164,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           direct_messaging_queue_name: direct_messaging_queue_name_step_1
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
@@ -181,12 +181,12 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
 
-    :timer.sleep(1000)
+    :timer.sleep(6000)
     assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :ready_to_start
 
     result =
@@ -196,13 +196,13 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job2_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
 
-    :timer.sleep(1000)
-    assert StepFlow.HelpersTest.get_job_last_status(job2_id).state == :ready_to_start
+    :timer.sleep(6000)
+    assert StepFlow.HelpersTest.get_job_last_status(job2_id).state == :starting
 
     # Start
 
@@ -213,12 +213,12 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
 
-    :timer.sleep(1000)
+    :timer.sleep(6000)
     assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :processing
 
     result =
@@ -228,12 +228,12 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job2_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
 
-    :timer.sleep(1000)
+    :timer.sleep(6000)
     assert StepFlow.HelpersTest.get_job_last_status(job2_id).state == :processing
 
     # Delete
@@ -245,7 +245,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
@@ -259,7 +259,7 @@ defmodule StepFlow.LiveWorkflowTest do
         %{
           job_id: job2_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok

@@ -9,8 +9,10 @@ defmodule StepFlow.WorkflowEventsController do
     Jobs,
     Jobs.Status,
     Notifications.Notification,
+    Repo,
     Step.Helpers,
     Step.Launch,
+    Step.Live,
     Updates,
     Workflows
   }
@@ -29,6 +31,9 @@ defmodule StepFlow.WorkflowEventsController do
 
       %{"event" => "retry", "job_id" => job_id} ->
         retry(conn, workflow, user, job_id)
+
+      %{"event" => "stop"} ->
+        stop(conn, workflow, user)
 
       %{"event" => "delete"} ->
         delete(conn, workflow, user)
@@ -100,6 +105,14 @@ defmodule StepFlow.WorkflowEventsController do
     skip_remaining_steps(steps, workflow)
   end
 
+  defp stop_all_jobs([]), do: nil
+
+  defp stop_all_jobs([job | jobs]) do
+    Live.stop_job(job)
+
+    stop_all_jobs(jobs)
+  end
+
   defp update(conn, workflow, user, job_id, parameters) do
     if has_right(workflow, user, "update") do
       Logger.warn("update job #{job_id}")
@@ -157,6 +170,26 @@ defmodule StepFlow.WorkflowEventsController do
       conn
       |> put_status(:forbidden)
       |> json(%{status: "error", message: "Forbidden to retry this workflow"})
+    end
+  end
+
+  defp stop(conn, workflow, user) do
+    if has_right(workflow, user, "abort") do
+      workflow_jobs = Repo.preload(workflow, [:jobs]).jobs
+
+      workflow_jobs
+      |> stop_all_jobs()
+
+      topic = "update_workflow_" <> Integer.to_string(workflow.id)
+      StepFlow.Notification.send(topic, %{workflow_id: workflow.id})
+
+      conn
+      |> put_status(:ok)
+      |> json(%{status: "ok"})
+    else
+      conn
+      |> put_status(:forbidden)
+      |> json(%{status: "error", message: "Forbidden to stop this workflow"})
     end
   end
 

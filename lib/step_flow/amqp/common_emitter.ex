@@ -29,15 +29,13 @@ defmodule StepFlow.Amqp.CommonEmitter do
   ```
 
   """
-  def publish_json(queue, priority, message, exchange \\ "job_submit") do
+  def publish_json(queue, priority, message, exchange \\ "job_submit", options \\ []) do
     message =
       message
       |> check_message_parameters
       |> Jason.encode!()
 
-    options = [
-      priority: min(priority, 100)
-    ]
+    options = options ++ [priority: min(priority, 100)]
 
     publish(queue, message, options, exchange)
   end

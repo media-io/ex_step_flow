@@ -8,6 +8,7 @@ defmodule StepFlow.Amqp.WorkerDiscoveryConsumer do
 
   use StepFlow.Amqp.CommonConsumer, %{
     queue: "worker_discovery",
+    exchange: "worker_response",
     prefetch_count: 1,
     consumer: &WorkerDiscoveryConsumer.consume/4
   }

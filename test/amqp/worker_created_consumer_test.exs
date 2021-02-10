@@ -5,6 +5,7 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumerTest do
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Amqp.CommonEmitter
   alias StepFlow.Jobs
+  alias StepFlow.LiveWorkers
   alias StepFlow.Workflows
 
   doctest StepFlow
@@ -54,6 +55,11 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumerTest do
         ]
       })
 
+    LiveWorkers.create_live_worker(%{
+      job_id: job.id,
+      direct_messaging_queue_name: "direct_messaging_job_live"
+    })
+
     result =
       CommonEmitter.publish_json(
         "worker_created",
@@ -61,7 +67,7 @@ defmodule StepFlow.Amqp.WorkerCreatedConsumerTest do
         %{
           direct_messaging_queue_name: "direct_messaging_job_live"
         },
-        "job_response"
+        "worker_response"
       )
 
     :timer.sleep(1000)

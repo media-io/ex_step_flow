@@ -12,6 +12,8 @@ defmodule StepFlow.Workflows do
   alias StepFlow.Repo
   alias StepFlow.Workflows.Workflow
 
+  require Logger
+
   @doc """
   Returns the list of workflows.
 
@@ -287,7 +289,7 @@ defmodule StepFlow.Workflows do
     errors = count_status(jobs, :error)
     skipped = count_status(jobs, :skipped)
     processing = count_status(jobs, :processing)
-    queued = count_queued_status(jobs)
+    queued = count_status(jobs, :queued)
 
     job_status = %{
       total: length(jobs),
@@ -339,6 +341,7 @@ defmodule StepFlow.Workflows do
       |> Enum.filter(fn s -> s.state == :completed end)
       |> length
 
+    # A job with at least one status.state at :completed is considered :completed
     count =
       if count_completed >= 1 do
         if status == :completed do
@@ -347,18 +350,26 @@ defmodule StepFlow.Workflows do
           count
         end
       else
-        if status == :processing do
-          count_processing(job, count)
-        else
-          Enum.filter(job.status, fn s -> s.state == status end)
-          |> length
-          |> case do
-            0 ->
-              count
+        case status do
+          :processing ->
+            count_processing(job, count)
 
-            _ ->
-              count + 1
-          end
+          :error ->
+            count_error(job, count)
+
+          :skipped ->
+            count_skipped(job, count)
+
+          :queued ->
+            count_queued(job, count)
+
+          :completed ->
+            count
+
+          _ ->
+            raise RuntimeError
+            Logger.error("unereachable")
+            count
         end
       end
 
@@ -385,33 +396,50 @@ defmodule StepFlow.Workflows do
     end
   end
 
-  defp count_queued_status(jobs, count \\ 0)
-  defp count_queued_status([], count), do: count
+  defp count_error(job, count) do
+    if Enum.map(job.status, fn s -> s.state end)
+       |> List.last()
+       |> Kernel.==(:error) do
+      count + 1
+    else
+      count
+    end
+  end
 
-  defp count_queued_status([job | jobs], count) do
-    count =
-      case {Enum.map(job.status, fn s -> s.state end) |> List.last(), job.progressions} do
-        {nil, []} ->
+  defp count_skipped(job, count) do
+    if Enum.map(job.status, fn s -> s.state end)
+       |> List.last()
+       |> Kernel.==(:skipped) do
+      count + 1
+    else
+      count
+    end
+  end
+
+  defp count_queued(job, count) do
+    case {Enum.map(job.status, fn s -> s.state end) |> List.last(), job.progressions} do
+      {nil, []} ->
+        count + 1
+
+      {nil, _} ->
+        count
+
+      {:retrying, []} ->
+        count + 1
+
+      {:retrying, _} ->
+        last_progression = job.progressions |> Progression.get_last_progression()
+        last_status = job.status |> Status.get_last_status()
+
+        if last_progression.updated_at > last_status.updated_at do
+          count
+        else
           count + 1
+        end
 
-        {nil, _} ->
-          count
-
-        {:retrying, _} ->
-          last_progression = job.progressions |> Progression.get_last_progression()
-          last_status = job.status |> Status.get_last_status()
-
-          if last_progression.updated_at > last_status.updated_at do
-            count
-          else
-            count + 1
-          end
-
-        {_state, _} ->
-          count
-      end
-
-    count_queued_status(jobs, count)
+      {_state, _} ->
+        count
+    end
   end
 
   @doc """

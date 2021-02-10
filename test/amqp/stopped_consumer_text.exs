@@ -1,4 +1,4 @@
-defmodule StepFlow.Amqp.WorkerStatusConsumerTest do
+defmodule StepFlow.Amqp.StoppedConsumerTest do
   use ExUnit.Case
   use Plug.Test
 
@@ -12,6 +12,8 @@ defmodule StepFlow.Amqp.WorkerStatusConsumerTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
+    # Setting the shared mode
+    Sandbox.mode(StepFlow.Repo, {:shared, self()})
     {conn, _channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
@@ -30,12 +32,12 @@ defmodule StepFlow.Amqp.WorkerStatusConsumerTest do
     rights: [
       %{
         action: "create",
-        groups: ["administrator"]
+        groups: ["adminitstrator"]
       }
     ]
   }
 
-  test "consume well formed message with existing job" do
+  test "consume well formed message" do
     {_, workflow} = Workflows.create_workflow(@workflow)
 
     {_, job} =
@@ -47,16 +49,18 @@ defmodule StepFlow.Amqp.WorkerStatusConsumerTest do
 
     result =
       CommonEmitter.publish_json(
-        "worker_status",
+        "job_stopped",
         0,
         %{
-          job_id: job.id
+          job_id: job.id,
+          status: "stopped"
         },
-        "worker_response"
+        "job_response"
       )
 
     :timer.sleep(1000)
 
     assert result == :ok
+    assert StepFlow.HelpersTest.get_job_last_status(job.id) == :stopped
   end
 end

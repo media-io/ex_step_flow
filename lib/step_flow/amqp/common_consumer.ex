@@ -8,6 +8,7 @@ defmodule StepFlow.Amqp.CommonConsumer do
   defmodule MyModule do
     use StepFlow.Amqp.CommonConsumer, %{
       queue: "name_of_the_rabbit_mq_queue",
+      exchange "name_of_exchange",
       consumer: &MyModule.consume/4
     }
 
@@ -19,6 +20,8 @@ defmodule StepFlow.Amqp.CommonConsumer do
   ```
 
   """
+
+  alias StepFlow.Amqp.CommonConsumer
 
   @doc false
   defmacro __using__(opts) do
@@ -123,51 +126,16 @@ defmodule StepFlow.Amqp.CommonConsumer do
 
         {:ok, channel} = AMQP.Channel.open(connection)
         queue = unquote(opts).queue
+        exchange_name = unquote(opts).exchange
 
         if Map.has_key?(unquote(opts), :prefetch_count) do
           :ok = AMQP.Basic.qos(channel, prefetch_count: unquote(opts).prefetch_count)
         end
 
-        AMQP.Queue.declare(channel, "job_response_not_found", durable: true)
-        AMQP.Queue.declare(channel, queue <> "_timeout", durable: true)
-
-        exchange =
-          AMQP.Exchange.topic(channel, "job_response",
-            durable: true,
-            arguments: [{"alternate-exchange", :longstr, "job_response_not_found"}]
-          )
-
-        AMQP.Queue.declare(channel, "direct_message_not_found", durable: true)
-        AMQP.Queue.declare(channel, queue <> "_timeout", durable: true)
-
-        exchange =
-          AMQP.Exchange.declare(channel, "direct_message", :headers,
-            durable: true,
-            arguments: [{"alternate-exchange", :longstr, "direct_message_not_found"}]
-          )
-
-        exchange = AMQP.Exchange.fanout(channel, "job_response_delayed", durable: true)
-
-        {:ok, job_response_delayed_queue} =
-          AMQP.Queue.declare(channel, "job_response_delayed",
-            arguments: [
-              {"x-message-ttl", :short, 5000},
-              {"x-dead-letter-exchange", :longstr, ""}
-            ]
-          )
-
-        AMQP.Queue.bind(channel, "job_response_delayed", "job_response_delayed", routing_key: "*")
-
-        AMQP.Queue.declare(channel, queue,
-          durable: true,
-          arguments: [
-            {"x-dead-letter-exchange", :longstr, "job_response_delayed"},
-            {"x-dead-letter-routing-key", :longstr, queue}
-          ]
-        )
+        CommonConsumer.create_queues(channel, queue)
 
         Logger.warn("#{__MODULE__}: bind #{queue}")
-        AMQP.Queue.bind(channel, queue, "job_response", routing_key: queue)
+        AMQP.Queue.bind(channel, queue, exchange_name, routing_key: queue)
 
         Logger.warn("#{__MODULE__}: connected to queue #{queue}")
 
@@ -175,5 +143,51 @@ defmodule StepFlow.Amqp.CommonConsumer do
         {:ok, channel}
       end
     end
+  end
+
+  def create_queues(channel, queue) do
+    AMQP.Queue.declare(channel, "job_response_not_found", durable: true)
+    AMQP.Queue.declare(channel, queue <> "_timeout", durable: true)
+
+    exchange =
+      AMQP.Exchange.topic(channel, "job_response",
+        durable: true,
+        arguments: [{"alternate-exchange", :longstr, "job_response_not_found"}]
+      )
+
+    exchange =
+      AMQP.Exchange.topic(channel, "worker_response",
+        durable: true,
+        arguments: [{"alternate-exchange", :longstr, "worker_response_not_found"}]
+      )
+
+    AMQP.Queue.declare(channel, "direct_messaging_not_found", durable: true)
+    AMQP.Queue.declare(channel, queue <> "_timeout", durable: true)
+
+    exchange =
+      AMQP.Exchange.declare(channel, "direct_messaging", :headers,
+        durable: true,
+        arguments: [{"alternate-exchange", :longstr, "direct_messaging_not_found"}]
+      )
+
+    exchange = AMQP.Exchange.fanout(channel, "job_response_delayed", durable: true)
+
+    {:ok, job_response_delayed_queue} =
+      AMQP.Queue.declare(channel, "job_response_delayed",
+        arguments: [
+          {"x-message-ttl", :short, 5000},
+          {"x-dead-letter-exchange", :longstr, ""}
+        ]
+      )
+
+    AMQP.Queue.bind(channel, "job_response_delayed", "job_response_delayed", routing_key: "*")
+
+    AMQP.Queue.declare(channel, queue,
+      durable: true,
+      arguments: [
+        {"x-dead-letter-exchange", :longstr, "job_response_delayed"},
+        {"x-dead-letter-routing-key", :longstr, queue}
+      ]
+    )
   end
 end

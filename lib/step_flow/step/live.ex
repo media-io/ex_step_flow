@@ -22,6 +22,12 @@ defmodule StepFlow.Step.Live do
 
     message = filter_message(message)
 
+    params =
+      StepFlow.Map.get_by_key_or_atom(message, :parameters, []) ++
+        [%{id: "action", type: "string", value: "create"}]
+
+    message = StepFlow.Map.replace_by_atom(message, :parameters, params)
+
     case CommonEmitter.publish_json(
            "job_worker_manager",
            LaunchParams.get_step_id(launch_params),
@@ -36,9 +42,7 @@ defmodule StepFlow.Step.Live do
     job = Repo.preload(Jobs.get_job(job_id), [:status, :updates, :workflow])
     workflow_jobs = Repo.preload(job.workflow, [:jobs]).jobs
 
-    steps =
-      job.workflow.steps
-      |> Enum.sort_by(fn step -> StepFlow.Map.get_by_key_or_atom(step, :id) end, :desc)
+    steps = job.workflow.steps
 
     start_next_job_live(workflow_jobs, steps)
   end
@@ -50,10 +54,10 @@ defmodule StepFlow.Step.Live do
 
     if job.status != [] do
       case Status.get_last_status(job.status).state do
-        :ready_to_init -> update_live_worker(steps, job)
-        :ready_to_start -> update_live_worker(steps, job)
-        :update -> update_live_worker(steps, job)
-        :completed -> delete_live_worker(steps, job)
+        :ready_to_init -> update_live_worker(steps, job, "initializing")
+        :ready_to_start -> update_live_worker(steps, job, "starting")
+        :update -> update_live_worker(steps, job, "updating")
+        :stopped -> delete_live_worker(steps, job)
         _ -> {:ok, "nothing to do"}
       end
     end
@@ -61,9 +65,16 @@ defmodule StepFlow.Step.Live do
     start_next_job_live(jobs, steps)
   end
 
-  defp update_live_worker(steps, job) do
+  def stop_job(job) do
+    Jobs.get_message(job)
+    |> Map.put(:type, "stop_process")
+    |> publish_message(job.step_id)
+  end
+
+  defp update_live_worker(steps, job, status) do
     case generate_message(steps, job) do
       {:ok, message} ->
+        {:ok, _} = Status.set_job_status(job.id, status)
         publish_message(message, job.step_id)
 
       _ ->
@@ -74,6 +85,12 @@ defmodule StepFlow.Step.Live do
   defp delete_live_worker(steps, job) do
     {_, message} = generate_message(steps, job)
     message = filter_message(message)
+
+    params =
+      StepFlow.Map.get_by_key_or_atom(message, :parameters, []) ++
+        [%{id: "action", type: "string", value: "delete"}]
+
+    message = StepFlow.Map.replace_by_atom(message, :parameters, params)
 
     case CommonEmitter.publish_json(
            "job_worker_manager",
@@ -94,7 +111,13 @@ defmodule StepFlow.Step.Live do
       if requirements != nil do
         replace_ip_address(message, job.id, requirements)
       else
-        {:ok, message}
+        live_worker = LiveWorkers.get_by(%{"job_id" => job.id})
+
+        if live_worker.creation_date == nil || live_worker.instance_id == "" do
+          {:error, message}
+        else
+          {:ok, message}
+        end
       end
 
     action =
@@ -109,19 +132,20 @@ defmodule StepFlow.Step.Live do
     job = Repo.preload(Jobs.get_job(job_id), [:status, :updates, :workflow])
     workflow = Repo.preload(job.workflow, [:jobs])
 
-    job =
-      Jobs.list_jobs(%{workflow_id: workflow.id, step_id: requirements |> List.first()})
+    job_req =
+      Jobs.list_jobs(%{
+        workflow_id: workflow.id,
+        step_id: requirements |> Enum.sort() |> List.first()
+      })
       |> Map.get(:data)
       |> List.first()
 
-    live_worker = LiveWorkers.get_by(%{"job_id" => job.id})
+    live_worker = LiveWorkers.get_by(%{"job_id" => job_req.id})
     ips = live_worker.ips
-    port = Integer.to_string(live_worker.ports |> List.first())
+    port = live_worker.ports |> List.last()
     created = live_worker.creation_date
 
     if created != nil && ips != [] do
-      # Add job changeset
-
       ip = ips |> List.first()
 
       params =
@@ -130,22 +154,18 @@ defmodule StepFlow.Step.Live do
           case StepFlow.Map.get_by_key_or_atom(param, :id) do
             "source_paths" ->
               value = ["srt://#{ip}:#{port}"]
-
-              filtered_map = StepFlow.Map.replace_by_string(param, "value", value)
-
-              filtered_map
+              StepFlow.Map.replace_by_string(param, "value", value)
 
             "source_path" ->
               value = "srt://#{ip}:#{port}"
-
-              filtered_map = StepFlow.Map.replace_by_string(param, "value", value)
-
-              filtered_map
+              StepFlow.Map.replace_by_string(param, "value", value)
 
             _ ->
               param
           end
         end)
+
+      Jobs.update_job(job, %{parameters: params})
 
       {:ok, StepFlow.Map.replace_by_atom(message, :parameters, params)}
     else
@@ -171,10 +191,14 @@ defmodule StepFlow.Step.Live do
            "direct_messaging_" <> get_direct_messaging_queue(message),
            step_id,
            message,
-           "direct_message"
+           "direct_messaging",
+           headers: [{"instance_id", :longstr, get_instance_id(message)}]
          ) do
-      :ok -> {:ok, "started"}
-      _ -> {:error, "unable to publish message"}
+      :ok ->
+        {:ok, "started"}
+
+      _ ->
+        {:error, "unable to publish message"}
     end
   end
 
@@ -185,6 +209,11 @@ defmodule StepFlow.Step.Live do
     end)
     |> List.first()
     |> StepFlow.Map.get_by_key_or_atom(:value)
+  end
+
+  defp get_instance_id(message) do
+    job_id = StepFlow.Map.get_by_key_or_atom(message, :job_id)
+    LiveWorkers.get_by(%{"job_id" => job_id}).instance_id |> String.slice(0..11)
   end
 
   defp get_requirements(steps, step_id) do

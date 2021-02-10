@@ -52,7 +52,7 @@ defmodule StepFlow.RunWorkflows.JobQueueNotFoundToErrorTest do
       rights: [
         %{
           action: "create",
-          groups: ["adminitstrator"]
+          groups: ["administrator"]
         }
       ]
     }

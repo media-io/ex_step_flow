@@ -22,8 +22,7 @@ defmodule StepFlow.LiveTest do
     {conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
 
     on_exit(fn ->
-      StepFlow.HelpersTest.consume_messages(channel, "job_worker_manager", 1)
-      StepFlow.HelpersTest.consume_messages(channel, "direct_messaging_job_live", 2)
+      StepFlow.HelpersTest.consume_messages(channel, "job_worker_manager", 3)
       StepFlow.HelpersTest.close_amqp_connection(conn)
     end)
   end
@@ -117,7 +116,41 @@ defmodule StepFlow.LiveTest do
 
     job_id = job.id
 
-    # Created
+    result =
+      CommonEmitter.publish_json(
+        "job_completed",
+        0,
+        %{
+          job_id: job_id,
+          status: "completed",
+          parameters: [
+            %{
+              id: "direct_messaging_queue_name",
+              type: "string",
+              value: "direct_messaging_job_live"
+            },
+            %{
+              id: "host_ip",
+              type: "string",
+              value: "0.0.0.0"
+            },
+            %{
+              id: "ports",
+              type: "array_of_string",
+              value: ["1234", "4321"]
+            },
+            %{
+              id: "instance_id",
+              type: "string",
+              value: "abcd1234ef"
+            }
+          ]
+        },
+        "job_response"
+      )
+
+    :timer.sleep(1000)
+    assert result == :ok
 
     result =
       CommonEmitter.publish_json(
@@ -126,7 +159,7 @@ defmodule StepFlow.LiveTest do
         %{
           direct_messaging_queue_name: "direct_messaging_job_live"
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
@@ -143,13 +176,13 @@ defmodule StepFlow.LiveTest do
         %{
           job_id: job_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
 
-    :timer.sleep(1000)
-    assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :ready_to_start
+    :timer.sleep(6000)
+    assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :starting
 
     # Start
 
@@ -160,13 +193,32 @@ defmodule StepFlow.LiveTest do
         %{
           job_id: job_id
         },
-        "job_response"
+        "worker_response"
       )
 
     assert result == :ok
 
-    :timer.sleep(1000)
+    :timer.sleep(6000)
     assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :processing
+
+    # Stopped
+
+    result =
+      CommonEmitter.publish_json(
+        "job_stopped",
+        0,
+        %{
+          job_id: job_id,
+          status: "stopped"
+        },
+        "job_response"
+      )
+
+    :timer.sleep(1000)
+
+    assert result == :ok
+
+    assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :stopped
 
     # Delete
 
@@ -177,11 +229,28 @@ defmodule StepFlow.LiveTest do
         %{
           job_id: job_id
         },
-        "job_response"
+        "worker_response"
       )
+
+    :timer.sleep(1000)
 
     assert result == :ok
 
+    result =
+      CommonEmitter.publish_json(
+        "job_completed",
+        0,
+        %{
+          job_id: job_id,
+          status: "completed"
+        },
+        "job_response"
+      )
+
     :timer.sleep(1000)
+
+    assert result == :ok
+
+    assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :completed
   end
 end

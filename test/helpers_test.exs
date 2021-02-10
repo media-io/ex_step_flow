@@ -72,7 +72,7 @@ defmodule StepFlow.HelpersTest do
 
     AMQP.Queue.declare(channel, "direct_messaging_job_live", durable: false)
 
-    AMQP.Queue.bind(channel, "direct_messaging_job_live", "direct_message")
+    AMQP.Queue.bind(channel, "direct_messaging_job_live", "direct_messaging")
 
     clean_queue(channel, "direct_messaging_job_live")
 
