@@ -37,7 +37,7 @@ defmodule StepFlow.Jobs do
           query
 
         str_workflow_id ->
-          workflow_id = String.to_integer(str_workflow_id)
+          workflow_id = StepFlow.Integer.force(str_workflow_id)
           from(job in query, where: job.workflow_id == ^workflow_id)
       end
 

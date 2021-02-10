@@ -155,7 +155,7 @@ defmodule StepFlow.LiveWorkflowTest do
     assert result == :ok
 
     :timer.sleep(1000)
-    assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :ready_to_init
+    assert StepFlow.HelpersTest.get_job_last_status(job_id).state == :initialized
 
     result =
       CommonEmitter.publish_json(
@@ -170,7 +170,7 @@ defmodule StepFlow.LiveWorkflowTest do
     assert result == :ok
 
     :timer.sleep(1000)
-    assert StepFlow.HelpersTest.get_job_last_status(job2_id).state == :ready_to_init
+    assert StepFlow.HelpersTest.get_job_last_status(job2_id).state == :initialized
 
     # Init
 
