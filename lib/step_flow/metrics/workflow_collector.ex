@@ -3,11 +3,12 @@ defmodule StepFlow.Metrics.WorkflowCollector do
   Prometheus metrics collector for workflow duration
   """
   use Prometheus.Collector
+  alias StepFlow.Configuration
   alias StepFlow.Workflows
 
   def collect_mf(_registry, callback) do
-    scale = Application.get_env(StepFlow.Metrics, :scale, "day")
-    delta = Application.get_env(StepFlow.Metrics, :delta, -1)
+    scale = Configuration.get_var_value(StepFlow.Metrics, :scale, "day")
+    delta = Configuration.get_var_value(StepFlow.Metrics, :delta, -1)
     statistics = Workflows.get_statistics_per_identifier(scale, delta)
 
     callback.(
