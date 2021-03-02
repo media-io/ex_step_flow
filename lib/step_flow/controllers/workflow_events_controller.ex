@@ -7,7 +7,6 @@ defmodule StepFlow.WorkflowEventsController do
   alias StepFlow.{
     Amqp.CommonEmitter,
     Jobs,
-    Jobs.Status,
     Notifications.Notification,
     Step.Helpers,
     Step.Launch,
@@ -43,7 +42,7 @@ defmodule StepFlow.WorkflowEventsController do
 
           job = Jobs.get_job_with_status!(job_id)
 
-          last_status = Status.get_last_status(job.status)
+          last_status = Jobs.Status.get_last_status(job.status)
 
           internal_handle(conn, workflow, job, job.name, last_status.state)
         else
@@ -81,8 +80,9 @@ defmodule StepFlow.WorkflowEventsController do
     |> json(%{status: "error", message: "orbidden to handle workflow with this identifier"})
   end
 
-  defp internal_handle(conn, _workflow, job, "job_notification", :error) do
-    Status.set_job_status(job.id, :retrying)
+  defp internal_handle(conn, workflow, job, "job_notification", :error) do
+    {:ok, job_status} = Jobs.Status.set_job_status(job.id, :retrying)
+    {:ok, status} = Workflows.Status.define_workflow_status(workflow.id, :retrying, job_status)
 
     %{step: step, workflow: workflow} = Workflows.get_step_definition(job)
     dates = Helpers.get_dates()
@@ -99,7 +99,8 @@ defmodule StepFlow.WorkflowEventsController do
   end
 
   defp internal_handle(conn, workflow, job, _job_name, :error) do
-    Status.set_job_status(job.id, :retrying)
+    {:ok, job_status} = Jobs.Status.set_job_status(job.id, :retrying)
+    {:ok, status} = Workflows.Status.define_workflow_status(workflow.id, :retrying, job_status)
 
     params = %{
       job_id: job.id,

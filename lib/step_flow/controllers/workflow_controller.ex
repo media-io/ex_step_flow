@@ -35,6 +35,7 @@ defmodule StepFlow.WorkflowController do
   def create_workflow(conn, workflow_params) do
     case Workflows.create_workflow(workflow_params) do
       {:ok, %Workflow{} = workflow} ->
+        Workflows.Status.set_workflow_status(workflow.id, :queued)
         Step.start_next(workflow)
 
         StepFlow.Notification.send("new_workflow", %{workflow_id: workflow.id})

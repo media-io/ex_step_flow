@@ -267,15 +267,12 @@ defmodule StepFlow.HelpersTest do
       |> Enum.filter(fn job -> job.step_id == step_id end)
       |> List.first()
 
-    {result, _} =
-      Progressions.create_progression(%{
-        job_id: job.id,
-        datetime: NaiveDateTime.utc_now(),
-        docker_container_id: "unknown",
-        progression: progress
-      })
-
-    result
+    Progressions.create_progression(%{
+      job_id: job.id,
+      datetime: NaiveDateTime.utc_now(),
+      docker_container_id: "unknown",
+      progression: progress
+    })
   end
 
   def change_job_status(workflow, step_id, status) do

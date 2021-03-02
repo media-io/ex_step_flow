@@ -186,6 +186,7 @@ defmodule StepFlow.Step do
 
   defp get_final_status(workflow, true, [:completed_workflow]) do
     set_artifacts(workflow)
+    Workflows.Status.define_workflow_status(workflow.id, :completed)
     Logger.warn("#{__MODULE__}: workflow #{workflow.id} is completed")
     {:ok, "completed"}
   end
