@@ -11,6 +11,8 @@ defmodule StepFlow.ProgressionsTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
+    # Setting the shared mode
+    Sandbox.mode(StepFlow.Repo, {:shared, self()})
   end
 
   @workflow %{

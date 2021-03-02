@@ -7,7 +7,9 @@ defmodule StepFlow.WorkflowDefinitionsTest do
   doctest StepFlow.WorkflowDefinitions
 
   setup do
-    Sandbox.checkout(StepFlow.Repo)
+    :ok = Sandbox.checkout(StepFlow.Repo)
+    # Setting the shared mode
+    Sandbox.mode(StepFlow.Repo, {:shared, self()})
   end
 
   describe "workflow_definitions" do

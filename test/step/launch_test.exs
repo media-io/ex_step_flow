@@ -14,6 +14,8 @@ defmodule StepFlow.LaunchTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
+    # Setting the shared mode
+    Sandbox.mode(StepFlow.Repo, {:shared, self()})
   end
 
   describe "launch_test" do

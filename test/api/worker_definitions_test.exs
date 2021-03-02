@@ -12,6 +12,8 @@ defmodule StepFlow.Api.WorkerDefinitionsTest do
   setup do
     # Explicitly get a connection before each test
     :ok = Sandbox.checkout(StepFlow.Repo)
+    # Setting the shared mode
+    Sandbox.mode(StepFlow.Repo, {:shared, self()})
     for model <- [WorkerDefinition], do: StepFlow.Repo.delete_all(model)
     :ok
   end
