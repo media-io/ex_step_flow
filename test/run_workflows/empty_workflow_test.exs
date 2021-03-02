@@ -10,7 +10,9 @@ defmodule StepFlow.RunWorkflows.EmptyWorkflowTest do
 
   setup do
     # Explicitly get a connection before each test
-    Sandbox.checkout(StepFlow.Repo)
+    :ok = Sandbox.checkout(StepFlow.Repo)
+    # Setting the shared mode
+    Sandbox.mode(StepFlow.Repo, {:shared, self()})
   end
 
   describe "workflows" do

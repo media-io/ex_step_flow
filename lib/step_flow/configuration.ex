@@ -4,10 +4,14 @@ defmodule StepFlow.Configuration do
   def get_var_value(module, key, default \\ nil) do
     conf_module = Application.get_env(:step_flow, module)
 
-    case Keyword.get(conf_module, key) do
-      {:system, variable} -> System.get_env(variable)
-      nil -> default
-      value -> value
+    if conf_module != nil do
+      case Keyword.get(conf_module, key) do
+        {:system, variable} -> System.get_env(variable)
+        nil -> default
+        value -> value
+      end
+    else
+      default
     end
   end
 
