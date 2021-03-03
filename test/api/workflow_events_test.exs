@@ -4,7 +4,6 @@ defmodule StepFlow.Api.WorkflowEventsTest do
 
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Jobs
-  alias StepFlow.Jobs.Status
   alias StepFlow.Router
   alias StepFlow.Workflows
   doctest StepFlow
@@ -113,7 +112,8 @@ defmodule StepFlow.Api.WorkflowEventsTest do
 
       assert result == :ok
 
-      Status.set_job_status(job.id, :error)
+      {:ok, job_status} = Jobs.Status.set_job_status(job.id, :error)
+      Workflows.Status.set_workflow_status(workflow.id, :error, job_status)
 
       :timer.sleep(1000)
 
@@ -128,9 +128,11 @@ defmodule StepFlow.Api.WorkflowEventsTest do
       assert status == 200
 
       job = Jobs.get_job_with_status!(job.id)
-      last_status = Status.get_last_status(job.status)
+      last_job_status = Jobs.Status.get_last_status(job.status)
+      last_workflow_status = Workflows.Status.get_last_workflow_status(workflow.id)
 
-      assert last_status.state == :retrying
+      assert last_job_status.state == :retrying
+      assert last_workflow_status.state == :processing
     end
 
     test "POST /workflows/:id/events retry valid (on failed job) with unauthorized user" do
@@ -149,7 +151,8 @@ defmodule StepFlow.Api.WorkflowEventsTest do
 
       assert result == :ok
 
-      Status.set_job_status(job.id, :error)
+      {:ok, job_status} = Jobs.Status.set_job_status(job.id, :error)
+      Workflows.Status.set_workflow_status(workflow.id, :error, job_status)
 
       :timer.sleep(1000)
 
@@ -180,9 +183,10 @@ defmodule StepFlow.Api.WorkflowEventsTest do
 
       assert result == :ok
 
-      Status.set_job_status(job.id, :queued)
-      Status.set_job_status(job.id, :error)
-      Status.set_job_status(job.id, :processing)
+      Jobs.Status.set_job_status(job.id, :queued)
+      {:ok, job_status} = Jobs.Status.set_job_status(job.id, :error)
+      Workflows.Status.set_workflow_status(workflow.id, :error, job_status)
+      Jobs.Status.set_job_status(job.id, :processing)
 
       # Retry workflow job
       {status, _headers, body} =

@@ -157,6 +157,10 @@ defmodule StepFlow.Workflows.StatusTest do
 
       assert status.state == :processing
 
+      {:ok, progression} = StepFlow.HelpersTest.create_progression(workflow, 0, 50)
+
+      assert Status.define_workflow_status(workflow.id, :processing, progression) == nil
+
       {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 0, "error")
       {:ok, status} = Status.define_workflow_status(workflow.id, :error, job_status)
 
@@ -167,7 +171,7 @@ defmodule StepFlow.Workflows.StatusTest do
 
       assert status.state == :processing
 
-      {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 0, "completed")
+      {:ok, _} = StepFlow.HelpersTest.change_job_status(workflow, 0, "completed")
       {:ok, "started"} = Step.start_next(workflow)
 
       {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 1, "error")
@@ -190,8 +194,8 @@ defmodule StepFlow.Workflows.StatusTest do
 
       assert status.state == :processing
 
-      {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 1, "completed")
-      {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 2, "completed")
+      {:ok, _} = StepFlow.HelpersTest.change_job_status(workflow, 1, "completed")
+      {:ok, _} = StepFlow.HelpersTest.change_job_status(workflow, 2, "completed")
 
       assert status.state == :processing
 

@@ -5,6 +5,7 @@ defmodule StepFlow.Workflows.Status do
   import EctoEnum
 
   alias StepFlow.Jobs
+  alias StepFlow.Progressions.Progression
   alias StepFlow.Repo
   alias StepFlow.Workflows
   alias StepFlow.Workflows.Workflow
@@ -44,11 +45,11 @@ defmodule StepFlow.Workflows.Status do
 
   def define_workflow_status(workflow_id, state, payload \\ %{})
 
-  def define_workflow_status(workflow_id, :error, %{id: job_status_id}) do
+  def define_workflow_status(workflow_id, :error, %Jobs.Status{id: job_status_id}) do
     set_workflow_status(workflow_id, :error, job_status_id)
   end
 
-  def define_workflow_status(workflow_id, :retrying, %{id: job_status_id, job_id: job_id}) do
+  def define_workflow_status(workflow_id, :retrying, %Jobs.Status{id: job_status_id, job_id: job_id}) do
     jobs_status_in_error =
       get_last_jobs_status(workflow_id)
       |> Enum.filter(fn s -> s.state == :error and s.job_id != job_id end)
@@ -61,8 +62,9 @@ defmodule StepFlow.Workflows.Status do
     end
   end
 
-  def define_workflow_status(workflow_id, :processing, %{progression: 0}) do
+  def define_workflow_status(workflow_id, :processing, %Progression{progression: 0}) do
     last_status = get_last_workflow_status(workflow_id)
+
     if last_status.state == :queued do
       set_workflow_status(workflow_id, :processing)
     else
@@ -70,12 +72,16 @@ defmodule StepFlow.Workflows.Status do
     end
   end
 
-  def define_workflow_status(workflow_id, :queud, %{progression: 0}) do
-    last_status = get_last_workflow_status(workflow_id)
-    if last_status == nil do
-      set_workflow_status(workflow_id, :queued)
-    else
-      {:ok, last_status}
+  def define_workflow_status(workflow_id, state, _payload) when state in [:queued, :completed] do
+    case {get_last_workflow_status(workflow_id), state} do
+      {nil, :queued} ->
+        set_workflow_status(workflow_id, :queued)
+
+      {%{state: last_state}, :completed} when last_state == :processing ->
+        set_workflow_status(workflow_id, :completed)
+
+      {last_status, _} ->
+        {:ok, last_status}
     end
   end
 
