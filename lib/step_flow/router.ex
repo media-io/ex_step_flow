@@ -72,9 +72,7 @@ defmodule StepFlow.Router do
     StepFlow.JobController.index(conn, conn.params)
   end
 
-  if StepFlow.Configuration.metrics_enabled?() do
-    get("/metrics", to: StepFlow.Metrics.PrometheusExporter)
-  end
+  get("/metrics", to: StepFlow.MetricController)
 
   match(_, do: send_resp(conn, 404, "Not found"))
 end
