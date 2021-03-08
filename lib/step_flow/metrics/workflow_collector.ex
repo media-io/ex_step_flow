@@ -5,6 +5,7 @@ defmodule StepFlow.Metrics.WorkflowCollector do
   use Prometheus.Collector
   alias StepFlow.Configuration
   alias StepFlow.Workflows
+  require Logger
 
   def collect_mf(_registry, callback) do
     scale = Configuration.get_var_value(StepFlow.Metrics, :scale, "day")

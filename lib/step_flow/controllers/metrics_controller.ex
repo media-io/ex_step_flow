@@ -1,4 +1,4 @@
-defmodule StepFlow.Metrics.PrometheusExporter do
+defmodule StepFlow.MetricController do
   @moduledoc false
   use Prometheus.PlugExporter
 end

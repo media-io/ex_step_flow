@@ -8,6 +8,8 @@ defmodule StepFlow.Authorization do
   - a RESTful API to create, list and interact with workflows
   """
 
+  import Plug.Conn
+  import Phoenix.Controller
   use Plug.Builder
   plug(Plug.Logger)
   require Logger
@@ -60,4 +62,17 @@ defmodule StepFlow.Authorization do
   defp get_path(items) do
     List.first(items)
   end
+
+  def check_metrics_enabled(%Plug.Conn{path_info: ["metrics"]} = conn) do
+    if StepFlow.Configuration.metrics_enabled?() do
+      conn
+    else
+      put_status(conn, :not_found)
+      |> put_view(StepFlow.ErrorView)
+      |> render("404.html", [])
+      |> halt
+    end
+  end
+
+  def check_metrics_enabled(conn), do: conn
 end
