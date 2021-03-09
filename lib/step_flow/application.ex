@@ -53,7 +53,7 @@ defmodule StepFlow.Application do
 
     # Start prometheus exporter and instrumenters
     if StepFlow.Configuration.metrics_enabled?() do
-      PrometheusExporter.setup()
+      StepFlow.MetricController.setup()
       WorkflowInstrumenter.setup()
     end
 
