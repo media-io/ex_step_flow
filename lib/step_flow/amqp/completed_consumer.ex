@@ -42,6 +42,9 @@ defmodule StepFlow.Amqp.CompletedConsumer do
         set_output_parameters(payload, workflow)
 
         Status.set_job_status(job_id, status)
+
+        {:ok, job_status} = Jobs.Status.set_job_status(job_id, status)
+        Workflows.Status.define_workflow_status(job.workflow_id, :job_completed, job_status)
         Workflows.notification_from_job(job_id)
         StepManager.check_step_status(%{job_id: job_id})
 

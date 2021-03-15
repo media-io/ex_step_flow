@@ -13,11 +13,11 @@ defmodule StepFlow.Workflows.Status do
 
   @moduledoc false
 
-  defenum(StateEnum, ["queued", "skipped", "processing", "retrying", "error", "completed"])
+  defenum(StateEnum, ["pending", "skipped", "processing", "retrying", "error", "completed"])
 
   def state_enum_label(value) do
     case value do
-      value when value in [0, :queued] -> "queued"
+      value when value in [0, :pending] -> "pending"
       value when value in [1, :skipped] -> "skipped"
       value when value in [2, :processing] -> "processing"
       value when value in [3, :retrying] -> "retrying"
@@ -43,13 +43,62 @@ defmodule StepFlow.Workflows.Status do
     |> validate_required([:state, :workflow_id])
   end
 
-  def define_workflow_status(workflow_id, state, payload \\ %{})
+  @doc """
+  Define the workflow status given events. It also tracks completed, retrying
+  and error job status of a workflow.
 
-  def define_workflow_status(workflow_id, :error, %Jobs.Status{id: job_status_id}) do
-    set_workflow_status(workflow_id, :error, job_status_id)
+  Returns `{:ok, workflow_status}` if the event is correct, nil otherwise
+
+  ## Examples
+
+      iex> define_workflow_status(1, :completed_workflow)
+      {:ok, %Workflows.Status{state: :completed, workflow_id: 1, job_id: nil, id: 1}}
+
+      iex> define_workflow_status(1, :incorrect_event)
+      nil
+
+  """
+  def define_workflow_status(workflow_id, event, payload \\ %{})
+
+  def define_workflow_status(workflow_id, :created_workflow, _payload) do
+    set_workflow_status(workflow_id, :pending)
   end
 
-  def define_workflow_status(workflow_id, :retrying, %Jobs.Status{id: job_status_id, job_id: job_id}) do
+  def define_workflow_status(workflow_id, :job_progression, %Progression{progression: 0}) do
+    last_status = get_last_workflow_status(workflow_id)
+
+    if last_status.state == :pending do
+      set_workflow_status(workflow_id, :processing)
+    else
+      Logger.warn(
+        "Can't set workflow #{workflow_id} to :processing because current state is #{last_status}."
+      )
+
+      {:ok, last_status}
+    end
+  end
+
+  def define_workflow_status(workflow_id, :job_completed, %Jobs.Status{
+        id: job_status_id,
+        job_id: job_id
+      }) do
+    jobs_status_not_completed =
+      get_last_jobs_status(workflow_id)
+      |> Enum.filter(fn s -> s.state in [:error, :retrying] and s.job_id != job_id end)
+      |> length()
+
+    if jobs_status_not_completed == 0 do
+      set_workflow_status(workflow_id, :pending, job_status_id)
+    else
+      last_status = get_last_workflow_status(workflow_id)
+      set_workflow_status(workflow_id, last_status.state, job_status_id)
+    end
+  end
+
+  def define_workflow_status(workflow_id, :job_retrying, %Jobs.Status{
+        id: job_status_id,
+        job_id: job_id
+      }) do
     jobs_status_in_error =
       get_last_jobs_status(workflow_id)
       |> Enum.filter(fn s -> s.state == :error and s.job_id != job_id end)
@@ -62,30 +111,22 @@ defmodule StepFlow.Workflows.Status do
     end
   end
 
-  def define_workflow_status(workflow_id, :processing, %Progression{progression: 0}) do
+  def define_workflow_status(workflow_id, :completed_workflow, _payload) do
     last_status = get_last_workflow_status(workflow_id)
 
-    if last_status.state == :queued do
-      set_workflow_status(workflow_id, :processing)
-    else
-      {:ok, last_status}
+    if last_status != nil do
+      Logger.info("Complete wokflow #{workflow_id} from state #{last_status.state}.")
     end
+
+    set_workflow_status(workflow_id, :completed)
   end
 
-  def define_workflow_status(workflow_id, state, _payload) when state in [:queued, :completed] do
-    case {get_last_workflow_status(workflow_id), state} do
-      {nil, :queued} ->
-        set_workflow_status(workflow_id, :queued)
-
-      {%{state: last_state}, :completed} when last_state == :processing ->
-        set_workflow_status(workflow_id, :completed)
-
-      {last_status, _} ->
-        {:ok, last_status}
-    end
+  def define_workflow_status(workflow_id, event, %Jobs.Status{id: job_status_id})
+      when event in [:job_error, :queue_not_found] do
+    set_workflow_status(workflow_id, :error, job_status_id)
   end
 
-  def define_workflow_status(_workflow_id, _state, _payload), do: nil
+  def define_workflow_status(_workflow_id, _event, _payload), do: nil
 
   def set_workflow_status(workflow_id, status, job_status_id \\ nil) do
     %Workflows.Status{}
@@ -112,7 +153,11 @@ defmodule StepFlow.Workflows.Status do
             )
           ),
         on: workflow_status.job_status_id == job_status.id,
-        order_by: [desc: field(workflow_status, :inserted_at), asc: field(job_status, :job_id)],
+        order_by: [
+          desc: field(workflow_status, :inserted_at),
+          desc: field(job_status, :id),
+          asc: field(job_status, :job_id)
+        ],
         distinct: [asc: field(job_status, :job_id)]
       )
 

@@ -17,6 +17,13 @@ defmodule StepFlow.Workflows.StatusTest do
     :ok = Sandbox.checkout(StepFlow.Repo)
     # Setting the shared mode
     Sandbox.mode(StepFlow.Repo, {:shared, self()})
+    {_conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
+
+    on_exit(fn ->
+      StepFlow.HelpersTest.consume_messages(channel, "job_test", 3)
+    end)
+
+    :ok
   end
 
   describe "workflows" do
@@ -109,9 +116,9 @@ defmodule StepFlow.Workflows.StatusTest do
     test "get_last_workflow_status" do
       workflow = workflow_fixture()
 
-      {:ok, _status} = Status.set_workflow_status(workflow.id, :queued)
+      {:ok, _status} = Status.set_workflow_status(workflow.id, :pending)
       status = Status.get_last_workflow_status(workflow.id)
-      assert status.state == :queued
+      assert status.state == :pending
 
       {:ok, _status} = Status.set_workflow_status(workflow.id, :completed)
       status = Status.get_last_workflow_status(workflow.id)
@@ -120,10 +127,11 @@ defmodule StepFlow.Workflows.StatusTest do
 
     test "get_last_jobs_status" do
       workflow = workflow_fixture()
+      {:ok, _status} = Status.define_workflow_status(workflow.id, :created_workflow)
 
       {:ok, "started"} = Step.start_next(workflow)
       {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 0, "completed")
-      Status.set_workflow_status(workflow.id, :processing, job_status.id)
+      Status.set_workflow_status(workflow.id, :pending, job_status.id)
 
       {:ok, "started"} = Step.start_next(workflow)
       {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 1, "error")
@@ -147,59 +155,68 @@ defmodule StepFlow.Workflows.StatusTest do
 
     test "define_workflow_status" do
       workflow = workflow_fixture()
-      {:ok, status} = Status.define_workflow_status(workflow.id, :queued)
+      {:ok, status} = Status.define_workflow_status(workflow.id, :created_workflow)
 
-      assert status.state == :queued
+      assert status.state == :pending
 
       {:ok, "started"} = Step.start_next(workflow)
       {:ok, progression} = StepFlow.HelpersTest.create_progression(workflow, 0, 0)
-      {:ok, status} = Status.define_workflow_status(workflow.id, :processing, progression)
+      {:ok, status} = Status.define_workflow_status(workflow.id, :job_progression, progression)
 
       assert status.state == :processing
 
       {:ok, progression} = StepFlow.HelpersTest.create_progression(workflow, 0, 50)
 
-      assert Status.define_workflow_status(workflow.id, :processing, progression) == nil
+      assert Status.define_workflow_status(workflow.id, :job_progression, progression) == nil
 
       {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 0, "error")
-      {:ok, status} = Status.define_workflow_status(workflow.id, :error, job_status)
+      {:ok, status} = Status.define_workflow_status(workflow.id, :job_error, job_status)
 
       assert status.state == :error
 
       {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 0, "retrying")
-      {:ok, status} = Status.define_workflow_status(workflow.id, :retrying, job_status)
+      {:ok, status} = Status.define_workflow_status(workflow.id, :job_retrying, job_status)
 
       assert status.state == :processing
 
-      {:ok, _} = StepFlow.HelpersTest.change_job_status(workflow, 0, "completed")
+      {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 0, "completed")
+      {:ok, status} = Status.define_workflow_status(workflow.id, :job_completed, job_status)
+
+      assert status.state == :pending
+
       {:ok, "started"} = Step.start_next(workflow)
 
       {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 1, "error")
-      {:ok, status} = Status.define_workflow_status(workflow.id, :error, job_status)
+      {:ok, status} = Status.define_workflow_status(workflow.id, :queue_not_found, job_status)
 
       assert status.state == :error
 
       {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 2, "error")
-      {:ok, status} = Status.define_workflow_status(workflow.id, :error, job_status)
+      {:ok, status} = Status.define_workflow_status(workflow.id, :job_error, job_status)
 
       assert status.state == :error
 
       {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 1, "retrying")
-      {:ok, status} = Status.define_workflow_status(workflow.id, :retrying, job_status)
+      {:ok, status} = Status.define_workflow_status(workflow.id, :job_retrying, job_status)
 
       assert status.state == :error
 
       {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 2, "retrying")
-      {:ok, status} = Status.define_workflow_status(workflow.id, :retrying, job_status)
+      {:ok, status} = Status.define_workflow_status(workflow.id, :job_retrying, job_status)
 
       assert status.state == :processing
 
-      {:ok, _} = StepFlow.HelpersTest.change_job_status(workflow, 1, "completed")
-      {:ok, _} = StepFlow.HelpersTest.change_job_status(workflow, 2, "completed")
+      {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 1, "completed")
+      {:ok, status} = Status.define_workflow_status(workflow.id, :job_completed, job_status)
 
       assert status.state == :processing
 
-      {:ok, status} = Status.define_workflow_status(workflow.id, :completed)
+      {:ok, job_status} = StepFlow.HelpersTest.change_job_status(workflow, 2, "completed")
+      {:ok, status} = Status.define_workflow_status(workflow.id, :job_completed, job_status)
+
+      assert status.state == :pending
+
+      {:ok, status} = Status.define_workflow_status(workflow.id, :completed_workflow)
 
       assert status.state == :completed
     end

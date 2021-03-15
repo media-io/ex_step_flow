@@ -233,10 +233,15 @@ defmodule StepFlow.HelpersTest do
   def consume_messages(channel, queue, count) do
     list =
       Enum.map(1..count, fn _x ->
-        {:ok, payload, %{delivery_tag: delivery_tag}} = AMQP.Basic.get(channel, queue)
-        AMQP.Basic.ack(channel, delivery_tag)
-        assert StepFlow.HelpersTest.validate_message_format(Jason.decode!(payload))
-        payload |> Jason.decode!()
+        case AMQP.Basic.get(channel, queue) do
+          {:ok, payload, %{delivery_tag: delivery_tag}} ->
+            AMQP.Basic.ack(channel, delivery_tag)
+            assert StepFlow.HelpersTest.validate_message_format(Jason.decode!(payload))
+            payload |> Jason.decode!()
+
+          {:empty, %{cluster_id: ""}} ->
+            nil
+        end
       end)
 
     {:empty, %{cluster_id: ""}} = AMQP.Basic.get(channel, queue)

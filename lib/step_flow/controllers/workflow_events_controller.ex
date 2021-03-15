@@ -82,7 +82,9 @@ defmodule StepFlow.WorkflowEventsController do
 
   defp internal_handle(conn, workflow, job, "job_notification", :error) do
     {:ok, job_status} = Jobs.Status.set_job_status(job.id, :retrying)
-    {:ok, status} = Workflows.Status.define_workflow_status(workflow.id, :retrying, job_status)
+
+    {:ok, _status} =
+      Workflows.Status.define_workflow_status(workflow.id, :job_retrying, job_status)
 
     %{step: step, workflow: workflow} = Workflows.get_step_definition(job)
     dates = Helpers.get_dates()
@@ -100,7 +102,9 @@ defmodule StepFlow.WorkflowEventsController do
 
   defp internal_handle(conn, workflow, job, _job_name, :error) do
     {:ok, job_status} = Jobs.Status.set_job_status(job.id, :retrying)
-    {:ok, status} = Workflows.Status.define_workflow_status(workflow.id, :retrying, job_status)
+
+    {:ok, _status} =
+      Workflows.Status.define_workflow_status(workflow.id, :job_retrying, job_status)
 
     params = %{
       job_id: job.id,

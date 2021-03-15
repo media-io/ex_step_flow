@@ -32,7 +32,7 @@ defmodule StepFlow.Amqp.ProgressionConsumer do
 
       job ->
         {_, progression} = Progressions.create_progression(payload)
-        Workflows.Status.define_workflow_status(job.workflow_id, :processing, progression)
+        Workflows.Status.define_workflow_status(job.workflow_id, :job_progression, progression)
         Workflows.notification_from_job(job_id)
         Basic.ack(channel, tag)
     end

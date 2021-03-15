@@ -8,7 +8,6 @@ defmodule StepFlow.Amqp.Connection do
   use GenServer
   alias StepFlow.Amqp.Helpers
   alias StepFlow.Jobs
-  alias StepFlow.Jobs.Status
   alias StepFlow.Workflows
 
   def start_link do
@@ -62,10 +61,11 @@ defmodule StepFlow.Amqp.Connection do
       nil ->
         AMQP.Basic.reject(channel.channel, tag, requeue: true)
 
-      _ ->
+      job ->
         Logger.error("Job queue not found #{inspect(payload)}")
         description = "No worker is started with this queue name."
-        Status.set_job_status(job_id, :error, %{message: description})
+        {:ok, job_status} = Jobs.Status.set_job_status(job_id, :error, %{message: description})
+        Workflows.Status.define_workflow_status(job.workflow_id, :queue_not_found, job_status)
         Workflows.notification_from_job(job_id, description)
         AMQP.Basic.ack(channel.channel, tag)
     end
