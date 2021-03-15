@@ -172,7 +172,7 @@ defmodule StepFlow.Workflows.Status do
       from(
         workflow_status in Workflows.Status,
         where: workflow_status.workflow_id == ^workflow_id,
-        order_by: [desc: :updated_at],
+        order_by: [desc: :updated_at, desc: :id],
         limit: 1
       )
 
