@@ -67,5 +67,11 @@ defmodule StepFlow.Migration.All do
       20_201_127_120_000,
       StepFlow.Migration.AddSchemaVersionForWorkflow
     )
+
+    Ecto.Migrator.up(
+      StepFlow.Repo,
+      20_210_303_120_000,
+      StepFlow.Migration.CreateWorkflowStatus
+    )
   end
 end

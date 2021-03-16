@@ -233,10 +233,15 @@ defmodule StepFlow.HelpersTest do
   def consume_messages(channel, queue, count) do
     list =
       Enum.map(1..count, fn _x ->
-        {:ok, payload, %{delivery_tag: delivery_tag}} = AMQP.Basic.get(channel, queue)
-        AMQP.Basic.ack(channel, delivery_tag)
-        assert StepFlow.HelpersTest.validate_message_format(Jason.decode!(payload))
-        payload |> Jason.decode!()
+        case AMQP.Basic.get(channel, queue) do
+          {:ok, payload, %{delivery_tag: delivery_tag}} ->
+            AMQP.Basic.ack(channel, delivery_tag)
+            assert StepFlow.HelpersTest.validate_message_format(Jason.decode!(payload))
+            payload |> Jason.decode!()
+
+          {:empty, %{cluster_id: ""}} ->
+            nil
+        end
       end)
 
     {:empty, %{cluster_id: ""}} = AMQP.Basic.get(channel, queue)
@@ -267,15 +272,12 @@ defmodule StepFlow.HelpersTest do
       |> Enum.filter(fn job -> job.step_id == step_id end)
       |> List.first()
 
-    {result, _} =
-      Progressions.create_progression(%{
-        job_id: job.id,
-        datetime: NaiveDateTime.utc_now(),
-        docker_container_id: "unknown",
-        progression: progress
-      })
-
-    result
+    Progressions.create_progression(%{
+      job_id: job.id,
+      datetime: NaiveDateTime.utc_now(),
+      docker_container_id: "unknown",
+      progression: progress
+    })
   end
 
   def change_job_status(workflow, step_id, status) do
