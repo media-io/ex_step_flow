@@ -32,13 +32,28 @@ defmodule StepFlow.Api.WorkflowsTest do
       ]
     }
 
-    def workflow_fixture(workflow, attrs \\ %{}) do
+    defp workflow_fixture(workflow, attrs \\ %{}) do
       {:ok, workflow} =
         attrs
         |> Enum.into(workflow)
         |> Workflows.create_workflow()
 
       workflow
+    end
+
+    defp date_range_fixture(workflow_status, time_interval) do
+      end_date =
+        workflow_status.inserted_at
+        |> NaiveDateTime.truncate(:second)
+        |> NaiveDateTime.to_string()
+
+      start_date =
+        workflow_status.inserted_at
+        |> NaiveDateTime.add(-time_interval, :second)
+        |> NaiveDateTime.truncate(:second)
+        |> NaiveDateTime.to_string()
+
+      {start_date, end_date}
     end
 
     def workflow_definition_fixture(workflow_definition) do
@@ -433,15 +448,173 @@ defmodule StepFlow.Api.WorkflowsTest do
       assert body == ""
     end
 
-    test "GET /workflows_statistics" do
+    test "GET /workflows_statistics with time interval of 1 second" do
+      time_interval = 1
+
+      workflow =
+        workflow_fixture(%{
+          schema_version: "1.8",
+          identifier: "id",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          version_major: 1,
+          version_minor: 2,
+          version_micro: 3,
+          rights: [
+            %{
+              action: "view",
+              groups: ["user_view"]
+            }
+          ]
+        })
+
+      {:ok, workflow_status} = Workflows.Status.set_workflow_status(workflow.id, :processing)
+      {start_processing, end_processing} = date_range_fixture(workflow_status, time_interval)
+
       {status, _headers, body} =
-        conn(:get, "/workflows_statistics")
+        conn(:get, "/workflows_statistics", %{
+          identifiers: "all",
+          start_date: start_processing,
+          end_date: end_processing,
+          time_interval: time_interval
+        })
+        |> assign(:current_user, %{rights: ["user_view"]})
         |> Router.call(@opts)
         |> sent_resp
 
       assert status == 200
 
-      assert body |> Jason.decode!() |> Map.get("data") |> length == 50
+      assert body |> Jason.decode!() == %{
+               "data" => %{
+                 "bins" => [
+                   %{
+                     "bin" => 0,
+                     "completed" => 0,
+                     "end_date" => end_processing,
+                     "error" => 0,
+                     "processing" => 1,
+                     "start_date" => start_processing
+                   }
+                 ],
+                 "error" => 0,
+                 "processing" => 1,
+                 "completed" => 0
+               }
+             }
+
+      :timer.sleep(1000)
+
+      {:ok, workflow_status} = Workflows.Status.set_workflow_status(workflow.id, :completed)
+      {start_completed, end_completed} = date_range_fixture(workflow_status, time_interval)
+
+      {status, _headers, body} =
+        conn(:get, "/workflows_statistics", %{
+          identifiers: "all",
+          start_date: start_completed,
+          end_date: end_completed,
+          time_interval: time_interval
+        })
+        |> assign(:current_user, %{rights: ["user_view"]})
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 200
+
+      assert body |> Jason.decode!() == %{
+               "data" => %{
+                 "bins" => [
+                   %{
+                     "bin" => 0,
+                     "completed" => 1,
+                     "end_date" => end_completed,
+                     "error" => 0,
+                     "processing" => 0,
+                     "start_date" => start_completed
+                   },
+                   %{
+                     "bin" => 1,
+                     "completed" => 0,
+                     "end_date" => end_processing,
+                     "error" => 0,
+                     "processing" => 1,
+                     "start_date" => start_processing
+                   }
+                 ],
+                 "error" => 0,
+                 "processing" => 1,
+                 "completed" => 1
+               }
+             }
+    end
+
+    test "GET /workflows_statistics with end_date before start_date" do
+      time_interval = 1
+
+      workflow =
+        workflow_fixture(%{
+          schema_version: "1.8",
+          identifier: "id",
+          reference: "9A9F48E4-5585-4E8E-9199-CEFECF85CE14",
+          version_major: 1,
+          version_minor: 2,
+          version_micro: 3,
+          rights: [
+            %{
+              action: "view",
+              groups: ["user_view"]
+            }
+          ]
+        })
+
+      {:ok, workflow_status} = Workflows.Status.set_workflow_status(workflow.id, :processing)
+      {start_date, end_date} = date_range_fixture(workflow_status, time_interval)
+
+      {status, _headers, body} =
+        conn(:get, "/workflows_statistics", %{
+          identifiers: "all",
+          start_date: end_date,
+          end_date: start_date,
+          time_interval: time_interval
+        })
+        |> assign(:current_user, %{rights: ["user_view"]})
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 200
+
+      assert body |> Jason.decode!() == %{
+               "data" => %{
+                 "bins" => [],
+                 "error" => 0,
+                 "processing" => 0,
+                 "completed" => 0
+               }
+             }
+    end
+
+    test "GET /workflows_statistics with no workflow status" do
+      start_date =
+        DateTime.now!("Etc/UTC")
+        |> DateTime.to_string()
+
+      {status, _headers, body} =
+        conn(:get, "/workflows_statistics", %{
+          identifiers: "all",
+          start_date: start_date
+        })
+        |> assign(:current_user, %{rights: ["user_view"]})
+        |> Router.call(@opts)
+        |> sent_resp
+
+      assert status == 200
+
+      assert body |> Jason.decode!() == %{
+               "data" => %{
+                 "processing" => 0,
+                 "error" => 0,
+                 "completed" => 0,
+                 "bins" => []
+               }
+             }
     end
   end
 end

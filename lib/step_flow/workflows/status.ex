@@ -180,4 +180,39 @@ defmodule StepFlow.Workflows.Status do
   end
 
   def get_last_workflow_status(_workflow_id), do: nil
+
+  @doc """
+  """
+  def list_workflows_status(start_date, end_date, identifiers, user_rights) do
+    query =
+      if identifiers == "all" do
+        from(
+          workflow in Workflow,
+          join: rights in assoc(workflow, :rights),
+          where: rights.action == "view",
+          where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
+        )
+      else
+        from(
+          workflow in Workflow,
+          where: workflow.identifier in ^identifiers,
+          join: rights in assoc(workflow, :rights),
+          where: rights.action == "view",
+          where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
+        )
+      end
+
+    query =
+      from(
+        workflows_status in Workflows.Status,
+        inner_join: workflow in subquery(query),
+        on: workflows_status.workflow_id == workflow.id,
+        where:
+          fragment("?::timestamp", workflows_status.inserted_at) >= ^start_date and
+            fragment("?::timestamp", workflows_status.inserted_at) <= ^end_date and
+            workflows_status.state in [:completed, :error, :processing]
+      )
+
+    Repo.all(query)
+  end
 end

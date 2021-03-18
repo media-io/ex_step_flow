@@ -502,68 +502,6 @@ defmodule StepFlow.Workflows do
     Workflow.changeset(workflow, %{})
   end
 
-  def get_workflow_history(%{scale: scale}) do
-    Enum.map(
-      0..49,
-      fn index ->
-        %{
-          total: query_total(scale, -index, -index - 1),
-          rosetta:
-            query_by_identifier(scale, -index, -index - 1, "FranceTV Studio Ingest Rosetta"),
-          ingest_rdf:
-            query_by_identifier(scale, -index, -index - 1, "FranceTélévisions Rdf Ingest"),
-          ingest_dash:
-            query_by_identifier(scale, -index, -index - 1, "FranceTélévisions Dash Ingest"),
-          process_acs: query_by_identifier(scale, -index, -index - 1, "FranceTélévisions ACS"),
-          process_acs_standalone:
-            query_by_identifier(scale, -index, -index - 1, "FranceTélévisions ACS (standalone)"),
-          errors: query_by_status(scale, -index, -index - 1, "error")
-        }
-      end
-    )
-  end
-
-  defp query_total(scale, delta_min, delta_max) do
-    Repo.aggregate(
-      from(
-        workflow in Workflow,
-        where:
-          workflow.inserted_at > datetime_add(^NaiveDateTime.utc_now(), ^delta_max, ^scale) and
-            workflow.inserted_at < datetime_add(^NaiveDateTime.utc_now(), ^delta_min, ^scale)
-      ),
-      :count,
-      :id
-    )
-  end
-
-  defp query_by_identifier(scale, delta_min, delta_max, identifier) do
-    Repo.aggregate(
-      from(
-        workflow in Workflow,
-        where:
-          workflow.identifier == ^identifier and
-            workflow.inserted_at > datetime_add(^NaiveDateTime.utc_now(), ^delta_max, ^scale) and
-            workflow.inserted_at < datetime_add(^NaiveDateTime.utc_now(), ^delta_min, ^scale)
-      ),
-      :count,
-      :id
-    )
-  end
-
-  defp query_by_status(scale, delta_min, delta_max, status) do
-    Repo.aggregate(
-      from(
-        status in Status,
-        where:
-          status.state == ^status and
-            status.inserted_at > datetime_add(^NaiveDateTime.utc_now(), ^delta_max, ^scale) and
-            status.inserted_at < datetime_add(^NaiveDateTime.utc_now(), ^delta_min, ^scale)
-      ),
-      :count,
-      :id
-    )
-  end
-
   def get_statistics_per_identifier(scale, delta) do
     query =
       from(
