@@ -29,3 +29,5 @@ config :step_flow, StepFlow.Amqp,
   username: "guest",
   password: "guest",
   virtual_host: ""
+
+config :step_flow, StepFlow.Workflows, time_interval: 1

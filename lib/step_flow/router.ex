@@ -2,13 +2,14 @@ defmodule StepFlow.Router do
   use StepFlow, :router
 
   plug(:match)
-  plug(:dispatch)
 
   plug(Plug.Parsers,
     parsers: [:json],
     pass: ["application/json"],
     json_decoder: Jason
   )
+
+  plug(:dispatch)
 
   get("/", do: send_resp(conn, 200, "Welcome to Step Flow"))
 
@@ -53,7 +54,7 @@ defmodule StepFlow.Router do
   end
 
   get "/workflows_statistics" do
-    StepFlow.WorkflowController.statistics(conn, conn.path_params)
+    StepFlow.WorkflowController.statistics(conn, conn.params)
   end
 
   post "/worker_definitions" do

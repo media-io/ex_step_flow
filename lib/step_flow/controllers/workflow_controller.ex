@@ -4,6 +4,7 @@ defmodule StepFlow.WorkflowController do
 
   require Logger
 
+  alias StepFlow.Configuration
   alias StepFlow.Controller.Helpers
   alias StepFlow.Metrics.WorkflowInstrumenter
   alias StepFlow.Repo
@@ -168,14 +169,64 @@ defmodule StepFlow.WorkflowController do
     |> json(%{})
   end
 
-  def statistics(conn, params) do
-    scale = Map.get(params, "scale", "hour")
-    stats = Workflows.get_workflow_history(%{scale: scale})
+  def statistics(
+        %Plug.Conn{assigns: %{current_user: user}} = conn,
+        %{"identifiers" => identifiers} = params
+      )
+      when is_list(identifiers) or identifiers == "all" do
+    start_date =
+      params
+      |> Map.get(
+        "start_date",
+        NaiveDateTime.utc_now() |> NaiveDateTime.add(-86_400, :second) |> NaiveDateTime.to_string()
+      )
+      |> NaiveDateTime.from_iso8601!()
+      |> NaiveDateTime.truncate(:second)
+
+    end_date =
+      params
+      |> Map.get(
+        "end_date",
+        NaiveDateTime.utc_now() |> NaiveDateTime.to_string()
+      )
+      |> NaiveDateTime.from_iso8601!()
+      |> NaiveDateTime.truncate(:second)
+
+    time_interval =
+      params
+      |> Map.get("time_interval", define_time_interval(start_date, end_date))
+      |> String.to_integer()
+      |> Kernel.max(1)
+
+    workflows_status =
+      Workflows.Status.list_workflows_status(start_date, end_date, identifiers, user.rights)
 
     conn
-    |> json(%{
-      data: stats
+    |> put_view(StepFlow.WorkflowView)
+    |> render("statistics.json", %{
+      workflows_status: workflows_status,
+      time_interval: time_interval,
+      end_date: end_date
     })
+  end
+
+  def statistics(conn, params) do
+    Logger.error("#{inspect(params)}")
+
+    conn
+    |> put_status(:forbidden)
+    |> put_view(StepFlow.WorkflowDefinitionView)
+    |> render("error.json",
+      errors: %{reason: "Requires 2 parameters: start_date and identifiers."}
+    )
+  end
+
+  defp define_time_interval(start_date, end_date) do
+    with number_bins <- Configuration.get_var_value(StepFlow.Workflows, :number_bins, 60) do
+      NaiveDateTime.diff(end_date, start_date, :second)
+      |> Kernel.div(number_bins)
+      |> Integer.to_string()
+    end
   end
 
   def update(conn, _params) do
