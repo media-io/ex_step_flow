@@ -53,19 +53,33 @@ defmodule Prometheus.Metrics.WorkflowCollectorTest do
         workflow_id: workflow.id
       })
 
+      IO.inspect(
+        capture_io(fn ->
+          WorkflowCollector.collect_mf(:workflow_collector, fn mf ->
+            :io.format("~p", [mf])
+          end)
+        end)
+      )
+
       assert capture_io(fn ->
                WorkflowCollector.collect_mf(:workflow_collector, fn mf ->
                  :io.format("~p", [mf])
                end)
-             end) == "{'MetricFamily',<<\"step_flow_workflows_duration\">>,
+             end) == "{'MetricFamily',<<\"step_flow_workflows_created\">>,
+                <<\"Number of created workflows since -1 day(s).\">>,'GAUGE',
+                [{'Metric',[{'LabelPair',<<\"identifier\">>,<<\"id\">>}],
+                           {'Gauge',1},
+                           undefined,undefined,undefined,undefined,
+                           undefined}]}{'MetricFamily',<<\"step_flow_workflows_error\">>,
+                <<\"Number of failed workflows since -1 day(s).\">>,'GAUGE',[]}{'MetricFamily',<<\"step_flow_workflows_completed\">>,
+                <<\"Number of completed workflows since -1 day(s).\">>,'GAUGE',
+                [{'Metric',[{'LabelPair',<<\"identifier\">>,<<\"id\">>}],
+                           {'Gauge',1},
+                           undefined,undefined,undefined,undefined,
+                           undefined}]}{'MetricFamily',<<\"step_flow_workflows_duration\">>,
                 <<\"Average durations of workflows since -1 day(s).\">>,'GAUGE',
                 [{'Metric',[{'LabelPair',<<\"identifier\">>,<<\"id\">>}],
                            {'Gauge',1.0},
-                           undefined,undefined,undefined,undefined,
-                           undefined}]}{'MetricFamily',<<\"step_flow_workflows_number\">>,
-                <<\"Number of workflows finished since -1 day(s).\">>,'GAUGE',
-                [{'Metric',[{'LabelPair',<<\"identifier\">>,<<\"id\">>}],
-                           {'Gauge',1},
                            undefined,undefined,undefined,undefined,
                            undefined}]}"
     end

@@ -564,7 +564,7 @@ defmodule StepFlow.Workflows do
     )
   end
 
-  def get_statistics_per_identifier(scale, delta) do
+  def get_completed_statistics(scale, delta) do
     query =
       from(
         workflow in Workflow,
@@ -591,6 +591,42 @@ defmodule StepFlow.Workflows do
               artifacts.inserted_at,
               workflow.inserted_at
             ),
+          identifier: workflow.identifier
+        }
+      )
+
+    Repo.all(query)
+  end
+
+  def get_error_statistics(scale, delta) do
+    query =
+      from(
+        job_status in Status,
+        where:
+          job_status.inserted_at > datetime_add(^NaiveDateTime.utc_now(), ^delta, ^scale) and
+            job_status.state == :error,
+        inner_join: job in Jobs.Job,
+        on: job.id == job_status.job_id,
+        left_join: workflow in Workflow,
+        on: workflow.id == job.workflow_id,
+        group_by: workflow.identifier,
+        select: %{
+          count: count(),
+          identifier: workflow.identifier
+        }
+      )
+
+    Repo.all(query)
+  end
+
+  def get_creation_statistics(scale, delta) do
+    query =
+      from(
+        workflow in Workflow,
+        where: workflow.inserted_at > datetime_add(^NaiveDateTime.utc_now(), ^delta, ^scale),
+        group_by: workflow.identifier,
+        select: %{
+          count: count(),
           identifier: workflow.identifier
         }
       )
