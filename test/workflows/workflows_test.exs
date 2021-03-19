@@ -6,7 +6,6 @@ defmodule StepFlow.WorkflowsTest do
   alias StepFlow.Artifacts
   alias StepFlow.Jobs
   alias StepFlow.Repo
-  alias StepFlow.Step
   alias StepFlow.Workflows
   alias StepFlow.Workflows.Workflow
 
@@ -172,27 +171,6 @@ defmodule StepFlow.WorkflowsTest do
     test "change_workflow/1 returns a workflow changeset" do
       workflow = workflow_fixture()
       assert %Ecto.Changeset{} = Workflows.change_workflow(workflow)
-    end
-
-    @tag capture_log: true
-    test "get_creation_statistics/1 returns finished workflow number" do
-      workflow = workflow_fixture()
-
-      [%{count: count} | _] = Workflows.get_creation_statistics("day", -1)
-
-      assert count == 1
-    end
-
-    @tag capture_log: true
-    test "get_error_statistics/1" do
-      workflow = workflow_fixture()
-
-      {:ok, "started"} = Step.start_next(workflow)
-      StepFlow.HelpersTest.change_job_status(workflow, 0, :error)
-
-      [%{count: count} | _] = Workflows.get_error_statistics("day", -1)
-
-      assert count == 1
     end
 
     @tag capture_log: true

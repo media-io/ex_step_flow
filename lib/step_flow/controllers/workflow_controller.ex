@@ -5,6 +5,7 @@ defmodule StepFlow.WorkflowController do
   require Logger
 
   alias StepFlow.Controller.Helpers
+  alias StepFlow.Metrics.WorkflowInstrumenter
   alias StepFlow.Repo
   alias StepFlow.Step
   alias StepFlow.Workflows
@@ -35,6 +36,7 @@ defmodule StepFlow.WorkflowController do
   def create_workflow(conn, workflow_params) do
     case Workflows.create_workflow(workflow_params) do
       {:ok, %Workflow{} = workflow} ->
+        WorkflowInstrumenter.inc(:step_flow_workflows_created, workflow.identifier)
         Workflows.Status.define_workflow_status(workflow.id, :created_workflow)
         Step.start_next(workflow)
 

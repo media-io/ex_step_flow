@@ -8,6 +8,7 @@ defmodule StepFlow.Amqp.Connection do
   use GenServer
   alias StepFlow.Amqp.Helpers
   alias StepFlow.Jobs
+  alias StepFlow.Metrics.JobInstrumenter
   alias StepFlow.Workflows
 
   def start_link do
@@ -63,6 +64,7 @@ defmodule StepFlow.Amqp.Connection do
 
       job ->
         Logger.error("Job queue not found #{inspect(payload)}")
+        JobInstrumenter.inc(:step_flow_jobs_error, job.name)
         description = "No worker is started with this queue name."
         {:ok, job_status} = Jobs.Status.set_job_status(job_id, :error, %{message: description})
         Workflows.Status.define_workflow_status(job.workflow_id, :queue_not_found, job_status)
