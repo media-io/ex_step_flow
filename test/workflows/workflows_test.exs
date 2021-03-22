@@ -4,7 +4,6 @@ defmodule StepFlow.WorkflowsTest do
 
   alias Ecto.Adapters.SQL.Sandbox
   alias StepFlow.Artifacts
-  alias StepFlow.Jobs
   alias StepFlow.Repo
   alias StepFlow.Workflows
   alias StepFlow.Workflows.Workflow
@@ -68,9 +67,8 @@ defmodule StepFlow.WorkflowsTest do
     end
 
     test "list_workflows/0 returns all workflows" do
-      workflow =
-        workflow_fixture()
-        |> Repo.preload([:artifacts, :jobs])
+      workflow_fixture()
+      |> Repo.preload([:artifacts, :jobs])
 
       %{
         page: page,
@@ -84,9 +82,8 @@ defmodule StepFlow.WorkflowsTest do
     end
 
     test "list_workflows/0 returns workflows with valid rights" do
-      workflow =
-        workflow_fixture()
-        |> Repo.preload([:artifacts, :jobs])
+      workflow_fixture()
+      |> Repo.preload([:artifacts, :jobs])
 
       %{
         page: page,
