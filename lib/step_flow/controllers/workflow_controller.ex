@@ -171,14 +171,15 @@ defmodule StepFlow.WorkflowController do
 
   def statistics(
         %Plug.Conn{assigns: %{current_user: user}} = conn,
-        %{"identifiers" => identifiers} = params
-      )
-      when is_list(identifiers) or identifiers == "all" do
+        params
+      ) do
     start_date =
       params
       |> Map.get(
         "start_date",
-        NaiveDateTime.utc_now() |> NaiveDateTime.add(-86_400, :second) |> NaiveDateTime.to_string()
+        NaiveDateTime.utc_now()
+        |> NaiveDateTime.add(-86_400, :second)
+        |> NaiveDateTime.to_string()
       )
       |> NaiveDateTime.from_iso8601!()
       |> NaiveDateTime.truncate(:second)
@@ -198,6 +199,8 @@ defmodule StepFlow.WorkflowController do
       |> String.to_integer()
       |> Kernel.max(1)
 
+    identifiers = Map.get(params, "identifiers", [])
+
     workflows_status =
       Workflows.Status.list_workflows_status(start_date, end_date, identifiers, user.rights)
 
@@ -208,17 +211,6 @@ defmodule StepFlow.WorkflowController do
       time_interval: time_interval,
       end_date: end_date
     })
-  end
-
-  def statistics(conn, params) do
-    Logger.error("#{inspect(params)}")
-
-    conn
-    |> put_status(:forbidden)
-    |> put_view(StepFlow.WorkflowDefinitionView)
-    |> render("error.json",
-      errors: %{reason: "Requires 2 parameters: start_date and identifiers."}
-    )
   end
 
   defp define_time_interval(start_date, end_date) do
