@@ -185,7 +185,7 @@ defmodule StepFlow.Workflows.Status do
   """
   def list_workflows_status(start_date, end_date, identifiers, user_rights) do
     query =
-      if identifiers == "all" do
+      if Enum.empty?(identifiers) do
         from(
           workflow in Workflow,
           join: rights in assoc(workflow, :rights),
