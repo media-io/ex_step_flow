@@ -80,4 +80,21 @@ defmodule StepFlow.WorkflowDefinitions do
 
     Repo.one(query)
   end
+
+  @doc """
+  Returns a list of identifiers for available workflows
+  """
+  def list_workflow_identifiers(action, user_rights \\ []) do
+    query =
+      from(
+        workflow_definition in WorkflowDefinition,
+        join: rights in assoc(workflow_definition, :rights),
+        where: rights.action == ^action,
+        where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights),
+        distinct: workflow_definition.identifier,
+        select: workflow_definition.identifier
+      )
+
+    Repo.all(query)
+  end
 end

@@ -73,4 +73,22 @@ defmodule StepFlow.WorkflowDefinitionController do
 
     json(conn, %{})
   end
+
+  def identifiers(%Plug.Conn{assigns: %{current_user: user}} = conn, params) do
+    action = Map.get(params, "action")
+    identifiers = WorkflowDefinitions.list_workflow_identifiers(action, user.rights)
+
+    conn
+    |> put_view(StepFlow.WorkflowDefinitionView)
+    |> render("identifiers.json", identifiers: identifiers)
+  end
+
+  def identifiers(conn, _) do
+    conn
+    |> put_status(403)
+    |> put_view(StepFlow.WorkflowDefinitionView)
+    |> render("error.json",
+      errors: %{reason: "Forbidden to list workflows"}
+    )
+  end
 end

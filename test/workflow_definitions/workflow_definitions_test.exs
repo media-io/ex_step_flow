@@ -63,5 +63,10 @@ defmodule StepFlow.WorkflowDefinitionsTest do
                total: 0
              } = result
     end
+
+    test "list_workflow_identifiers/0" do
+      assert WorkflowDefinitions.list_workflow_identifiers(["user_view"]) == ["simple_workflow"]
+      assert WorkflowDefinitions.list_workflow_identifiers() == []
+    end
   end
 end

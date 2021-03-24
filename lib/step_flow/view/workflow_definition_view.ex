@@ -52,6 +52,12 @@ defmodule StepFlow.WorkflowDefinitionView do
     }
   end
 
+  def render("identifiers.json", %{identifiers: identifiers}) do
+    %{
+      data: %{identifiers: identifiers}
+    }
+  end
+
   def render("error.json", %{errors: errors}) do
     %{
       errors: [

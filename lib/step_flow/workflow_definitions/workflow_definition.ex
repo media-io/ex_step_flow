@@ -80,7 +80,6 @@ defmodule StepFlow.WorkflowDefinitions.WorkflowDefinition do
       |> Jason.decode!()
 
     :ok = JsonXema.SchemaValidator.validate("http://json-schema.org/draft-07/schema#", schema)
-
     JsonXema.new(schema, loader: ExternalLoader)
   end
 
