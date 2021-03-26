@@ -472,7 +472,7 @@ defmodule StepFlow.Api.WorkflowsTest do
 
       {status, _headers, body} =
         conn(:get, "/workflows_statistics", %{
-          identifiers: "all",
+          identifiers: ["id"],
           start_date: start_processing,
           end_date: end_processing,
           time_interval: time_interval
@@ -508,7 +508,7 @@ defmodule StepFlow.Api.WorkflowsTest do
 
       {status, _headers, body} =
         conn(:get, "/workflows_statistics", %{
-          identifiers: "all",
+          identifiers: ["id"],
           start_date: start_completed,
           end_date: end_completed,
           time_interval: time_interval
@@ -570,7 +570,6 @@ defmodule StepFlow.Api.WorkflowsTest do
 
       {status, _headers, body} =
         conn(:get, "/workflows_statistics", %{
-          identifiers: "all",
           start_date: end_date,
           end_date: start_date,
           time_interval: time_interval
@@ -598,7 +597,6 @@ defmodule StepFlow.Api.WorkflowsTest do
 
       {status, _headers, body} =
         conn(:get, "/workflows_statistics", %{
-          identifiers: "all",
           start_date: start_date
         })
         |> assign(:current_user, %{rights: ["user_view"]})
