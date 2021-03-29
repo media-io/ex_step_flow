@@ -107,6 +107,60 @@ defmodule StepFlow.WorkflowsTest do
              }
     end
 
+    test "list_workflows/0 returns workflows with different status" do
+      workflow =
+        workflow_fixture()
+        |> Repo.preload([:artifacts, :jobs])
+
+      Workflows.Status.set_workflow_status(workflow.id, :pending)
+
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows(%{"states" => ["pending"]})
+
+      assert page == 0
+      assert size == 10
+      assert total == 1
+
+      Workflows.Status.set_workflow_status(workflow.id, :error)
+
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows(%{"states" => ["error"]})
+
+      assert page == 0
+      assert size == 10
+      assert total == 1
+
+      Workflows.Status.set_workflow_status(workflow.id, :processing)
+
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows(%{"states" => ["processing"]})
+
+      assert page == 0
+      assert size == 10
+      assert total == 1
+
+      Workflows.Status.set_workflow_status(workflow.id, :completed)
+
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows(%{"states" => ["completed"]})
+
+      assert page == 0
+      assert size == 10
+      assert total == 1
+    end
+
     test "get_workflow!/1 returns the workflow with given id" do
       workflow =
         workflow_fixture()
