@@ -10,21 +10,13 @@ defmodule StepFlow.Metrics.WorkflowCollector do
   def collect_mf(_registry, callback) do
     scale = Configuration.get_var_value(StepFlow.Metrics, :scale, "day")
     delta = Configuration.get_var_value(StepFlow.Metrics, :delta, -1)
-    statistics = Workflows.get_statistics_per_identifier(scale, delta)
+    completed_statistics = Workflows.get_completed_statistics(scale, delta)
 
     callback.(
       create_gauge(
         :step_flow_workflows_duration,
         "Average durations of workflows since #{delta} #{scale}(s).",
-        statistics
-      )
-    )
-
-    callback.(
-      create_gauge(
-        :step_flow_workflows_number,
-        "Number of workflows finished since #{delta} #{scale}(s).",
-        statistics
+        completed_statistics
       )
     )
 
@@ -35,14 +27,6 @@ defmodule StepFlow.Metrics.WorkflowCollector do
     Prometheus.Model.gauge_metrics(
       Enum.map(statistics, fn %{duration: duration, identifier: identifier} ->
         {[identifier: identifier], duration}
-      end)
-    )
-  end
-
-  def collect_metrics(:step_flow_workflows_number, statistics) do
-    Prometheus.Model.gauge_metrics(
-      Enum.map(statistics, fn %{count: count, identifier: identifier} ->
-        {[identifier: identifier], count}
       end)
     )
   end

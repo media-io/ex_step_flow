@@ -71,7 +71,9 @@ defmodule StepFlow.Workflows.Status do
       set_workflow_status(workflow_id, :processing)
     else
       Logger.warn(
-        "Can't set workflow #{workflow_id} to :processing because current state is #{last_status}."
+        "Can't set workflow #{workflow_id} to :processing because current state is #{
+          last_status.state
+        }."
       )
 
       {:ok, last_status}

@@ -564,7 +564,7 @@ defmodule StepFlow.Workflows do
     )
   end
 
-  def get_statistics_per_identifier(scale, delta) do
+  def get_completed_statistics(scale, delta) do
     query =
       from(
         workflow in Workflow,

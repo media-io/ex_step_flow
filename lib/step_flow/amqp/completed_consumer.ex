@@ -6,7 +6,7 @@ defmodule StepFlow.Amqp.CompletedConsumer do
   require Logger
   alias StepFlow.Amqp.CompletedConsumer
   alias StepFlow.Jobs
-  alias StepFlow.Jobs.Status
+  alias StepFlow.Metrics.JobInstrumenter
   alias StepFlow.Workflows
   alias StepFlow.Workflows.StepManager
 
@@ -41,8 +41,7 @@ defmodule StepFlow.Amqp.CompletedConsumer do
         set_generated_destination_paths(payload, job)
         set_output_parameters(payload, workflow)
 
-        Status.set_job_status(job_id, status)
-
+        JobInstrumenter.inc(:step_flow_jobs_completed, job.name)
         {:ok, job_status} = Jobs.Status.set_job_status(job_id, status)
         Workflows.Status.define_workflow_status(job.workflow_id, :job_completed, job_status)
         Workflows.notification_from_job(job_id)

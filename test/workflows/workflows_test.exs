@@ -15,6 +15,13 @@ defmodule StepFlow.WorkflowsTest do
     :ok = Sandbox.checkout(StepFlow.Repo)
     # Setting the shared mode
     Sandbox.mode(StepFlow.Repo, {:shared, self()})
+    {_conn, channel} = StepFlow.HelpersTest.get_amqp_connection()
+
+    on_exit(fn ->
+      StepFlow.HelpersTest.consume_messages(channel, "job_test", 1)
+    end)
+
+    :ok
   end
 
   describe "workflows" do
@@ -25,7 +32,21 @@ defmodule StepFlow.WorkflowsTest do
       version_minor: 5,
       version_micro: 4,
       reference: "some id",
-      steps: [],
+      steps: [
+        %{
+          id: 0,
+          name: "job_test",
+          icon: "step_icon",
+          label: "My first step",
+          parameters: [
+            %{
+              id: "source_paths",
+              type: "array_of_strings",
+              value: ["coucou.mov"]
+            }
+          ]
+        }
+      ],
       rights: [
         %{
           action: "view",
@@ -46,29 +67,33 @@ defmodule StepFlow.WorkflowsTest do
     end
 
     test "list_workflows/0 returns all workflows" do
-      workflow =
-        workflow_fixture()
-        |> Repo.preload([:artifacts, :jobs])
+      workflow_fixture()
+      |> Repo.preload([:artifacts, :jobs])
 
-      assert Workflows.list_workflows() == %{
-               data: [workflow],
-               page: 0,
-               size: 10,
-               total: 1
-             }
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows()
+
+      assert page == 0
+      assert size == 10
+      assert total == 1
     end
 
     test "list_workflows/0 returns workflows with valid rights" do
-      workflow =
-        workflow_fixture()
-        |> Repo.preload([:artifacts, :jobs])
+      workflow_fixture()
+      |> Repo.preload([:artifacts, :jobs])
 
-      assert Workflows.list_workflows(%{"rights" => ["user_view"]}) == %{
-               data: [workflow],
-               page: 0,
-               size: 10,
-               total: 1
-             }
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows(%{"rights" => ["user_view"]})
+
+      assert page == 0
+      assert size == 10
+      assert total == 1
     end
 
     test "list_workflows/0 returns workflows with invalid rights" do
@@ -87,13 +112,21 @@ defmodule StepFlow.WorkflowsTest do
         workflow_fixture()
         |> Repo.preload([:artifacts, :jobs])
 
-      assert Workflows.get_workflow!(workflow.id) == workflow
+      %{
+        id: id,
+        identifier: identifier,
+        inserted_at: inserted_at
+      } = Workflows.get_workflow!(workflow.id)
+
+      assert id == workflow.id
+      assert identifier == workflow.identifier
+      assert inserted_at == workflow.inserted_at
     end
 
     test "create_workflow/1 with valid data creates a workflow" do
-      assert {:ok, %Workflow{} = workflow} = Workflows.create_workflow(@valid_attrs)
+      assert {:ok, %Workflow{steps: [step]} = workflow} = Workflows.create_workflow(@valid_attrs)
       assert workflow.reference == "some id"
-      assert workflow.steps == []
+      assert step.icon == "step_icon"
     end
 
     test "create_workflow/1 with invalid data returns error changeset" do
@@ -114,7 +147,16 @@ defmodule StepFlow.WorkflowsTest do
         |> Repo.preload([:artifacts, :jobs])
 
       assert {:error, %Ecto.Changeset{}} = Workflows.update_workflow(workflow, @invalid_attrs)
-      assert workflow == Workflows.get_workflow!(workflow.id)
+
+      %{
+        id: id,
+        identifier: identifier,
+        inserted_at: inserted_at
+      } = Workflows.get_workflow!(workflow.id)
+
+      assert id == workflow.id
+      assert identifier == workflow.identifier
+      assert inserted_at == workflow.inserted_at
     end
 
     test "delete_workflow/1 deletes the workflow" do
@@ -129,7 +171,7 @@ defmodule StepFlow.WorkflowsTest do
     end
 
     @tag capture_log: true
-    test "get_statistics_per_identifier/1 returns finished workflow number" do
+    test "get_completed_statistics/1 returns finished workflow number" do
       workflow = workflow_fixture()
       :timer.sleep(1000)
 
@@ -138,18 +180,17 @@ defmodule StepFlow.WorkflowsTest do
         workflow_id: workflow.id
       })
 
-      [%{count: count, duration: duration} | _] =
-        Workflows.get_statistics_per_identifier("day", -1)
+      [%{count: count, duration: duration} | _] = Workflows.get_completed_statistics("day", -1)
 
       assert count == 1
       assert duration == 1
     end
 
     @tag capture_log: true
-    test "get_statistics_per_identifier/1 no artifacts" do
+    test "get_completed_statistics/1 no artifacts" do
       workflow_fixture()
 
-      assert [] == Workflows.get_statistics_per_identifier("day", -1)
+      assert [] == Workflows.get_completed_statistics("day", -1)
     end
   end
 end

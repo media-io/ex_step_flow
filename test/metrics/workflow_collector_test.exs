@@ -62,11 +62,6 @@ defmodule Prometheus.Metrics.WorkflowCollectorTest do
                 [{'Metric',[{'LabelPair',<<\"identifier\">>,<<\"id\">>}],
                            {'Gauge',1.0},
                            undefined,undefined,undefined,undefined,
-                           undefined}]}{'MetricFamily',<<\"step_flow_workflows_number\">>,
-                <<\"Number of workflows finished since -1 day(s).\">>,'GAUGE',
-                [{'Metric',[{'LabelPair',<<\"identifier\">>,<<\"id\">>}],
-                           {'Gauge',1},
-                           undefined,undefined,undefined,undefined,
                            undefined}]}"
     end
   end

@@ -4,6 +4,7 @@ defmodule StepFlow.Amqp.CommonEmitter do
   """
   require Logger
   alias StepFlow.Amqp.Connection
+  alias StepFlow.Metrics.JobInstrumenter
 
   @doc """
   Publish a message.
@@ -39,6 +40,7 @@ defmodule StepFlow.Amqp.CommonEmitter do
       priority: min(priority, 100)
     ]
 
+    JobInstrumenter.inc(:step_flow_jobs_created, queue)
     publish(queue, message, options)
   end
 

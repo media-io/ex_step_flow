@@ -8,6 +8,7 @@ defmodule StepFlow.Amqp.ErrorConsumer do
   alias StepFlow.Amqp.ErrorConsumer
   alias StepFlow.Jobs
   alias StepFlow.Jobs.Status
+  alias StepFlow.Metrics.{JobInstrumenter, WorkflowInstrumenter}
   alias StepFlow.Workflows
 
   use StepFlow.Amqp.CommonConsumer, %{
@@ -26,6 +27,8 @@ defmodule StepFlow.Amqp.ErrorConsumer do
 
       job ->
         Logger.error("Job error #{inspect(payload)}")
+        JobInstrumenter.inc(:step_flow_jobs_error, job.name)
+        WorkflowInstrumenter.inc(:step_flow_workflows_error, job_id)
         {:ok, job_status} = Status.set_job_status(job_id, :error, %{message: description})
         Workflows.Status.define_workflow_status(job.workflow_id, :job_error, job_status)
         Workflows.notification_from_job(job_id, description)
@@ -50,6 +53,8 @@ defmodule StepFlow.Amqp.ErrorConsumer do
 
       job ->
         Logger.error("Job error #{inspect(payload)}")
+        JobInstrumenter.inc(:step_flow_jobs_error, job.name)
+        WorkflowInstrumenter.inc(:step_flow_workflows_error, job_id)
         {:ok, job_status} = Status.set_job_status(job_id, :error, %{message: description})
         Workflows.Status.define_workflow_status(job.workflow_id, :job_error, job_status)
         Workflows.notification_from_job(job_id, description)

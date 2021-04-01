@@ -7,7 +7,12 @@ config :plug, :validate_header_keys_during_test, true
 
 config :step_flow, StepFlow,
   workers_work_directory: "/test_work_dir",
-  workflow_definition: "./test/definitions"
+  workflow_definition: "./test/definitions",
+  enable_metrics: true
+
+config :step_flow, StepFlow.Metrics,
+  scale: "day",
+  delta: -1
 
 config :step_flow, StepFlow.Repo,
   hostname: "localhost",

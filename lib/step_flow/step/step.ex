@@ -7,6 +7,7 @@ defmodule StepFlow.Step do
 
   alias StepFlow.Artifacts
   alias StepFlow.Jobs
+  alias StepFlow.Metrics.WorkflowInstrumenter
   alias StepFlow.Repo
   alias StepFlow.Step.Helpers
   alias StepFlow.Step.Launch
@@ -186,6 +187,7 @@ defmodule StepFlow.Step do
 
   defp get_final_status(workflow, true, [:completed_workflow]) do
     Workflows.Status.define_workflow_status(workflow.id, :completed_workflow)
+    WorkflowInstrumenter.inc(:step_flow_workflows_completed, workflow.identifier)
     set_artifacts(workflow)
     Logger.warn("#{__MODULE__}: workflow #{workflow.id} is completed")
     {:ok, "completed"}
