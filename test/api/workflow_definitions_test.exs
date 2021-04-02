@@ -30,7 +30,7 @@ defmodule StepFlow.Api.WorkflowDefinitionsTest do
     @tag capture_log: true
     test "GET /definitions with authorized user" do
       {status, _headers, body} =
-        conn(:get, "/definitions")
+        conn(:get, "/definitions", %{right_action: "view"})
         |> assign(:current_user, %{rights: ["user_view"]})
         |> Router.call(@opts)
         |> sent_resp

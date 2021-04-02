@@ -28,13 +28,11 @@ jobs:
 env:
   - MIX_ENV=test
 
-services:
-  - postgresql
-
 addons:
   apt:
     packages:
     - rabbitmq-server
+  postgresql: 9.6
 
 matrix:
   include:

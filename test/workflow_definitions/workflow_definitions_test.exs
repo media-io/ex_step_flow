@@ -33,13 +33,20 @@ defmodule StepFlow.WorkflowDefinitionsTest do
                size: 10,
                total: 1
              } =
-               WorkflowDefinitions.list_workflow_definitions(%{"rights" => ["administrator_view"]})
+               WorkflowDefinitions.list_workflow_definitions(%{
+                 "right_action" => "view",
+                 "rights" => ["administrator_view"]
+               })
 
       assert 0 == workflow.version_major
       assert 0 == workflow.version_minor
       assert 1 == workflow.version_micro
 
-      result = WorkflowDefinitions.list_workflow_definitions(%{"rights" => ["user_view"]})
+      result =
+        WorkflowDefinitions.list_workflow_definitions(%{
+          "right_action" => "view",
+          "rights" => ["user_view"]
+        })
 
       assert %{
                data: [workflow],
@@ -54,7 +61,8 @@ defmodule StepFlow.WorkflowDefinitionsTest do
     end
 
     test "list_workflow_definitions/0 returns workflow_definitions with group unauthorized" do
-      result = WorkflowDefinitions.list_workflow_definitions(%{"rights" => []})
+      result =
+        WorkflowDefinitions.list_workflow_definitions(%{"right_action" => "view", "rights" => []})
 
       assert %{
                data: [],
@@ -62,6 +70,95 @@ defmodule StepFlow.WorkflowDefinitionsTest do
                size: 10,
                total: 0
              } = result
+    end
+
+    test "list_workflow_definitions/0 returns workflow_definitions with version 0.0.1" do
+      result =
+        WorkflowDefinitions.list_workflow_definitions(%{
+          "versions" => ["0.0.1"]
+        })
+
+      assert %{
+               data: [workflow],
+               page: 0,
+               size: 10,
+               total: 1
+             } = result
+
+      assert 0 == workflow.version_major
+      assert 0 == workflow.version_minor
+      assert 1 == workflow.version_micro
+    end
+
+    test "list_workflow_definitions/0 returns workflow_definitions with latest version" do
+      result =
+        WorkflowDefinitions.list_workflow_definitions(%{
+          "versions" => ["latest"]
+        })
+
+      assert %{
+               data: [workflow],
+               page: 0,
+               size: 10,
+               total: 1
+             } = result
+
+      assert 0 == workflow.version_major
+      assert 1 == workflow.version_minor
+      assert 0 == workflow.version_micro
+    end
+
+    test "list_workflow_definitions/0 returns workflow_definitions with label matching 'Transcript%'" do
+      result =
+        WorkflowDefinitions.list_workflow_definitions(%{
+          "search" => "Transcript%"
+        })
+
+      assert %{
+               data: [_],
+               page: 0,
+               size: 10,
+               total: 1
+             } = result
+    end
+
+    test "list_workflow_definitions/0 returns workflow_definitions with simple mode" do
+      result =
+        WorkflowDefinitions.list_workflow_definitions(%{
+          "mode" => "simple"
+        })
+
+      assert %{
+               data: [workfklow | _],
+               page: 0,
+               size: 10,
+               total: 2
+             } = result
+
+      assert Map.has_key?(workfklow, :identifier)
+      assert not Map.has_key?(workfklow, :steps)
+    end
+
+    test "list_workflow_definitions/0 returns workflow_definitions with complex query" do
+      result =
+        WorkflowDefinitions.list_workflow_definitions(%{
+          "mode" => "simple",
+          "search" => "Transcript%",
+          "versions" => ["0.0.1"]
+        })
+
+      assert %{
+               data: [workflow],
+               page: 0,
+               size: 10,
+               total: 1
+             } = result
+
+      assert not Map.has_key?(workflow, :steps)
+      assert String.starts_with?(workflow.label, "Transcript")
+      assert 0 == workflow.version_major
+      assert 0 == workflow.version_minor
+      assert 1 == workflow.version_micro
     end
   end
 end
