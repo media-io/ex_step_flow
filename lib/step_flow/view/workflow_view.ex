@@ -1,6 +1,7 @@
 defmodule StepFlow.WorkflowView do
   use StepFlow, :view
   alias StepFlow.{ArtifactView, JobView, RightView, WorkflowView}
+  require Logger
 
   def render("index.json", %{workflows: %{data: workflows, total: total}}) do
     %{
@@ -68,6 +69,69 @@ defmodule StepFlow.WorkflowView do
       reference: workflow.reference,
       parameters: workflow.parameters,
       created_at: workflow.inserted_at
+    }
+  end
+
+  def render("statistics.json", %{workflows_status: []}) do
+    %{
+      data: %{
+        processing: 0,
+        error: 0,
+        completed: 0,
+        bins: []
+      }
+    }
+  end
+
+  def render("statistics.json", %{
+        workflows_status: workflows_status,
+        time_interval: time_interval,
+        end_date: end_date
+      }) do
+    %{
+      data: %{
+        processing:
+          workflows_status
+          |> Enum.filter(fn s -> s.state == :processing end)
+          |> length(),
+        error:
+          workflows_status
+          |> Enum.filter(fn s -> s.state == :error end)
+          |> length(),
+        completed:
+          workflows_status
+          |> Enum.filter(fn s -> s.state == :completed end)
+          |> length(),
+        bins:
+          workflows_status
+          |> Enum.group_by(fn s ->
+            NaiveDateTime.diff(end_date, s.inserted_at, :second)
+            |> Kernel.div(time_interval)
+          end)
+          |> Enum.map(fn {bin, group} ->
+            %{
+              bin: bin,
+              start_date:
+                NaiveDateTime.add(end_date, -(bin + 1) * time_interval, :second)
+                |> NaiveDateTime.to_string(),
+              end_date:
+                NaiveDateTime.add(end_date, -bin * time_interval, :second)
+                |> NaiveDateTime.to_string(),
+              processing:
+                group
+                |> Enum.filter(fn s -> s.state == :processing end)
+                |> length(),
+              error:
+                group
+                |> Enum.filter(fn s -> s.state == :error end)
+                |> length(),
+              completed:
+                group
+                |> Enum.filter(fn s -> s.state == :completed end)
+                |> length()
+            }
+          end)
+      }
     }
   end
 end
