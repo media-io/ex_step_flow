@@ -31,38 +31,44 @@ defmodule StepFlow.Metrics.JobInstrumenter do
   end
 
   def inc(:step_flow_jobs_created, job_name) do
-    Counter.inc(
-      name: :step_flow_jobs_created,
-      labels: [job_name]
-    )
+    if StepFlow.Configuration.metrics_enabled?() do
+      Counter.inc(
+        name: :step_flow_jobs_created,
+        labels: [job_name]
+      )
 
-    Gauge.inc(
-      name: :step_flow_jobs_processing,
-      labels: [job_name]
-    )
+      Gauge.inc(
+        name: :step_flow_jobs_processing,
+        labels: [job_name]
+      )
+    end
   end
 
   def inc(:step_flow_jobs_error, job_name) do
-    Counter.inc(
-      name: :step_flow_jobs_error,
-      labels: [job_name]
-    )
+    if StepFlow.Configuration.metrics_enabled?() do
+      Counter.inc(
+        name: :step_flow_jobs_error,
+        labels: [job_name]
+      )
 
-    Gauge.dec(
-      name: :step_flow_jobs_processing,
-      labels: [job_name]
-    )
+      Gauge.dec(
+        name: :step_flow_jobs_processing,
+        labels: [job_name]
+      )
+    end
   end
 
   def inc(:step_flow_jobs_completed, job_name) do
-    Counter.inc(
-      name: :step_flow_jobs_completed,
-      labels: [job_name]
-    )
+    if StepFlow.Configuration.metrics_enabled?() do
+      Counter.inc(
+        name: :step_flow_jobs_completed,
+        labels: [job_name]
+      )
 
-    Gauge.dec(
-      name: :step_flow_jobs_processing,
-      labels: [job_name]
-    )
+      Gauge.dec(
+        name: :step_flow_jobs_processing,
+        labels: [job_name]
+      )
+    end
   end
 end
