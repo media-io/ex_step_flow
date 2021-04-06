@@ -20,14 +20,16 @@ defmodule StepFlow.WorkflowDefinitions do
       Map.get(params, "size", 10)
       |> StepFlow.Integer.force()
 
+    mode = Map.get(params, "mode", "full")
+
     offset = page * size
 
     query =
       from(workflow_definition in WorkflowDefinition)
       |> check_rights(Map.get(params, "right_action"), Map.get(params, "rights"))
-      |> filter_by_laber_or_identifier(Map.get(params, "search"))
+      |> filter_by_label_or_identifier(Map.get(params, "search"))
       |> filter_by_versions(Map.get(params, "versions"))
-      |> select_by_mode(Map.get(params, "mode"))
+      |> select_by_mode(mode)
 
     total_query = from(item in subquery(query), select: count(item.id))
 
@@ -42,10 +44,9 @@ defmodule StepFlow.WorkflowDefinitions do
           desc: workflow_definition.version_major,
           desc: workflow_definition.version_minor,
           desc: workflow_definition.version_micro
-        ],
-        offset: ^offset,
-        limit: ^size
+        ]
       )
+      |> paginate(offset, size)
 
     workflow_definitions = Repo.all(query)
 
@@ -53,8 +54,23 @@ defmodule StepFlow.WorkflowDefinitions do
       data: workflow_definitions,
       total: total,
       page: page,
-      size: size
+      size: size,
+      mode: mode
     }
+  end
+
+  defp paginate(query, offset, size) do
+    case size do
+      -1 ->
+        query
+
+      _ ->
+        from(
+          workflow_definition in subquery(query),
+          offset: ^offset,
+          limit: ^size
+        )
+    end
   end
 
   defp check_rights(query, right_action, user_rights) do
@@ -106,7 +122,7 @@ defmodule StepFlow.WorkflowDefinitions do
     end
   end
 
-  defp filter_by_laber_or_identifier(query, search) do
+  defp filter_by_label_or_identifier(query, search) do
     case search do
       nil ->
         query
