@@ -28,25 +28,31 @@ defmodule StepFlow.Metrics.WorkflowInstrumenter do
   end
 
   def inc(:step_flow_workflows_created, identifier) do
-    Counter.inc(
-      name: :step_flow_workflows_created,
-      labels: [identifier]
-    )
-  end
-
-  def inc(:step_flow_workflows_error, workflow_id) do
-    with %{identifier: identifier} <- Workflows.get_workflow!(workflow_id) do
+    if StepFlow.Configuration.metrics_enabled?() do
       Counter.inc(
-        name: :step_flow_workflows_error,
+        name: :step_flow_workflows_created,
         labels: [identifier]
       )
     end
   end
 
+  def inc(:step_flow_workflows_error, workflow_id) do
+    if StepFlow.Configuration.metrics_enabled?() do
+      with %{identifier: identifier} <- Workflows.get_workflow!(workflow_id) do
+        Counter.inc(
+          name: :step_flow_workflows_error,
+          labels: [identifier]
+        )
+      end
+    end
+  end
+
   def inc(:step_flow_workflows_completed, identifier) do
-    Counter.inc(
-      name: :step_flow_workflows_completed,
-      labels: [identifier]
-    )
+    if StepFlow.Configuration.metrics_enabled?() do
+      Counter.inc(
+        name: :step_flow_workflows_completed,
+        labels: [identifier]
+      )
+    end
   end
 end
