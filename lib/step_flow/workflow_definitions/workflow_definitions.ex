@@ -20,21 +20,16 @@ defmodule StepFlow.WorkflowDefinitions do
       Map.get(params, "size", 10)
       |> StepFlow.Integer.force()
 
+    mode = Map.get(params, "mode", "full")
+
     offset = page * size
 
     query =
-      case Map.get(params, "rights") do
-        nil ->
-          from(workflow_definition in WorkflowDefinition)
-
-        user_rights ->
-          from(
-            workflow_definition in WorkflowDefinition,
-            join: rights in assoc(workflow_definition, :rights),
-            where: rights.action == "view",
-            where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
-          )
-      end
+      from(workflow_definition in WorkflowDefinition)
+      |> check_rights(Map.get(params, "right_action"), Map.get(params, "rights"))
+      |> filter_by_label_or_identifier(Map.get(params, "search"))
+      |> filter_by_versions(Map.get(params, "versions"))
+      |> select_by_mode(mode)
 
     total_query = from(item in subquery(query), select: count(item.id))
 
@@ -45,10 +40,13 @@ defmodule StepFlow.WorkflowDefinitions do
     query =
       from(
         workflow_definition in subquery(query),
-        order_by: [desc: :inserted_at],
-        offset: ^offset,
-        limit: ^size
+        order_by: [
+          desc: workflow_definition.version_major,
+          desc: workflow_definition.version_minor,
+          desc: workflow_definition.version_micro
+        ]
       )
+      |> paginate(offset, size)
 
     workflow_definitions = Repo.all(query)
 
@@ -56,8 +54,110 @@ defmodule StepFlow.WorkflowDefinitions do
       data: workflow_definitions,
       total: total,
       page: page,
-      size: size
+      size: size,
+      mode: mode
     }
+  end
+
+  defp paginate(query, offset, size) do
+    case size do
+      -1 ->
+        query
+
+      _ ->
+        from(
+          workflow_definition in subquery(query),
+          offset: ^offset,
+          limit: ^size
+        )
+    end
+  end
+
+  defp check_rights(query, right_action, user_rights) do
+    case {right_action, user_rights} do
+      {nil, _} ->
+        query
+
+      {_, nil} ->
+        query
+
+      {right_action, user_rights} ->
+        from(
+          workflow_definition in subquery(query),
+          join: rights in assoc(workflow_definition, :rights),
+          where: rights.action == ^right_action,
+          where: fragment("?::varchar[] && ?::varchar[]", rights.groups, ^user_rights)
+        )
+    end
+  end
+
+  def filter_by_versions(query, versions) do
+    case versions do
+      ["latest"] ->
+        from(
+          workflow_definition in subquery(query),
+          order_by: [
+            desc: workflow_definition.version_major,
+            desc: workflow_definition.version_minor,
+            desc: workflow_definition.version_micro
+          ],
+          distinct: :identifier
+        )
+
+      versions when is_list(versions) and length(versions) != 0 ->
+        from(
+          workflow_definition in subquery(query),
+          where:
+            fragment(
+              "concat(?, '.', ?, '.', ?) = ANY(?)",
+              workflow_definition.version_major,
+              workflow_definition.version_minor,
+              workflow_definition.version_micro,
+              ^versions
+            )
+        )
+
+      _ ->
+        query
+    end
+  end
+
+  defp filter_by_label_or_identifier(query, search) do
+    case search do
+      nil ->
+        query
+
+      search ->
+        from(
+          workflow_definition in subquery(query),
+          where:
+            ilike(workflow_definition.label, ^search) or
+              ilike(workflow_definition.identifier, ^search)
+        )
+    end
+  end
+
+  defp select_by_mode(query, mode) do
+    case mode do
+      "simple" ->
+        from(
+          workflow_definition in subquery(query),
+          select: %{
+            id: workflow_definition.id,
+            identifier: workflow_definition.identifier,
+            label: workflow_definition.label,
+            version_major: workflow_definition.version_major,
+            version_minor: workflow_definition.version_minor,
+            version_micro: workflow_definition.version_micro
+          }
+        )
+
+      "full" ->
+        query
+
+      _ ->
+        query
+    end
   end
 
   @doc """

@@ -2,9 +2,16 @@ defmodule StepFlow.WorkflowDefinitionView do
   use StepFlow, :view
   alias StepFlow.WorkflowDefinitionView
 
-  def render("index.json", %{workflow_definitions: %{data: workflow_definitions, total: total}}) do
+  def render("index.json", %{
+        workflow_definitions: %{data: workflow_definitions, total: total, mode: mode}
+      }) do
     %{
-      data: render_many(workflow_definitions, WorkflowDefinitionView, "workflow_definition.json"),
+      data:
+        render_many(
+          workflow_definitions,
+          WorkflowDefinitionView,
+          "workflow_definition_#{mode}.json"
+        ),
       total: total
     }
   end
@@ -17,6 +24,33 @@ defmodule StepFlow.WorkflowDefinitionView do
           WorkflowDefinitionView,
           "workflow_definition_with_steps.json"
         )
+    }
+  end
+
+  def render("workflow_definition_full.json", %{workflow_definition: workflow_definition}) do
+    %{
+      schema_version: workflow_definition.schema_version,
+      id: workflow_definition.id,
+      identifier: workflow_definition.identifier,
+      label: workflow_definition.label,
+      icon: workflow_definition.icon,
+      version_major: workflow_definition.version_major,
+      version_minor: workflow_definition.version_minor,
+      version_micro: workflow_definition.version_micro,
+      tags: workflow_definition.tags,
+      start_parameters: workflow_definition.start_parameters,
+      parameters: workflow_definition.parameters
+    }
+  end
+
+  def render("workflow_definition_simple.json", %{workflow_definition: workflow_definition}) do
+    %{
+      id: workflow_definition.id,
+      identifier: workflow_definition.identifier,
+      label: workflow_definition.label,
+      version_major: workflow_definition.version_major,
+      version_minor: workflow_definition.version_minor,
+      version_micro: workflow_definition.version_micro
     }
   end
 
