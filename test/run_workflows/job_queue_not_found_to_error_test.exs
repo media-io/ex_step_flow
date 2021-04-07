@@ -73,14 +73,13 @@ defmodule StepFlow.RunWorkflows.JobQueueNotFoundToErrorTest do
       StepFlow.HelpersTest.check(workflow.id, 0, 1)
 
       StepFlow.HelpersTest.change_job_status(workflow, 0, :retrying)
+      {:ok, "still_processing"} = Step.start_next(workflow)
 
       :timer.sleep(1000)
 
-      {:ok, "still_processing"} = Step.start_next(workflow)
-
-      assert StepFlow.HelpersTest.get_job_count_status(workflow, 0).queued == 0
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 0).queued == 1
       assert StepFlow.HelpersTest.get_job_count_status(workflow, 0).processing == 0
-      assert StepFlow.HelpersTest.get_job_count_status(workflow, 0).errors == 1
+      assert StepFlow.HelpersTest.get_job_count_status(workflow, 0).errors == 0
       assert StepFlow.HelpersTest.get_job_count_status(workflow, 0).completed == 0
     end
   end
