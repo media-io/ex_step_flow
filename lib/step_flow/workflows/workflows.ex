@@ -10,6 +10,7 @@ defmodule StepFlow.Workflows do
   alias StepFlow.Jobs.Status
   alias StepFlow.Progressions.Progression
   alias StepFlow.Repo
+  alias StepFlow.Workflows
   alias StepFlow.Workflows.Workflow
 
   require Logger
@@ -57,8 +58,7 @@ defmodule StepFlow.Workflows do
       |> filter_query(params, :version_micro)
       |> date_before_filter_query(params, :before_date)
       |> date_after_filter_query(params, :after_date)
-
-    query = filter_status(query, params)
+      |> filter_status(params, :states)
 
     query =
       case StepFlow.Map.get_by_key_or_atom(params, :ids) do
@@ -108,69 +108,24 @@ defmodule StepFlow.Workflows do
     }
   end
 
-  defp get_status(status, completed_status) do
-    if status != nil do
-      if Status.state_enum_label(:completed) in status do
-        if status == completed_status do
-          :completed
-        else
-          nil
-        end
-      else
-        if Status.state_enum_label(:error) in status do
-          :error
-        else
-          :processing
-        end
-      end
-    else
-      nil
-    end
-  end
-
-  defp filter_status(query, params) do
-    status = Map.get(params, "state")
-
-    completed_status = [
-      Status.state_enum_label(:completed)
-    ]
-
-    case get_status(status, completed_status) do
+  def filter_status(query, params, key) do
+    case StepFlow.Map.get_by_key_or_atom(params, key) do
       nil ->
         query
 
-      :completed ->
+      states ->
         from(
           workflow in query,
-          left_join: artifact in assoc(workflow, :artifacts),
-          where: not is_nil(artifact.id)
-        )
-
-      :error ->
-        completed_jobs_to_exclude =
-          from(
-            workflow in query,
-            join: job in assoc(workflow, :jobs),
-            join: status in assoc(job, :status),
-            where: status.state in ^completed_status,
-            group_by: workflow.id
-          )
-
-        from(
-          workflow in query,
-          join: job in assoc(workflow, :jobs),
-          join: status in assoc(job, :status),
-          where: status.state in ^status,
-          group_by: workflow.id,
-          except: ^completed_jobs_to_exclude
-        )
-
-      :processing ->
-        from(
-          workflow in query,
-          join: jobs in assoc(workflow, :jobs),
-          join: status in assoc(jobs, :status),
-          where: status.state in ^status
+          join:
+            workflow_status in subquery(
+              from(
+                workflow_status in Workflows.Status,
+                order_by: [desc: workflow_status.id, desc: workflow_status.workflow_id],
+                distinct: [desc: workflow_status.workflow_id]
+              )
+            ),
+          on: workflow.id == workflow_status.workflow_id,
+          where: workflow_status.state in ^states
         )
     end
   end
@@ -191,8 +146,19 @@ defmodule StepFlow.Workflows do
         query
 
       date_value ->
-        date = Date.from_iso8601!(date_value)
-        from(workflow in query, where: fragment("?::date", workflow.inserted_at) <= ^date)
+        datetime =
+          case NaiveDateTime.from_iso8601(date_value) do
+            {:ok, date} ->
+              date
+
+            _ ->
+              NaiveDateTime.new!(
+                Date.from_iso8601!(date_value),
+                Time.new!(23, 59, 59, 999_999)
+              )
+          end
+
+        from(workflow in query, where: fragment("?::timestamp", workflow.inserted_at) <= ^datetime)
     end
   end
 
@@ -202,8 +168,19 @@ defmodule StepFlow.Workflows do
         query
 
       date_value ->
-        date = Date.from_iso8601!(date_value)
-        from(workflow in query, where: fragment("?::date", workflow.inserted_at) >= ^date)
+        datetime =
+          case NaiveDateTime.from_iso8601(date_value) do
+            {:ok, date} ->
+              date
+
+            _ ->
+              NaiveDateTime.new!(
+                Date.from_iso8601!(date_value),
+                Time.new!(0, 0, 0)
+              )
+          end
+
+        from(workflow in query, where: fragment("?::timestamp", workflow.inserted_at) >= ^datetime)
     end
   end
 
