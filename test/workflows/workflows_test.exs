@@ -161,6 +161,87 @@ defmodule StepFlow.WorkflowsTest do
       assert total == 1
     end
 
+    test "list_workflows/0 returns workflows with before date" do
+      workflow_fixture()
+      today = Date.utc_today() |> Date.to_iso8601()
+
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows(%{"before_date" => today})
+
+      assert page == 0
+      assert size == 10
+      assert total == 1
+
+      now = NaiveDateTime.utc_now() |> NaiveDateTime.to_iso8601()
+
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows(%{"before_date" => now})
+
+      assert page == 0
+      assert size == 10
+      assert total == 1
+
+      yesterday = Date.utc_today() |> Date.add(-1) |> Date.to_iso8601()
+
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows(%{"before_date" => yesterday})
+
+      assert page == 0
+      assert size == 10
+      assert total == 0
+    end
+
+    test "list_workflows/0 returns workflows with after date" do
+      workflow_fixture()
+      yesterday = Date.utc_today() |> Date.add(-1) |> Date.to_iso8601()
+
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows(%{"after_date" => yesterday})
+
+      assert page == 0
+      assert size == 10
+      assert total == 1
+
+      yesterday_time =
+        NaiveDateTime.utc_now()
+        |> NaiveDateTime.add(-86_400, :second)
+        |> NaiveDateTime.to_iso8601()
+
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows(%{"after_date" => yesterday_time})
+
+      assert page == 0
+      assert size == 10
+      assert total == 1
+
+      tomorrow = Date.utc_today() |> Date.add(1) |> Date.to_iso8601()
+
+      %{
+        page: page,
+        size: size,
+        total: total
+      } = Workflows.list_workflows(%{"after_date" => tomorrow})
+
+      assert page == 0
+      assert size == 10
+      assert total == 0
+    end
+
     test "get_workflow!/1 returns the workflow with given id" do
       workflow =
         workflow_fixture()

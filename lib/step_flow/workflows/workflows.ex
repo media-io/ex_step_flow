@@ -146,13 +146,19 @@ defmodule StepFlow.Workflows do
         query
 
       date_value ->
-        date =
+        datetime =
           case NaiveDateTime.from_iso8601(date_value) do
-            {:ok, date} -> date
-            _ -> Date.from_iso8601!(date_value)
+            {:ok, date} ->
+              date
+
+            _ ->
+              NaiveDateTime.new!(
+                Date.from_iso8601!(date_value),
+                Time.new!(23, 59, 59, 999_999)
+              )
           end
 
-        from(workflow in query, where: fragment("?::timestamp", workflow.inserted_at) <= ^date)
+        from(workflow in query, where: fragment("?::timestamp", workflow.inserted_at) <= ^datetime)
     end
   end
 
@@ -162,13 +168,19 @@ defmodule StepFlow.Workflows do
         query
 
       date_value ->
-        date =
+        datetime =
           case NaiveDateTime.from_iso8601(date_value) do
-            {:ok, date} -> date
-            _ -> Date.from_iso8601!(date_value)
+            {:ok, date} ->
+              date
+
+            _ ->
+              NaiveDateTime.new!(
+                Date.from_iso8601!(date_value),
+                Time.new!(0, 0, 0)
+              )
           end
 
-        from(workflow in query, where: fragment("?::timestamp", workflow.inserted_at) >= ^date)
+        from(workflow in query, where: fragment("?::timestamp", workflow.inserted_at) >= ^datetime)
     end
   end
 
