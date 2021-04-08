@@ -15,7 +15,7 @@ config :step_flow, StepFlow.Metrics,
   delta: -1
 
 config :step_flow, StepFlow.Repo,
-  hostname: "localhost",
+  hostname: "postgres",
   port: 5432,
   username: "postgres",
   password: "postgres",
@@ -24,7 +24,7 @@ config :step_flow, StepFlow.Repo,
   pool: Ecto.Adapters.SQL.Sandbox
 
 config :step_flow, StepFlow.Amqp,
-  hostname: "localhost",
+  hostname: "rabbitmq",
   port: 5672,
   username: "guest",
   password: "guest",
