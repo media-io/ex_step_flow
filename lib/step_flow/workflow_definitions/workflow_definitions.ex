@@ -128,10 +128,12 @@ defmodule StepFlow.WorkflowDefinitions do
         query
 
       search ->
+        like = "%#{search}%"
+
         from(
           workflow_definition in subquery(query),
           where:
-            ilike(workflow_definition.label, ^search) or
+            ilike(workflow_definition.label, ^like) or
               ilike(workflow_definition.identifier, ^search)
         )
     end
