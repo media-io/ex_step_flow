@@ -108,17 +108,17 @@ defmodule StepFlow.WorkflowDefinitionsTest do
       assert 0 == workflow.version_micro
     end
 
-    test "list_workflow_definitions/0 returns workflow_definitions with label matching 'Transcript%'" do
+    test "list_workflow_definitions/0 returns workflow_definitions with label matching 'ranscript' with missing 'T'" do
       result =
         WorkflowDefinitions.list_workflow_definitions(%{
-          "search" => "Transcript%"
+          "search" => "ranscript"
         })
 
       assert %{
-               data: [_],
+               data: [_ | _],
                page: 0,
                size: 10,
-               total: 1
+               total: 2
              } = result
     end
 
@@ -143,7 +143,7 @@ defmodule StepFlow.WorkflowDefinitionsTest do
       result =
         WorkflowDefinitions.list_workflow_definitions(%{
           "mode" => "simple",
-          "search" => "Transcript%",
+          "search" => "Transcript",
           "versions" => ["0.0.1"]
         })
 
