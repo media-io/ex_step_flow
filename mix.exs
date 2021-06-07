@@ -79,7 +79,7 @@ defmodule StepFlow.MixProject do
       {:prometheus_plugs, "~> 1.1"},
       {:slack, "~> 0.23.5"},
       {:timex, "~> 3.2"},
-      {:xema, "0.13.6"}
+      {:xema, "0.13.10"}
     ]
   end
 
